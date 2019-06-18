@@ -1,8 +1,13 @@
 const r2 = require('r2');
-export const postEventData = data => {
-  const url = `http://41.217.202.50/dhis/api/events`;
-  const Authorization = `Basic Y2hpbmdhbG86Q2hpbmdhbG8xMTE5ODc=`;
+import {
+  appConfig,
+  getAuthorizationString
+} from '../config/app.config';
 
+export const postEventData = data => {
+  const baseUrl = appConfig.url
+  const url = `${baseUrl}/api/events`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
   return r2.post(url, {
     headers: {
       Authorization
