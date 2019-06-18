@@ -23,6 +23,8 @@
         "body-parser": "^1.18.2",
         "compression": "^1.5.2",
         "cors": "^2.7.1",
+        "commitizen": "^2.10.1",
+        "cz-conventional-changelog": "^2.1.0",
         "dhis2-uid": "^0.1.2",
         "dotenv": "^5.0.1",
         "express": "^4.16.2",
@@ -33,6 +35,11 @@
         "node-fetch": "^2.1.2",
         "r2": "^2.0.0",
         "sqlite3": "^3.1.13"
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
     },
     "devDependencies": {
         "babel-cli": "^6.9.0",
