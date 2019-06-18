@@ -1,7 +1,13 @@
 import fetch from 'node-fetch';
+import {
+  appConfig,
+  getAuthorizationString
+} from '../config/app.config';
+
 export const getUserFromDHIS2 = async phoneNumber => {
-  const url = `http://41.217.202.50/dhis/api/users.json?phoneNumber=${phoneNumber}&paging=false&fields=id,displayName,organisationUnits`;
-  const Authorization = `Basic Y2hpbmdhbG86Q2hpbmdhbG8xMTE5ODc=`;
+  const baseUrl = appConfig.url
+  const url = `${baseUrl}/api/users.json?phoneNumber=${phoneNumber}&paging=false&fields=id,displayName,organisationUnits`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
   const response = await fetch(url, {
     headers: {

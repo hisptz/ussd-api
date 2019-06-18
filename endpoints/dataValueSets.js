@@ -1,7 +1,18 @@
 const r2 = require('r2');
-export const postAggregateData = data => {
-  const url = `http://41.217.202.50/dhis/api/dataValueSets`;
-  const Authorization = `Basic Y2hpbmdhbG86Q2hpbmdhbG8xMTE5ODc=`;
+import {
+  appConfig,
+  getAuthorizationString
+} from '../config/app.config';
 
-  return r2.post(url, { headers: { Authorization }, json: data }).json;
+export const postAggregateData = data => {
+  const baseUrl = appConfig.url
+  const url = `${baseUrl}/api/dataValueSets`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.post(url, {
+    headers: {
+      Authorization
+    },
+    json: data
+  }).json;
 };
