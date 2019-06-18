@@ -16,8 +16,7 @@ PUSSD-API project with:
 
 ```
 npm install
-npm knex migrate:latest
-npm knex seed:run
+npm run knex migrate:latest
 
 pm2 start npm --no-automation --name ussd-api -- run dev
 
