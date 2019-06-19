@@ -35,7 +35,6 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
   } = await getCurrentSession(sessionid);
   const menus = JSON.parse(datastore).menus;
   const _currentMenu = menus[currentmenu];
-
   if (_currentMenu.type === 'auth') {
     if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
       response = `C;${sessionid};${_currentMenu.fail_message}`;
@@ -144,8 +143,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   } else if (menu.type === 'period' || menu.type === 'data') {
     const {
       use_for_year,
-      years_back,
-      number_of_retries
+      years_back
     } = menu;
     if (use_for_year) {
       const arrayOfYears = getYears(years_back);
@@ -162,7 +160,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
     const submitOptions = ['YES', 'NO'];
-    const submitMsgString = [menu.title, ...submitOptions.map((year, index) => `${index + 1}. ${year}`)].join('\n');
+    const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
     message = `P;${sessionid};${submitMsgString}`;
   }
   if (additional_message) {
@@ -241,30 +239,40 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
     use_for_year,
     years_back
   } = menu;
-
-  if (answer > maximum_value && !use_for_year) {
-    return `C;${sessionid};${menu.fail_message || 'You did not enter the correct choice'}`;
-  }
-
-  if (use_for_year) {
-    if (isNumeric(answer) && answer > 0 && answer <= years_back + 1) {
-      const year = getYears(years_back)[answer - 1];
-      await collectPeriodData(sessionid, {
-        year
-      });
+  response = await returnNextMenu(sessionid, next_menu, menus);
+  //checking for period value and return appropriate menu in case of wrong selection
+  if (isNumeric(answer)) {
+    if (maximum_value && answer > maximum_value && !use_for_year) {
+      const retry_message = `${answer} is above ${maximum_value}, try again`;
+      response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+    }
+    if (use_for_year) {
+      if (answer > 0 && answer <= years_back + 1) {
+        const year = getYears(years_back)[answer - 1];
+        await collectPeriodData(sessionid, {
+          year
+        });
+      } else {
+        const retry_message = menu.retry_message || `You did not enter the correct choice`;
+        response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+      }
     } else {
-      // TODO: do the retry tings.
+      const period_value = getPeriodBytype(period_type, answer);
+      const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
+      await collectPeriodData(sessionid, {
+        period
+      });
     }
   } else {
-    await collectPeriodData(sessionid, {
-      period: `${periodTypes[period_type]}${answer}`
-    });
+    const retry_message = menu.retry_message || `You did not enter numerical value, try again`;
+    response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
   }
-
-  const getNextMenu = await returnNextMenu(sessionid, next_menu, menus);
-
-  return getNextMenu;
+  return response;
 };
+
+const getPeriodBytype = (period_type, value) => {
+  return period_type === 'Monthly' ? value > 9 ? `${value}` : `0${value}` : value;
+}
 
 const terminateWithMessage = async (sessionid, menu) => {
   // TODO: DO other things like deleting session. not to overcloud database.

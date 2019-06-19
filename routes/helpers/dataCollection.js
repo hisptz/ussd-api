@@ -1,17 +1,31 @@
-import { getSessionDataValue, updateSessionDataValues, addSessionDatavalues, getCurrentSession, getUser } from '../../db';
-import { postAggregateData } from '../../endpoints/dataValueSets';
-import { postEventData } from '../../endpoints/eventData';
+import {
+  getSessionDataValue,
+  updateSessionDataValues,
+  addSessionDatavalues,
+  getCurrentSession,
+  getUser
+} from '../../db';
+import {
+  postAggregateData
+} from '../../endpoints/dataValueSets';
+import {
+  postEventData
+} from '../../endpoints/eventData';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  const { dataType, category_combo, data_element, program, program_stage } = _currentMenu;
-  const dataValue = [
-    {
-      dataElement: data_element,
-      categoryOptionCombo: category_combo,
-      value: USSDRequest
-    }
-  ];
+  const {
+    dataType,
+    category_combo,
+    data_element,
+    program,
+    program_stage
+  } = _currentMenu;
+  const dataValue = [{
+    dataElement: data_element,
+    categoryOptionCombo: category_combo,
+    value: USSDRequest
+  }];
   const data = {
     sessionid,
     programStage: program_stage,
@@ -35,7 +49,11 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 
 export const submitData = async (sessionid, _currentMenu, USSDRequest, menus) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  const { datatype, program, programStage } = sessionDatavalues;
+  const {
+    datatype,
+    program,
+    programStage
+  } = sessionDatavalues;
   if (datatype === 'aggregate') {
     return sendAggregateData(sessionid);
   } else if (datatype === 'event') {
@@ -60,11 +78,21 @@ export const collectPeriodData = async (sessionid, obj) => {
 const sendAggregateData = async sessionid => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
-  const { dataValues, year, period } = sessionDatavalues;
-  const { orgUnit } = sessions;
+  const {
+    dataValues,
+    year,
+    period
+  } = sessionDatavalues;
+  const {
+    orgUnit
+  } = sessions;
   const finalPeriod = `${year}${period}`;
   const dtValues = JSON.parse(dataValues);
-  const dtArray = dtValues.map(({ categoryOptionCombo, dataElement, value }) => ({
+  const dtArray = dtValues.map(({
+    categoryOptionCombo,
+    dataElement,
+    value
+  }) => ({
     categoryOptionCombo,
     dataElement,
     value,
@@ -80,10 +108,17 @@ const sendAggregateData = async sessionid => {
 const sendEventData = async (sessionid, program, programStage) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
-  const { dataValues } = sessionDatavalues;
-  const { orgUnit } = sessions;
+  const {
+    dataValues
+  } = sessionDatavalues;
+  const {
+    orgUnit
+  } = sessions;
   const dtValues = JSON.parse(dataValues);
-  const dtArray = dtValues.map(({ dataElement, value }) => ({
+  const dtArray = dtValues.map(({
+    dataElement,
+    value
+  }) => ({
     dataElement,
     value
   }));
