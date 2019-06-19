@@ -65,7 +65,8 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
     } else {
       // checking for values types from current menu and value send from ussd
       if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
-        response = `P;${sessionid};${_currentMenu.retry_message || 'You did not enter numerical value, try again'}`;
+        const retry_message = menus.retry_message || 'You did not enter numerical value, try again'
+        response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
       } else {
         response = await collectData(sessionid, _currentMenu, USSDRequest);
         response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
@@ -129,7 +130,7 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
 };
 
 // Deals with next menu;
-const returnNextMenu = async (sessionid, next_menu, menus) => {
+const returnNextMenu = async (sessionid, next_menu, menus, additional_message) => {
   let message;
   await updateUserSession(sessionid, {
     currentmenu: next_menu,
@@ -162,6 +163,9 @@ const returnNextMenu = async (sessionid, next_menu, menus) => {
     const submitMsgString = [menu.title, ...submitOptions.map((year, index) => `${index + 1}. ${year}`)].join('\n');
     message = `P;${sessionid};${submitMsgString}`;
   }
+  if (additional_message) {
+    message += `\n${additional_message}`;
+  }
   return message;
 };
 
@@ -174,7 +178,7 @@ const checkOptionsAnswer = async (sessionid, menu, answer, menus) => {
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
     if (menu.type === 'options' && menu.options) {
-      return `P;${sessionid};${returnOptions(menu)}`;
+      return `P;${sessionid};${returnOptions(menu)}\n${menu.retry_message || 'You did not enter the correct choice,try again'}`;
     } else {
       return `C;${sessionid};${menu.fail_message || 'You did not enter the correct choice'}`;
     }
