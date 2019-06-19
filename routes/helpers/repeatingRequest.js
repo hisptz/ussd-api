@@ -172,7 +172,12 @@ const checkOptionsAnswer = async (sessionid, menu, answer, menus) => {
   } = menu;
   const responses = options.map(option => option.response);
   if (!responses.includes(answer)) {
-    return `C;${sessionid};${menu.fail_message || 'You did not enter the correct choice'}`;
+    // return menu with options in case of incorrect value on selection
+    if (menu.type === 'options' && menu.options) {
+      return `P;${sessionid};${returnOptions(menu)}`;
+    } else {
+      return `C;${sessionid};${menu.fail_message || 'You did not enter the correct choice'}`;
+    }
   }
 
   const correctOption = options.filter(option => option.response === answer)[0];
