@@ -60,7 +60,9 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
           response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
         }
       } else {
-        response = `C;${sessionid};${_currentMenu.fail_message || 'You did not enter the correct choice'}`;
+        // Return menu for data collector with options
+        const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
+        response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
       }
     } else {
       // checking for values types from current menu and value send from ussd
