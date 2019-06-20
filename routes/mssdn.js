@@ -18,15 +18,6 @@ const requestHandler = async (req, res) => {
     msisdn,
     USSDType
   } = req.query;
-
-  console.log(JSON.stringify({
-    sessionid,
-    telco,
-    USSDRequest,
-    msisdn,
-    USSDType
-  }))
-
   const isNewRequest = USSDType === 'NR';
   let response;
   if (isNewRequest) {
