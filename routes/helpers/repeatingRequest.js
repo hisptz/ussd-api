@@ -242,10 +242,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
   response = await returnNextMenu(sessionid, next_menu, menus);
   //checking for period value and return appropriate menu in case of wrong selection
   if (isNumeric(answer)) {
-    if (maximum_value && answer > maximum_value && !use_for_year) {
-      const retry_message = `${answer} is above ${maximum_value}, try again`;
-      response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
-    }
+    //checking for yearly period types
     if (use_for_year) {
       if (answer > 0 && answer <= years_back + 1) {
         const year = getYears(years_back)[answer - 1];
@@ -257,11 +254,17 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
         response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
       }
     } else {
-      const period_value = getPeriodBytype(period_type, answer);
-      const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
-      await collectPeriodData(sessionid, {
-        period
-      });
+      //checking for validity of values for other priod types
+      if (answer > 0 && maximum_value && answer <= maximum_value) {
+        const period_value = getPeriodBytype(period_type, answer);
+        const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
+        await collectPeriodData(sessionid, {
+          period
+        });
+      } else {
+        const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
+        response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+      }
     }
   } else {
     const retry_message = menu.retry_message || `You did not enter numerical value, try again`;
