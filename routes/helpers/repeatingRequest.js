@@ -115,7 +115,6 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
   let message;
   const {
     next_menu,
-    number_of_retries,
     retry_message
   } = currentMenu;
   if (response === currentMenu.auth_key) {
@@ -138,6 +137,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     retries: 0
   });
   const menu = menus[next_menu];
+  const _previous_menu = menus[menu.previous_menu] || {}
   if (menu.type === 'options') {
     message = `P;${sessionid};${returnOptions(menu)}`;
   } else if (menu.type === 'period' || menu.type === 'data') {
@@ -162,6 +162,10 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     const submitOptions = ['YES', 'NO'];
     const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
     message = `P;${sessionid};${submitMsgString}`;
+  }
+  // checking if previous menu is not of type auth and add back menu
+  if (_previous_menu && _previous_menu.type !== 'auth') {
+    message += `\n# Back`
   }
   if (additional_message) {
     message += `\n${additional_message}`;
