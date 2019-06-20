@@ -75,6 +75,18 @@ export const collectPeriodData = async (sessionid, obj) => {
   });
 };
 
+export const getCurrentSessionDataValue = async sessionid => {
+  const sessionDatavalues = await getSessionDataValue(sessionid);
+  const {
+    dataValues,
+    datatype
+  } = sessionDatavalues;
+  return {
+    dataValues: JSON.parse(dataValues),
+    datatype
+  };
+}
+
 const sendAggregateData = async sessionid => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
