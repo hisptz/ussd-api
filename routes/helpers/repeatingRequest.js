@@ -102,7 +102,8 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
           }
           response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
         } else {
-          response = `C;${sessionid};Terminating the session`;
+          const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
+          response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
         }
       } else {
         const {
@@ -168,7 +169,10 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
     const submitOptions = ['YES', 'NO'];
     const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
-    message = `P;${sessionid};${submitMsgString}\n${connfirmationSummary}`;
+    message = `P;${sessionid};${submitMsgString}`;
+    if (connfirmationSummary !== "") {
+      message += `\n${connfirmationSummary}`;
+    }
   }
   // checking if previous menu is not of type auth and add back menu
   if (_previous_menu && _previous_menu.type !== 'auth') {
@@ -255,7 +259,8 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
   if (isNumeric(answer)) {
     //checking for yearly period types
     if (use_for_year) {
-      if (answer > 0 && answer <= years_back + 1) {
+      const limit = parseInt(years_back, 10) + 1;
+      if (answer > 0 && answer <= limit) {
         const year = getYears(years_back)[answer - 1];
         await collectPeriodData(sessionid, {
           year
