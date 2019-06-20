@@ -35,76 +35,79 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
   } = await getCurrentSession(sessionid);
   const menus = JSON.parse(datastore).menus;
   const _currentMenu = menus[currentmenu];
-  if (_currentMenu.type === 'auth') {
-    if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
-      response = `C;${sessionid};${_currentMenu.fail_message}`;
-    } else {
-      response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
-    }
-  } else if (_currentMenu.type === 'data') {
-    const {
-      options
-    } = _currentMenu;
-    if (options && options.length) {
+  // checking for previous menu is not auth and checking if user need previous menu
+  const _previous_menu = menus[_currentMenu.previous_menu] || {}
+  if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '*') {
+    response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
+  } else {
+    if (_currentMenu.type === 'auth') {
+      if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
+        response = `C;${sessionid};${_currentMenu.fail_message}`;
+      } else {
+        response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
+      }
+    } else if (_currentMenu.type === 'data') {
       const {
-        passed,
-        correctOption,
-        next_menu_response
-      } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
-      if (passed) {
-        response = await collectData(sessionid, _currentMenu, correctOption);
-        if (next_menu_response) {
-          response = next_menu_response;
+        options
+      } = _currentMenu;
+      if (options && options.length) {
+        const {
+          passed,
+          correctOption,
+          next_menu_response
+        } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
+        if (passed) {
+          response = await collectData(sessionid, _currentMenu, correctOption);
+          if (next_menu_response) {
+            response = next_menu_response;
+          } else {
+            response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+          }
         } else {
+          // Return menu for data collector with options
+          const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
+          response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
+        }
+      } else {
+        // checking for values types from current menu and value send from ussd
+        if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
+          const retry_message = menus.retry_message || 'You did not enter numerical value, try again'
+          response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
+        } else {
+          response = await collectData(sessionid, _currentMenu, USSDRequest);
           response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
         }
-      } else {
-        // Return menu for data collector with options
-        const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
-        response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
       }
-    } else {
-      // checking for values types from current menu and value send from ussd
-      if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
-        const retry_message = menus.retry_message || 'You did not enter numerical value, try again'
-        response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
-      } else {
-        response = await collectData(sessionid, _currentMenu, USSDRequest);
-        response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
-      }
+    } else if (_currentMenu.type === 'options') {
+      response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, menus);
+    } else if (_currentMenu.type === 'period') {
+      response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, menus);
+    } else if (_currentMenu.type === 'message') {
+      response = terminateWithMessage(sessionid, _currentMenu);
     }
-  } else if (_currentMenu.type === 'options') {
-    response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, menus);
-  } else if (_currentMenu.type === 'period') {
-    response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, menus);
-  } else if (_currentMenu.type === 'message') {
-    response = terminateWithMessage(sessionid, _currentMenu);
-  }
 
-  // if you are to submit data submit here.
-  if (_currentMenu.submit_data) {
-    if ((_currentMenu.type = 'data-submission')) {
-      if (dataSubmissionOptions[USSDRequest - 1]) {
+    // if you are to submit data submit here.
+    if (_currentMenu.submit_data) {
+      if ((_currentMenu.type = 'data-submission')) {
+        if (dataSubmissionOptions[USSDRequest - 1]) {
+          const {
+            httpStatus,
+            message
+          } = await submitData(sessionid, _currentMenu, menus);
+          if (httpStatus !== OK) {
+            response = `C;${sessionid};${message}`;
+          }
+          response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+        } else {
+          response = `C;${sessionid};Terminating the session`;
+        }
+      } else {
         const {
-          httpStatus,
-          httpStatusCode,
-          message
+          httpStatus
         } = await submitData(sessionid, _currentMenu, menus);
         if (httpStatus !== OK) {
-          response = `C;${sessionid};${message}`;
+          response = `C;${sessionid};Terminating the session`;
         }
-        response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
-      } else {
-        response = `C;${sessionid};Terminating the session`;
-      }
-    } else {
-      const {
-        httpStatus,
-        httpStatusCode,
-        message
-      } = await submitData(sessionid, _currentMenu, menus);
-      if (httpStatus !== OK) {
-        response = `C;${sessionid};Terminating the session`;
       }
     }
   }
@@ -165,7 +168,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   }
   // checking if previous menu is not of type auth and add back menu
   if (_previous_menu && _previous_menu.type !== 'auth') {
-    message += `\n# Back`
+    message += `\n* Back`
   }
   if (additional_message) {
     message += `\n${additional_message}`;

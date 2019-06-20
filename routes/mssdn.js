@@ -1,13 +1,31 @@
 const express = require('express');
-import { returnAuthenticationResponse } from './helpers/authentication';
-import { repeatingRequest } from './helpers/repeatingRequest';
+import {
+  returnAuthenticationResponse
+} from './helpers/authentication';
+import {
+  repeatingRequest
+} from './helpers/repeatingRequest';
 
 const db = require('../db');
 
 const router = express.Router();
 
 const requestHandler = async (req, res) => {
-  const { sessionid, telco, USSDRequest, msisdn, USSDType } = req.query;
+  const {
+    sessionid,
+    telco,
+    USSDRequest,
+    msisdn,
+    USSDType
+  } = req.query;
+
+  console.log(JSON.stringify({
+    sessionid,
+    telco,
+    USSDRequest,
+    msisdn,
+    USSDType
+  }))
 
   const isNewRequest = USSDType === 'NR';
   let response;
