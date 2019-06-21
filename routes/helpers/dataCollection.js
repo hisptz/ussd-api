@@ -80,17 +80,19 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
     const dataSet = await getDataSet(menu.dataSet);
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year +sessionDatavalues.period, session.orgUnit);
     dataSet.dataSetElements.forEach((dataSetElement) => {
-      let found = false;
-      if (dataValueSet.dataValues) {
-        dataValueSet.dataValues.forEach((dataValue) => {
-          if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryCombo === dataSetElement.categoryCombo.id) {
-            found = true;
-          }
-        })
-      }
-      if (!found){
-        returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + dataSetElement.categoryCombo.name)
-      }
+      dataSetElement.categoryCombo.categoryOptionCombos.forEach((categoryOptionCombo)=> {
+        let found = false;
+        if (dataValueSet.dataValues) {
+          dataValueSet.dataValues.forEach((dataValue) => {
+            if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryOptionCombo === categoryOptionCombo.id) {
+              found = true;
+            }
+          })
+        }
+        if (!found) {
+          returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + categoryOptionCombo.shortName)
+        }
+      })
     })
   }
   return returnValue;
