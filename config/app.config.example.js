@@ -1,5 +1,5 @@
 export const appConfig = {
-    url: "http://41.217.202.50/dhis",
+    url: "https://play.dhis2.org/2.28",
     username: "admin",
     password: "district"
 }
