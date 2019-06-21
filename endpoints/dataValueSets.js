@@ -16,3 +16,15 @@ export const postAggregateData = data => {
     json: data
   }).json;
 };
+
+export const getAggregateData = (dataSet,period,orgUnit) => {
+  const baseUrl = appConfig.url
+  const url = `${baseUrl}/api/dataValueSets?dataSet=${dataSet}&orgUnit=${orgUnit}&period=${period}`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.get(url, {
+    headers: {
+      Authorization
+    }
+  }).json;
+};
