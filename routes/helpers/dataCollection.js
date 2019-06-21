@@ -137,7 +137,7 @@ const sendEventData = async (sessionid, program, programStage) => {
 
   const today = new Date();
   const day = today.getDate();
-  const month = today.getMonth() + 1; //January is 0!
+  const month = today.getMonth() + 1; //January is 0! RbpWNyZZpTl
   const year = today.getFullYear();
 
   const response = await postEventData({
