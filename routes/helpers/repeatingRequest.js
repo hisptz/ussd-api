@@ -104,7 +104,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             } else {
               //terminate with proper error messages
               const error_message = await getSanitizedErrorMessage(requestResponse);
-              response = `P;${sessionid};${error_message}`;
+              response = `C;${sessionid};${error_message}`;
             }
           } else {
             response = `C;${sessionid};Terminating the session`;
