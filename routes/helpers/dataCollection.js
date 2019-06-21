@@ -14,6 +14,13 @@ import {
   getDataSet, complete
 } from '../../endpoints/dataSet';
 import {
+  sendSMS
+} from '../../endpoints/sms';
+import {
+  getOrganisationUnit
+}
+  from '../../endpoints/organisationUnit';
+import {
   getEventDate,
   getCurrentWeekNumber,
   getRandomCharacters
@@ -66,7 +73,7 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
   } else if (datatype === 'event') {
     return sendEventData(sessionid, program, programStage, msisdn);
   } else {
-    return completeForm(sessionid);
+    return completeForm(sessionid, msisdn);
   }
 };
 
@@ -159,7 +166,7 @@ const sendAggregateData = async sessionid => {
   console.log('response:',response)
   return response;
 };
-const completeForm = async sessionid => {
+const completeForm = async (sessionid, phoneNumber) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const session = await getCurrentSession(sessionid);
   const {
@@ -172,7 +179,15 @@ const completeForm = async sessionid => {
   } = session;
   const menu = JSON.parse(session.datastore).menus[session.currentmenu];
   const response = await complete(menu.dataSet,year + '' + period, orgUnit);
-  console.log('response:', response)
+  const phoneNumbers = [phoneNumber];
+  //phoneNumbers.push();
+  const orgUnitDetails = await getOrganisationUnit(orgUnit);
+  const message = 'Your Epidemiologic Week Number ' + period+ ' of ' + year+ 
+  ' IDSR Report has been successfully submitted with ID number ' +
+    (new Date()).toISOString().substr(14).split('.').join('').split(':').join('').split('Z').join('');
+  + ', District: ' + orgUnitDetails.parent.name + ', Facility Name: ' + orgUnitDetails.name + ' Thank you';
+  const result = await sendSMS(phoneNumbers, message);
+  console.log('response:', result)
   return response;
 };
 
