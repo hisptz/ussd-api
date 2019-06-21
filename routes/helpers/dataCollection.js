@@ -90,13 +90,14 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
             }
           })
         }
+        console.log('menu.compulsory:',menu.compulsory);
         if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + "." + categoryOptionCombo.id) > -1) {
           returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + categoryOptionCombo.shortName);
           ids.push(dataSetElement.dataElement.id + "." + categoryOptionCombo.id);
         }
       })
     })
-    //console.log(ids);
+    console.log(ids);
   }
   return returnValue;
 };
