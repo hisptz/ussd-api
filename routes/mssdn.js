@@ -23,7 +23,7 @@ const requestHandler = async (req, res) => {
   if (isNewRequest) {
     response = await returnAuthenticationResponse(msisdn, sessionid);
   } else {
-    response = await repeatingRequest(sessionid, USSDRequest);
+    response = await repeatingRequest(sessionid, USSDRequest, msisdn);
   }
   res.send(response);
 };
