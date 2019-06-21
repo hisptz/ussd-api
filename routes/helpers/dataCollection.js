@@ -79,6 +79,7 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
   if(menu.dataSet){
     const dataSet = await getDataSet(menu.dataSet);
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year +sessionDatavalues.period, session.orgUnit);
+    const ids = [];
     dataSet.dataSetElements.forEach((dataSetElement) => {
       dataSetElement.categoryCombo.categoryOptionCombos.forEach((categoryOptionCombo)=> {
         let found = false;
@@ -89,11 +90,13 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
             }
           })
         }
-        if (!found) {
-          returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + categoryOptionCombo.shortName)
+        if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + "." + categoryOptionCombo.id) > -1) {
+          returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + categoryOptionCombo.shortName);
+          ids.push(dataSetElement.dataElement.id + "." + categoryOptionCombo.id);
         }
       })
     })
+    //console.log(ids);
   }
   return returnValue;
 };
