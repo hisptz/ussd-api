@@ -32,7 +32,7 @@ const dataSubmissionOptions = [true, false];
 const successStatus = ['SUCCESS', 'OK']
 const OK = 'OK';
 
-export const repeatingRequest = async (sessionid, USSDRequest) => {
+export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   let response;
   const {
     currentmenu,
@@ -98,13 +98,13 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
         if (USSDRequest <= dataSubmissionOptions.length) {
           if (dataSubmissionOptions[USSDRequest - 1]) {
             // handling error message
-            const requestResponse = await submitData(sessionid, _currentMenu, menus);
+            const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
             if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
               response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
             } else {
               //terminate with proper error messages
               const error_message = await getSanitizedErrorMessage(requestResponse);
-              response = `C;${sessionid};${error_message}`;
+              response = `P;${sessionid};${error_message}`;
             }
           } else {
             response = `C;${sessionid};Terminating the session`;
@@ -116,7 +116,7 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
       } else {
         const {
           httpStatus
-        } = await submitData(sessionid, _currentMenu, menus);
+        } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
         if (httpStatus !== OK) {
           response = `C;${sessionid};Terminating the session`;
         }
