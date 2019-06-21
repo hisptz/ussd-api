@@ -11,7 +11,7 @@ import {
   postEventData
 } from '../../endpoints/eventData';
 import {
-  getDataSet
+  getDataSet, complete
 } from '../../endpoints/dataSet';
 import {
   getEventDate,
@@ -66,7 +66,7 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
   } else if (datatype === 'event') {
     return sendEventData(sessionid, program, programStage, msisdn);
   } else {
-    return sendAggregateData(sessionid);
+    return completeForm(sessionid);
   }
 };
 
@@ -157,6 +157,22 @@ const sendAggregateData = async sessionid => {
     dataValues: dtArray
   });
   console.log('response:',response)
+  return response;
+};
+const completeForm = async sessionid => {
+  const sessionDatavalues = await getSessionDataValue(sessionid);
+  const session = await getCurrentSession(sessionid);
+  const {
+    dataValues,
+    year,
+    period
+  } = sessionDatavalues;
+  const {
+    orgUnit
+  } = session;
+  const menu = JSON.parse(session.datastore).menus[session.currentmenu];
+  const response = await complete(menu.dataSet,year + '' + period, orgUnit);
+  console.log('response:', response)
   return response;
 };
 

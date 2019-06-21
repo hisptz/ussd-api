@@ -100,7 +100,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           if (dataSubmissionOptions[USSDRequest - 1]) {
 
             const validation = await validatedData(sessionid, _currentMenu, menus);
-            if (validation.notSet.length > 0) {
+            if (!(validation.notSet.length > 0)) {
               const message = 'The following data is not entered:' + validation.notSet.join(',');
               response = `C;${sessionid};${message}`;
             } else {

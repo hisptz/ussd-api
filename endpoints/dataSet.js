@@ -15,3 +15,21 @@ export const getDataSet = id => {
         }
     }).json;
 };
+
+export const complete = (dataSet,period,orgUnit) => {
+    const baseUrl = appConfig.url
+    const url = `${baseUrl}/api/completeDataSetRegistrations`;
+    const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+    return r2.post(url, {
+        headers: {
+            Authorization
+        },
+        json: {"completeDataSetRegistrations": [
+            {
+                "dataSet": dataSet, 
+                "period": period, 
+                "organisationUnit": orgUnit
+            }]}
+    }).json;
+};
