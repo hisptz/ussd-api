@@ -184,8 +184,8 @@ const completeForm = async (sessionid, phoneNumber) => {
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
   const message = 'Your Epidemiologic Week Number ' + period+ ' of ' + year+ 
   ' IDSR Report has been successfully submitted with ID number ' +
-    (new Date()).toISOString().substr(14).split('.').join('').split(':').join('').split('Z').join('');
-  + ', District: ' + orgUnitDetails.parent.name + ', Facility Name: ' + orgUnitDetails.name + ' Thank you';
+    + year + '' + period.substr(1) + '-' + (new Date()).toISOString().substr(14).split('.').join('').split(':').join('').split('Z').join('')
+  + ', District: ' + orgUnitDetails.parent.name + ', Facility Name: ' + orgUnitDetails.name + '. Thank you';
   const result = await sendSMS(phoneNumbers, message);
   console.log('response:', result)
   return response;
