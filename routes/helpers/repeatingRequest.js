@@ -11,6 +11,9 @@ import {
 import {
   getConfirmationSummarySummary
 } from './confirmationSummary';
+import {
+  getSanitizedErrorMessage
+} from './errorMessage';
 // Deals with curren menu.
 
 const periodTypes = {
@@ -27,9 +30,10 @@ const numericalValueTypes = ['INTEGER_NEGATIVE',
 ];
 const menu_types_with_back = ['options', 'data', 'period'];
 const dataSubmissionOptions = [true, false];
+const successStatus = ['SUCCESS', 'OK']
 const OK = 'OK';
 
-export const repeatingRequest = async (sessionid, USSDRequest) => {
+export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   let response;
   const {
     currentmenu,
@@ -92,20 +96,26 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
     // if you are to submit data submit here.
     if (_currentMenu.submit_data) {
       if ((_currentMenu.type = 'data-submission')) {
-        if (dataSubmissionOptions[USSDRequest - 1]) {
-          const validation = await validatedData(sessionid, _currentMenu, menus);
-          if (validation.notSet.length > 0){
-            const message = 'The following data is not entered:' + validation.notSet.join(',');
-            response = `C;${sessionid};${message}`;
-          } else {
-            const {
-              httpStatus,
-              message
-            } = await submitData(sessionid, _currentMenu, menus);
-            if (httpStatus !== OK) {
+        if (USSDRequest <= dataSubmissionOptions.length) {
+          if (dataSubmissionOptions[USSDRequest - 1]) {
+
+            const validation = await validatedData(sessionid, _currentMenu, menus);
+            if (validation.notSet.length > 0) {
+              const message = 'The following data is not entered:' + validation.notSet.join(',');
               response = `C;${sessionid};${message}`;
+            } else {
+              // handling error message
+              const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
+              if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
+                response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+              } else {
+                //terminate with proper error messages
+                const error_message = await getSanitizedErrorMessage(requestResponse);
+                response = `C;${sessionid};${error_message}`;
+              }
             }
-            response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+          } else {
+            response = `C;${sessionid};Terminating the session`;
           }
         } else {
           const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
@@ -114,7 +124,7 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
       } else {
         const {
           httpStatus
-        } = await submitData(sessionid, _currentMenu, menus);
+        } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
         if (httpStatus !== OK) {
           response = `C;${sessionid};Terminating the session`;
         }

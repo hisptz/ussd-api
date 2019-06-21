@@ -18,13 +18,12 @@ const requestHandler = async (req, res) => {
     msisdn,
     USSDType
   } = req.query;
-  console.log('req.query:', req.query)
   const isNewRequest = USSDType === 'NR';
   let response;
   if (isNewRequest) {
     response = await returnAuthenticationResponse(msisdn, sessionid);
   } else {
-    response = await repeatingRequest(sessionid, USSDRequest);
+    response = await repeatingRequest(sessionid, USSDRequest, msisdn);
   }
   res.send(response);
 };

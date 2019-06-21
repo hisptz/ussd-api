@@ -2,8 +2,7 @@ import {
   getSessionDataValue,
   updateSessionDataValues,
   addSessionDatavalues,
-  getCurrentSession,
-  getUser
+  getCurrentSession
 } from '../../db';
 import {
   postAggregateData, getAggregateData
@@ -14,6 +13,11 @@ import {
 import {
   getDataSet
 } from '../../endpoints/dataSet';
+import {
+  getEventDate,
+  getCurrentWeekNumber,
+  getRandomCharacters
+} from './periods';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -50,7 +54,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   });
 };
 
-export const submitData = async (sessionid, _currentMenu, USSDRequest, menus) => {
+export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, menus) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const {
     datatype,
@@ -60,7 +64,7 @@ export const submitData = async (sessionid, _currentMenu, USSDRequest, menus) =>
   if (datatype === 'aggregate') {
     return sendAggregateData(sessionid);
   } else if (datatype === 'event') {
-    return sendEventData(sessionid, program, programStage);
+    return sendEventData(sessionid, program, programStage, msisdn);
   }
 };
 
@@ -148,7 +152,7 @@ const sendAggregateData = async sessionid => {
   return response;
 };
 
-const sendEventData = async (sessionid, program, programStage) => {
+const sendEventData = async (sessionid, program, programStage, msisdn) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
   const {
@@ -157,24 +161,57 @@ const sendEventData = async (sessionid, program, programStage) => {
   const {
     orgUnit
   } = sessions;
+  const datastore = JSON.parse(sessions.datastore);
+  const {
+    phone_number_mapping,
+    auto_generated_field
+  } = datastore.settings;
   const dtValues = JSON.parse(dataValues);
-  const dtArray = dtValues.map(({
+  let dtArray = dtValues.map(({
     dataElement,
     value
   }) => ({
     dataElement,
     value
   }));
-
-  const today = new Date();
-  const day = today.getDate();
-  const month = today.getMonth() + 1; //January is 0!
-  const year = today.getFullYear();
+  // adding phone number if exist on mapping
+  if (phone_number_mapping && phone_number_mapping[program]) {
+    const mappings = phone_number_mapping[program];
+    mappings.map(mapping => {
+      const {
+        program_stage,
+        data_element
+      } = mapping;
+      if (program_stage && programStage === program_stage && data_element) {
+        dtArray.push({
+          dataElement: data_element,
+          value: msisdn
+        })
+      }
+    })
+  }
+  // adding  auto generated fields if exist on mapping
+  if (auto_generated_field && auto_generated_field[program]) {
+    const mappings = auto_generated_field[program];
+    mappings.map(mapping => {
+      const {
+        program_stage,
+        data_element
+      } = mapping;
+      const value = `${getCurrentWeekNumber()}-${getRandomCharacters(12)}`;
+      if (program_stage && programStage === program_stage && data_element) {
+        dtArray.push({
+          dataElement: data_element,
+          value
+        })
+      }
+    })
+  }
 
   const response = await postEventData({
     program,
     programStage,
-    eventDate: `${year}-${month}-${day}`,
+    eventDate: getEventDate(),
     orgUnit,
     status: 'COMPLETED',
     dataValues: dtArray
