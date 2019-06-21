@@ -6,11 +6,14 @@ import {
   getUser
 } from '../../db';
 import {
-  postAggregateData
+  postAggregateData, getAggregateData
 } from '../../endpoints/dataValueSets';
 import {
   postEventData
 } from '../../endpoints/eventData';
+import {
+  getDataSet
+} from '../../endpoints/dataSet';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -59,6 +62,34 @@ export const submitData = async (sessionid, _currentMenu, USSDRequest, menus) =>
   } else if (datatype === 'event') {
     return sendEventData(sessionid, program, programStage);
   }
+};
+
+export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus) => {
+  const sessionDatavalues = await getSessionDataValue(sessionid);
+  
+  const session = await getCurrentSession(sessionid);
+  const menu = JSON.parse(session.datastore).menus[session.currentmenu];
+  const returnValue = {
+    notSet: []
+  };
+  if(menu.dataSet){
+    const dataSet = await getDataSet(menu.dataSet);
+    const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year +sessionDatavalues.period, session.orgUnit);
+    dataSet.dataSetElements.forEach((dataSetElement) => {
+      let found = false;
+      if (dataValueSet.dataValues) {
+        dataValueSet.dataValues.forEach((dataValue) => {
+          if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryCombo === dataSetElement.categoryCombo.id) {
+            found = true;
+          }
+        })
+      }
+      if (!found){
+        returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + dataSetElement.categoryCombo.name)
+      }
+    })
+  }
+  return returnValue;
 };
 
 export const collectPeriodData = async (sessionid, obj) => {

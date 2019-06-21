@@ -18,6 +18,7 @@ const requestHandler = async (req, res) => {
     msisdn,
     USSDType
   } = req.query;
+  console.log('req.query:', req.query)
   const isNewRequest = USSDType === 'NR';
   let response;
   if (isNewRequest) {

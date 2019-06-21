@@ -5,7 +5,8 @@ import {
 import {
   collectData,
   submitData,
-  collectPeriodData
+  collectPeriodData,
+  validatedData
 } from './dataCollection';
 import {
   getConfirmationSummarySummary
@@ -92,14 +93,20 @@ export const repeatingRequest = async (sessionid, USSDRequest) => {
     if (_currentMenu.submit_data) {
       if ((_currentMenu.type = 'data-submission')) {
         if (dataSubmissionOptions[USSDRequest - 1]) {
-          const {
-            httpStatus,
-            message
-          } = await submitData(sessionid, _currentMenu, menus);
-          if (httpStatus !== OK) {
+          const validation = await validatedData(sessionid, _currentMenu, menus);
+          if (validation.notSet.length > 0){
+            const message = 'The following data is not entered:' + validation.notSet.join(',');
             response = `C;${sessionid};${message}`;
+          } else {
+            const {
+              httpStatus,
+              message
+            } = await submitData(sessionid, _currentMenu, menus);
+            if (httpStatus !== OK) {
+              response = `C;${sessionid};${message}`;
+            }
+            response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
           }
-          response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
         } else {
           const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
           response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
