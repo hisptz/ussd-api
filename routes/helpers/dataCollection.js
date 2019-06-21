@@ -65,6 +65,8 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
     return sendAggregateData(sessionid);
   } else if (datatype === 'event') {
     return sendEventData(sessionid, program, programStage, msisdn);
+  } else {
+    return sendAggregateData(sessionid);
   }
 };
 
@@ -90,14 +92,12 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
             }
           })
         }
-        console.log('menu.compulsory:',menu.compulsory);
         if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + "." + categoryOptionCombo.id) > -1) {
           returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + categoryOptionCombo.shortName);
           ids.push(dataSetElement.dataElement.id + "." + categoryOptionCombo.id);
         }
       })
     })
-    console.log(ids);
   }
   return returnValue;
 };
@@ -152,9 +152,11 @@ const sendAggregateData = async sessionid => {
     period: finalPeriod,
     orgUnit
   }));
+  console.log('Aggergate:', dtArray);
   const response = await postAggregateData({
     dataValues: dtArray
   });
+  console.log('response:',response)
   return response;
 };
 
