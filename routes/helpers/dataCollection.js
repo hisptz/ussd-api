@@ -47,7 +47,12 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     datatype: dataType
   };
   if (sessionDatavalues) {
-    const oldDataValues = JSON.parse(sessionDatavalues.dataValues);
+    let oldDataValues = sessionDatavalues.dataValues;
+    try{
+      oldDataValues = JSON.parse(oldDataValues);
+    }catch(e){
+
+    }
     const dataValues = [...oldDataValues, ...dataValue];
     return updateSessionDataValues(sessionid, {
       ...data,
@@ -81,7 +86,13 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
   const sessionDatavalues = await getSessionDataValue(sessionid);
   
   const session = await getCurrentSession(sessionid);
-  const menu = JSON.parse(session.datastore).menus[session.currentmenu];
+  let menu = session.datastore;
+  try {
+    menu = JSON.parse(session.datastore);
+  } catch (e) {
+
+  }
+  menu = menu.menus[session.currentmenu];
   const returnValue = {
     notSet: []
   };
@@ -125,12 +136,17 @@ export const collectPeriodData = async (sessionid, obj) => {
 
 export const getCurrentSessionDataValue = async sessionid => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  const {
+  let {
     dataValues,
     datatype
   } = sessionDatavalues;
+  try {
+    dataValues = JSON.parse(dataValues);
+  } catch (e) {
+
+  }
   return {
-    dataValues: JSON.parse(dataValues),
+    dataValues: dataValues,
     datatype
   };
 }
@@ -147,7 +163,12 @@ const sendAggregateData = async sessionid => {
     orgUnit
   } = sessions;
   const finalPeriod = `${year}${period}`;
-  const dtValues = JSON.parse(dataValues);
+  let dtValues = dataValues;
+  try {
+    dtValues = JSON.parse(dataValues);
+  } catch (e) {
+
+  }
   const dtArray = dtValues.map(({
     categoryOptionCombo,
     dataElement,
@@ -177,7 +198,13 @@ const completeForm = async (sessionid, phoneNumber) => {
   const {
     orgUnit
   } = session;
-  const menu = JSON.parse(session.datastore).menus[session.currentmenu];
+  let menu = session.datastore;
+  try {
+    menu = JSON.parse(session.datastore);
+  } catch (e) {
+
+  }
+  menu = menu.menus[session.currentmenu];
   const response = await complete(menu.dataSet,year + '' + period, orgUnit);
   const phoneNumbers = [phoneNumber];
   //phoneNumbers.push();
@@ -200,12 +227,22 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
   const {
     orgUnit
   } = sessions;
-  const datastore = JSON.parse(sessions.datastore);
+  let datastore = sessions.datastore;
+  try {
+    datastore = JSON.parse(session.datastore);
+  } catch (e) {
+
+  }
   const {
     phone_number_mapping,
     auto_generated_field
   } = datastore.settings;
-  const dtValues = JSON.parse(dataValues);
+  let dtValues = dataValues;
+  try {
+    dtValues = JSON.parse(dataValues);
+  } catch (e) {
+
+  }
   let dtArray = dtValues.map(({
     dataElement,
     value
