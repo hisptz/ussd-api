@@ -42,8 +42,11 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       datastore,
       retries
     } = await getCurrentSession(sessionid);
-    if (!datastore){
-      console.log(sessionid, currentmenu, datastore, retries)
+
+    try{
+      const json = JSON.parse(datastore);
+    }catch(e){
+      console.log(sessionid, currentmenu, retries)
     }
     const menus = JSON.parse(datastore).menus;
     const _currentMenu = menus[currentmenu];
