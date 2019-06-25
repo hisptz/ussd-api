@@ -57,12 +57,14 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     return updateSessionDataValues(sessionid, {
       ...data,
       dataValues: JSON.stringify(dataValues)
+      //dataValues: dataValues
     });
   }
 
   return addSessionDatavalues({
     ...data,
     dataValues: JSON.stringify(dataValue)
+    //dataValues: dataValue
   });
 };
 
@@ -123,6 +125,8 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
 export const collectPeriodData = async (sessionid, obj) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   if (sessionDatavalues) {
+    console.log(sessionDatavalues, obj);
+    sessionDatavalues.dataValues = JSON.stringify(sessionDatavalues.dataValues);
     return updateSessionDataValues(sessionid, {
       ...sessionDatavalues,
       ...obj

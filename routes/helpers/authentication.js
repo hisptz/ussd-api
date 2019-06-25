@@ -41,7 +41,8 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
       };
       await addUserSession({
         ...session_data,
-        datastore: JSON.stringify(dataStore)
+        //datastore: JSON.stringify(dataStore)
+        datastore: dataStore
       });
     }
   }
