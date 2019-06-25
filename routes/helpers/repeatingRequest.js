@@ -36,101 +36,106 @@ const OK = 'OK';
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   let response;
   console.log('sessionid:', sessionid);
-  const {
-    currentmenu,
-    datastore,
-    retries
-  } = await getCurrentSession(sessionid);
-  const menus = JSON.parse(datastore).menus;
-  const _currentMenu = menus[currentmenu];
-  // checking for previous menu is not auth and checking if user need previous menu
-  const _previous_menu = menus[_currentMenu.previous_menu] || {}
-  if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '99' && menu_types_with_back.includes(_currentMenu.type)) {
-    response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
-  } else {
-    if (_currentMenu.type === 'auth') {
-      if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
-        response = `C;${sessionid};${_currentMenu.fail_message}`;
-      } else {
-        response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
-      }
-    } else if (_currentMenu.type === 'data') {
-      const {
-        options
-      } = _currentMenu;
-      if (options && options.length) {
+  try{
+    const {
+      currentmenu,
+      datastore,
+      retries
+    } = await getCurrentSession(sessionid);
+    const menus = JSON.parse(datastore).menus;
+    const _currentMenu = menus[currentmenu];
+    // checking for previous menu is not auth and checking if user need previous menu
+    const _previous_menu = menus[_currentMenu.previous_menu] || {}
+    if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '99' && menu_types_with_back.includes(_currentMenu.type)) {
+      response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
+    } else {
+      if (_currentMenu.type === 'auth') {
+        if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
+          response = `C;${sessionid};${_currentMenu.fail_message}`;
+        } else {
+          response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
+        }
+      } else if (_currentMenu.type === 'data') {
         const {
-          passed,
-          correctOption,
-          next_menu_response
-        } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
-        if (passed) {
-          response = await collectData(sessionid, _currentMenu, correctOption);
-          if (next_menu_response) {
-            response = next_menu_response;
-          } else {
-            response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
-          }
-        } else {
-          // Return menu for data collector with options
-          const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
-          response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
-        }
-      } else {
-        // checking for values types from current menu and value send from ussd
-        if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
-          const retry_message = menus.retry_message || 'You did not enter numerical value, try again'
-          response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
-        } else {
-          response = await collectData(sessionid, _currentMenu, USSDRequest);
-          response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
-        }
-      }
-    } else if (_currentMenu.type === 'options') {
-      response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, menus);
-    } else if (_currentMenu.type === 'period') {
-      response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, menus);
-    } else if (_currentMenu.type === 'message') {
-      response = terminateWithMessage(sessionid, _currentMenu);
-    }
-
-    // if you are to submit data submit here.
-    if (_currentMenu.submit_data) {
-      if ((_currentMenu.type = 'data-submission')) {
-        if (USSDRequest <= dataSubmissionOptions.length) {
-          if (dataSubmissionOptions[USSDRequest - 1]) {
-
-            const validation = await validatedData(sessionid, _currentMenu, menus);
-            if (validation.notSet.length > 0) {
-              const message = 'The following data is not entered:' + validation.notSet.join(',');
-              response = `C;${sessionid};${message}`;
+          options
+        } = _currentMenu;
+        if (options && options.length) {
+          const {
+            passed,
+            correctOption,
+            next_menu_response
+          } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
+          if (passed) {
+            response = await collectData(sessionid, _currentMenu, correctOption);
+            if (next_menu_response) {
+              response = next_menu_response;
             } else {
-              // handling error message
-              const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
-              if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
-                response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
-              } else {
-                //terminate with proper error messages
-                const error_message = await getSanitizedErrorMessage(requestResponse);
-                response = `C;${sessionid};${error_message}`;
-              }
+              response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
             }
           } else {
-            response = `C;${sessionid};Terminating the session`;
+            // Return menu for data collector with options
+            const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
+            response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
           }
         } else {
-          const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
-          response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
+          // checking for values types from current menu and value send from ussd
+          if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
+            const retry_message = menus.retry_message || 'You did not enter numerical value, try again'
+            response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
+          } else {
+            response = await collectData(sessionid, _currentMenu, USSDRequest);
+            response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+          }
         }
-      } else {
-        const {
-          httpStatus
-        } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
-        if (httpStatus !== OK) {
-          response = `C;${sessionid};Terminating the session`;
+      } else if (_currentMenu.type === 'options') {
+        response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, menus);
+      } else if (_currentMenu.type === 'period') {
+        response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, menus);
+      } else if (_currentMenu.type === 'message') {
+        response = terminateWithMessage(sessionid, _currentMenu);
+      }
+
+      // if you are to submit data submit here.
+      if (_currentMenu.submit_data) {
+        if ((_currentMenu.type = 'data-submission')) {
+          if (USSDRequest <= dataSubmissionOptions.length) {
+            if (dataSubmissionOptions[USSDRequest - 1]) {
+
+              const validation = await validatedData(sessionid, _currentMenu, menus);
+              if (validation.notSet.length > 0) {
+                const message = 'The following data is not entered:' + validation.notSet.join(',');
+                response = `C;${sessionid};${message}`;
+              } else {
+                // handling error message
+                const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
+                if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
+                  response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+                } else {
+                  //terminate with proper error messages
+                  const error_message = await getSanitizedErrorMessage(requestResponse);
+                  response = `C;${sessionid};${error_message}`;
+                }
+              }
+            } else {
+              response = `C;${sessionid};Terminating the session`;
+            }
+          } else {
+            const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
+            response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
+          }
+        } else {
+          const {
+            httpStatus
+          } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
+          if (httpStatus !== OK) {
+            response = `C;${sessionid};Terminating the session`;
+          }
         }
       }
     }
+  }catch(e){
+    console.log(e.stack);
+    response = `C;${sessionid};Server Error. Please try again.`;
   }
   return response;
 };
