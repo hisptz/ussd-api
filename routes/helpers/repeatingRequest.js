@@ -37,7 +37,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   let response;
   console.log('sessionid:', sessionid);
   try{
-    const {
+    let {
       currentmenu,
       datastore,
       retries
