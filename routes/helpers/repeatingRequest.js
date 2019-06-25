@@ -44,11 +44,11 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     } = await getCurrentSession(sessionid);
 
     try{
-      const json = JSON.parse(datastore);
+      datastore = JSON.parse(datastore);
     }catch(e){
       console.log(sessionid, currentmenu, retries)
     }
-    const menus = JSON.parse(datastore).menus;
+    const menus = datastore.menus;
     const _currentMenu = menus[currentmenu];
     // checking for previous menu is not auth and checking if user need previous menu
     const _previous_menu = menus[_currentMenu.previous_menu] || {}
