@@ -13,10 +13,13 @@ const {
 
 export const returnAuthenticationResponse = async (mssdin, sessionid) => {
   let response;
+  console.log('Here');
   const {
     users
   } = await getUserFromDHIS2(mssdin);
+  console.log('Here1');
   const dataStore = await getDataStoreFromDHIS2();
+  console.log('Here2');
   const {
     settings,
     menus
@@ -46,5 +49,6 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
       });
     }
   }
+  console.log('Here3');
   return response;
 };

@@ -35,7 +35,6 @@ const OK = 'OK';
 
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   let response;
-  console.log('sessionid:', sessionid);
   try{
     let {
       currentmenu,
@@ -46,7 +45,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     try{
       datastore = JSON.parse(datastore);
     }catch(e){
-      console.log(sessionid, currentmenu, retries)
+      
     }
     const menus = datastore.menus;
     const _currentMenu = menus[currentmenu];

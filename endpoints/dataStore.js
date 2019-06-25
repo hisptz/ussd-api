@@ -6,19 +6,22 @@ import {
 const fetch = require('make-fetch-happen').defaults({
   cacheManager: '../' // path where cache will be written (and read)
 });
+let data;
 export const getDataStoreFromDHIS2 = async () => {
-  const baseUrl = appConfig.url
-  const url = `${baseUrl}/api/dataStore/ussd/idsr`;
-  const Authorization = getAuthorizationString(appConfig.username, appConfig.password)
+  if(!data){
+    const baseUrl = appConfig.url
+    const url = `${baseUrl}/api/dataStore/ussd/idsr`;
+    const Authorization = getAuthorizationString(appConfig.username, appConfig.password)
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization
-    },
-    size: 0,
-    timeout: 0
-  });
-  // parsing
-  const data = await response.json();
+    const response = await fetch(url, {
+      headers: {
+        Authorization
+      },
+      size: 0,
+      timeout: 0
+    });
+    // parsing
+    data = await response.json();
+  }
   return data;
 };

@@ -125,7 +125,6 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
 export const collectPeriodData = async (sessionid, obj) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   if (sessionDatavalues) {
-    console.log(sessionDatavalues, obj);
     sessionDatavalues.dataValues = JSON.stringify(sessionDatavalues.dataValues);
     return updateSessionDataValues(sessionid, {
       ...sessionDatavalues,
@@ -184,11 +183,9 @@ const sendAggregateData = async sessionid => {
     period: finalPeriod,
     orgUnit
   }));
-  console.log('Aggergate:', dtArray);
   const response = await postAggregateData({
     dataValues: dtArray
   });
-  console.log('response:',response)
   return response;
 };
 const completeForm = async (sessionid, phoneNumber) => {
@@ -218,7 +215,6 @@ const completeForm = async (sessionid, phoneNumber) => {
     + year + '' + period.substr(1) + '-' + (new Date()).toISOString().substr(14).split('.').join('').split(':').join('').split('Z').join('')
   + ', District: ' + orgUnitDetails.parent.name + ', Facility Name: ' + orgUnitDetails.name + '. Thank you';
   const result = await sendSMS(phoneNumbers, message);
-  console.log('response:', result)
   return response;
 };
 
