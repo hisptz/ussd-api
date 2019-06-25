@@ -35,6 +35,7 @@ const OK = 'OK';
 
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   let response;
+  console.log('sessionid:', sessionid);
   const {
     currentmenu,
     datastore,
