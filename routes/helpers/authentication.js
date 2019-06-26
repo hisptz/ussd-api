@@ -13,13 +13,10 @@ const {
 
 export const returnAuthenticationResponse = async (mssdin, sessionid) => {
   let response;
-  console.log('Here');
   const {
     users
   } = await getUserFromDHIS2(mssdin);
-  console.log('Here1');
   const dataStore = await getDataStoreFromDHIS2();
-  console.log('Here2');
   const {
     settings,
     menus
@@ -31,7 +28,7 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
     const orgUnits = users[0].organisationUnits;
     response = `P;${sessionid};${`Welcome ${name} to eIDSR Reporting -- Enter PIN`}`;
     if (users.length > 1) {
-      response = `C;${sessionid};This phone number is associated with more than one user`;
+      response = `C;${sessionid};Samahani hujasajiliwa kutumia mfumo wa eIDSR`;
     } else {
       const id = generateCode();
       const session_data = {
@@ -49,6 +46,5 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
       });
     }
   }
-  console.log('Here3');
   return response;
 };
