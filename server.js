@@ -6,6 +6,11 @@ const morgan = require('morgan');
 const dotenv = require('dotenv');
 dotenv.config();
 
+import {
+  appConfig,
+  getAuthorizationString
+} from '../config/app.config';
+
 const server = express();
 
 // Middleware
@@ -21,6 +26,6 @@ server.use(function(req, res, next) {
 
 // Routes
 
-server.use('/idsr', mssdnRoutes);
+server.use('/' + appConfig.dataStoreId, mssdnRoutes);
 
 module.exports = server;

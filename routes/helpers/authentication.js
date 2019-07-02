@@ -26,9 +26,9 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
     const starting_menu = menus[settings.starting_menu];
     const name = users[0].displayName;
     const orgUnits = users[0].organisationUnits;
-    response = `P;${sessionid};${`Welcome ${name} to eIDSR Reporting -- Enter PIN`}`;
+    response = `P;${sessionid};${`Welcome ${name} to Afya Reporting -- Enter PIN`}`;
     if (users.length > 1) {
-      response = `C;${sessionid};Samahani hujasajiliwa kutumia mfumo wa eIDSR`;
+      response = `C;${sessionid};This phone number is associated with more than one user`;
     } else {
       const id = generateCode();
       const session_data = {

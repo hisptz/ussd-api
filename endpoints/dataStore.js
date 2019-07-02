@@ -10,7 +10,7 @@ let data;
 export const getDataStoreFromDHIS2 = async () => {
   if(!data){
     const baseUrl = appConfig.url
-    const url = `${baseUrl}/api/dataStore/ussd/idsr`;
+    const url = `${baseUrl}/api/dataStore/ussd/` + appConfig.dataStoreId;
     const Authorization = getAuthorizationString(appConfig.username, appConfig.password)
 
     const response = await fetch(url, {
