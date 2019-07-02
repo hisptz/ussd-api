@@ -9,7 +9,7 @@ dotenv.config();
 import {
   appConfig,
   getAuthorizationString
-} from '../config/app.config';
+} from './config/app.config';
 
 const server = express();
 
