@@ -96,6 +96,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, menus);
       } else if (_currentMenu.type === 'period') {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, menus);
+      } else if (_currentMenu.type === 'ou') {
+        response = await checkOrgUnitAnswer(sessionid, _currentMenu, USSDRequest, menus);
       } else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
       }
@@ -273,6 +275,50 @@ const returnOptions = ({
 
 // check Period answer
 const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
+  let response;
+  const {
+    period_type,
+    maximum_value,
+    next_menu,
+    use_for_year,
+    years_back
+  } = menu;
+  response = await returnNextMenu(sessionid, next_menu, menus);
+  //checking for period value and return appropriate menu in case of wrong selection
+  if (isNumeric(answer)) {
+    //checking for yearly period types
+    if (use_for_year) {
+      const limit = parseInt(years_back, 10) + 1;
+      if (answer > 0 && answer <= limit) {
+        const year = getYears(years_back)[answer - 1];
+        await collectPeriodData(sessionid, {
+          year
+        });
+      } else {
+        const retry_message = menu.retry_message || `You did not enter the correct choice`;
+        response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+      }
+    } else {
+      //checking for validity of values for other priod types
+      if (answer > 0 && maximum_value && answer <= maximum_value) {
+        const period_value = getPeriodBytype(period_type, answer);
+        const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
+        await collectPeriodData(sessionid, {
+          period
+        });
+      } else {
+        const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
+        response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+      }
+    }
+  } else {
+    const retry_message = menu.retry_message || `You did not enter numerical value, try again`;
+    response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+  }
+  return response;
+};
+
+const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
   let response;
   const {
     period_type,
