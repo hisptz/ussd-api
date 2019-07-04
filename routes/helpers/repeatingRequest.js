@@ -56,7 +56,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     } else {
       if (_currentMenu.type === 'auth') {
         if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
-          response = `C;${sessionid};${_currentMenu.fail_message}`;
+          response = {
+            response_type: 1,
+            text: _currentMenu.fail_message
+          };
         } else {
           response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
         }
@@ -111,7 +114,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
               const validation = await validatedData(sessionid, _currentMenu, menus);
               if (validation.notSet.length > 0) {
                 const message = 'The following data is not entered:' + validation.notSet.join(',');
-                response = `C;${sessionid};${message}`;
+                response = {
+                  response_type: 1,
+                  text: message
+                };
               } else {
                 // handling error message
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
@@ -120,11 +126,17 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                 } else {
                   //terminate with proper error messages
                   const error_message = await getSanitizedErrorMessage(requestResponse);
-                  response = `C;${sessionid};${error_message}`;
+                  response = {
+                    response_type: 1,
+                    text: error_message
+                  };
                 }
               }
             } else {
-              response = `C;${sessionid};Terminating the session`;
+              response = {
+                response_type: 1,
+                text: 'Terminating the session'
+              };
             }
           } else {
             const retry_message = menus.retry_message || 'You did not enter the correct choice, try again'
@@ -135,14 +147,20 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             httpStatus
           } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
           if (httpStatus !== OK) {
-            response = `C;${sessionid};Terminating the session`;
+            response = {
+              response_type: 1,
+              text: 'Terminating the session'
+            };
           }
         }
       }
     }
   }catch(e){
     console.log(e.stack);
-    response = `C;${sessionid};Server Error. Please try again.`;
+    response = {
+      response_type: 1,
+      text: 'Server Error. Please try again.'
+    };
   }
   return response;
 };
@@ -159,7 +177,10 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
     await updateUserSession(sessionid, {
       retries: Number(retries) + 1
     });
-    message = `P;${sessionid};${retry_message}`;
+    message = {
+      response_type: 2,
+      text: retry_message
+    };
   }
 
   return message;
@@ -175,7 +196,11 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   const menu = menus[next_menu];
   const _previous_menu = menus[menu.previous_menu] || {}
   if (menu.type === 'options') {
-    message = `P;${sessionid};${returnOptions(menu)}`;
+    message = {
+      response_type: 2,
+      text: menu.title,
+      options: returnOptions(menu)
+    };
   } else if (menu.type === 'period' || menu.type === 'data') {
     const {
       use_for_year,
@@ -184,12 +209,22 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     if (use_for_year) {
       const arrayOfYears = getYears(years_back);
       const msg_str = [menu.title, ...arrayOfYears.map((year, index) => `${index + 1}. ${year}`)].join('\n');
-      message = `P;${sessionid};${msg_str}`;
+      message = {
+        response_type: 2,
+        text: msg_str
+      };
     } else {
       if (menu.options && menu.options.length) {
-        message = `P;${sessionid};${returnOptions(menu)}`;
+        message = {
+          response_type: 2,
+          text: menu.title,
+          options: returnOptions(menu)
+        };
       } else {
-        message = `P;${sessionid};${menu.title}`;
+        message = {
+          response_type: 2,
+          text: menu.title
+        };
       }
     }
   } else if (menu.type === 'message') {
@@ -198,7 +233,10 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
     const submitOptions = ['YES', 'NO'];
     const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
-    message = `P;${sessionid};${submitMsgString}`;
+    message = {
+      response_type: 2,
+      text: submitMsgString
+    };
     if (connfirmationSummary !== "") {
       message += `\n${connfirmationSummary}`;
     }
@@ -222,9 +260,16 @@ const checkOptionsAnswer = async (sessionid, menu, answer, menus) => {
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
     if (menu.type === 'options' && menu.options) {
-      return `P;${sessionid};${returnOptions(menu)}\n${menu.retry_message || 'You did not enter the correct choice,try again'}`;
+      return {
+        response_type: 2,
+        text: menu.title + '\n' + (menu.retry_message || 'You did not enter the correct choice,try again'),
+        options: returnOptions(menu)
+      };
     } else {
-      return `C;${sessionid};${menu.fail_message || 'You did not enter the correct choice'}`;
+      return {
+        response_type: 1,
+        text: `${menu.fail_message || 'You did not enter the correct choice'}`
+      };
     }
   }
 
@@ -263,16 +308,24 @@ const checkOptionSetsAnswer = async (sessionid, menu, answer, menus) => {
   };
 };
 
+// const returnOptions = ({
+//   title,
+//   options
+// }) => {
+//   return [title, ...options.map(({
+//     response,
+//     title
+//   }) => `${response}. ${title}`)].join('\n');
+// };
 const returnOptions = ({
-  title,
   options
 }) => {
-  return [title, ...options.map(({
-    response,
-    title
-  }) => `${response}. ${title}`)].join('\n');
+  let returnOptions = {};
+  options.forEach((option) => {
+    returnOptions[option.response] = option.title;
+  })
+  return returnOptions;
 };
-
 // check Period answer
 const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
   let response;
@@ -368,7 +421,10 @@ const getPeriodBytype = (period_type, value) => {
 
 const terminateWithMessage = async (sessionid, menu) => {
   // TODO: DO other things like deleting session. not to overcloud database.
-  return `C;${sessionid};${menu.title}`;
+  return {
+    response_type: 1,
+    text: menu.title
+  };
 };
 
 const isNumeric = n => {

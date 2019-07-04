@@ -21,14 +21,23 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
     settings,
     menus
   } = dataStore;
-  response = `C;${sessionid};${settings.no_user_message}`;
+  response = {
+    response_type: 1,
+    text: settings.no_user_message
+  };
   if (users.length) {
     const starting_menu = menus[settings.starting_menu];
     const name = users[0].displayName;
     const orgUnits = users[0].organisationUnits;
-    response = `P;${sessionid};${`Welcome ${name} to Afya Reporting -- Enter PIN`}`;
+    response = {
+      response_type: 2,
+      text: `Welcome ${name} to Afya Reporting -- Enter PIN`
+    };
     if (users.length > 1) {
-      response = `C;${sessionid};This phone number is associated with more than one user`;
+      response = {
+        response_type: 1,
+        text: `This phone number is associated with more than one user`
+      };
     } else {
       const id = generateCode();
       const session_data = {
