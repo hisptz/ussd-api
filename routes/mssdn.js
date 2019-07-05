@@ -10,6 +10,13 @@ const db = require('../db');
 
 const router = express.Router();
 
+const format = (response) => {
+
+  return {
+    ...response,
+    header_type: response.response_type === 1?"3":"" + response.response_type
+  }
+}
 const requestHandler = async (req, res) => {
   const {
     sessionid,
@@ -25,7 +32,7 @@ const requestHandler = async (req, res) => {
   } else {
     response = await repeatingRequest(sessionid, USSDRequest, msisdn);
   }*/
-  res.send(response);
+  res.send(format(response));
 };
 
 router.get('/', requestHandler);
