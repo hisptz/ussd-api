@@ -17,12 +17,13 @@ export const getOrganisationUnit = id => {
 };
 export const getOrganisationUnitByCode = code => {
     const baseUrl = appConfig.url
-    const url = `${baseUrl}//api/organisationUnits.json?filter=code:eq:${code}`;
+    const url = `${baseUrl}/api/organisationUnits.json?filter=code:eq:${code}`;
     const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
-
-    return r2.get(url, {
+    const results = r2.get(url, {
         headers: {
             Authorization
         }
-    }).json;
+    })
+    console.log('results:', results);
+    return results.json;
 };
