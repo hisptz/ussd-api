@@ -303,7 +303,6 @@ const checkOptionsAnswer = async (sessionid, menu, answer, menus) => {
   const {
     options
   } = menu;
-  console.log('answer:', answer);
   const responses = options.map(option => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
@@ -429,12 +428,8 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
     years_back
   } = menu;
   //checking for period value and return appropriate menu in case of wrong selection
-  console.log("Menu:", menu);
-  console.log("answer:", answer);
-  
   if (isNumeric(answer)) {
     const results = await getOrganisationUnitByCode(answer);
-    console.log("results:", results);
     if (results.organisationUnits.length > 0){
       const orgUnit = results.organisationUnits[0].id;
       await collectOrganisationUnitData(sessionid, {
@@ -444,7 +439,6 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
     } else {
       const retry_message = menu.retry_message || `You did not enter a valid code, try again`;
       response = await returnNextMenu(sessionid, menu.id, menus, retry_message);
-      console.log('Response:', response);
     }
   } else {
     response = await returnNextMenu(sessionid, menu.id, menus)
