@@ -72,6 +72,12 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       currentmenu = starting_menu.id;
       datastore = dataStore;
       retries = 0;
+      response = {
+        response_type: 2,
+        text: starting_menu.title,
+        options: returnOptions(starting_menu)
+      };
+      return response;
     } else {
       currentmenu = session_details.currentmenu;
       datastore = session_details.datastore;
@@ -297,6 +303,7 @@ const checkOptionsAnswer = async (sessionid, menu, answer, menus) => {
   const {
     options
   } = menu;
+  console.log('answer:', answer);
   const responses = options.map(option => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
@@ -435,7 +442,7 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
       })
       response = await returnNextMenu(sessionid, next_menu, menus);
     } else {
-      const retry_message = menu.retry_message || `You did not enter a valud code, try again`;
+      const retry_message = menu.retry_message || `You did not enter a valid code, try again`;
       response = await returnNextMenu(sessionid, menu.id, menus, retry_message);
       console.log('Response:', response);
     }
