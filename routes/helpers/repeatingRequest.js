@@ -236,6 +236,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   });
   const menu = menus[next_menu];
   const _previous_menu = menus[menu.previous_menu] || {}
+  console.log('menu.type:', menu.type)
   if (menu.type === 'options') {
     message = {
       response_type: 2,
@@ -276,7 +277,11 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
     message = {
       response_type: 2,
-      text: submitMsgString
+      text: menu.title,
+      options: {
+        '1': 'YES',
+        '2': 'NO'
+      }
     };
     if (connfirmationSummary !== "") {
       message.text += `\n${connfirmationSummary}`;
