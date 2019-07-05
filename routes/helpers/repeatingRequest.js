@@ -1,11 +1,22 @@
 import {
   getCurrentSession,
-  updateUserSession
+  updateUserSession,
+  addUserSession
 } from '../../db';
+import {
+  getDataStoreFromDHIS2
+} from '../../endpoints/dataStore';
+import {
+  getOrganisationUnitByCode
+} from '../../endpoints/organisationUnit';
+const {
+  generateCode
+} = require('dhis2-uid');
 import {
   collectData,
   submitData,
   collectPeriodData,
+  collectOrganisationUnitData,
   validatedData
 } from './dataCollection';
 import {
@@ -36,12 +47,36 @@ const OK = 'OK';
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   let response;
   try{
-    let {
-      currentmenu,
-      datastore,
-      retries
-    } = await getCurrentSession(sessionid);
+    let currentmenu, datastore, retries;
+    const session_details = await getCurrentSession(sessionid);
 
+    if (!session_details){
+      const dataStore = await getDataStoreFromDHIS2();
+      const {
+        settings,
+        menus
+      } = dataStore;
+      const starting_menu = menus[settings.starting_menu];
+      const id = generateCode();
+      const session_data = {
+        id,
+        sessionid,
+        currentmenu: starting_menu.id,
+        retries: 0
+      };
+      await addUserSession({
+        ...session_data,
+        //datastore: JSON.stringify(dataStore)
+        datastore: dataStore
+      });
+      currentmenu = starting_menu.id;
+      datastore = dataStore;
+      retries = 0;
+    } else {
+      currentmenu = session_details.currentmenu;
+      datastore = session_details.datastore;
+      retries = session_details.retries;
+    }
     try{
       datastore = JSON.parse(datastore);
     }catch(e){
@@ -238,15 +273,21 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       text: submitMsgString
     };
     if (connfirmationSummary !== "") {
-      message += `\n${connfirmationSummary}`;
+      message.text += `\n${connfirmationSummary}`;
     }
+  } else if (menu.type === 'ou') {
+    
+    message = {
+      response_type: 2,
+      text: menu.title
+    };
   }
   // checking if previous menu is not of type auth and add back menu  
   if (_previous_menu && _previous_menu.type !== 'auth' && menu_types_with_back.includes(menu.type)) {
-    message += `\n99 Back`
+    message.text += `\n99 Back`
   }
   if (additional_message) {
-    message += `\n${additional_message}`;
+    message.text += `\n${additional_message}`;
   }
   return message;
 };
@@ -380,37 +421,26 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
     use_for_year,
     years_back
   } = menu;
-  response = await returnNextMenu(sessionid, next_menu, menus);
   //checking for period value and return appropriate menu in case of wrong selection
+  console.log("Menu:", menu);
+  console.log("answer:", answer);
+  
   if (isNumeric(answer)) {
-    //checking for yearly period types
-    if (use_for_year) {
-      const limit = parseInt(years_back, 10) + 1;
-      if (answer > 0 && answer <= limit) {
-        const year = getYears(years_back)[answer - 1];
-        await collectPeriodData(sessionid, {
-          year
-        });
-      } else {
-        const retry_message = menu.retry_message || `You did not enter the correct choice`;
-        response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
-      }
+    const results = await getOrganisationUnitByCode(answer);
+    console.log("results:", results);
+    if (results.organisationUnits.length > 0){
+      const orgUnit = results.organisationUnits[0].id;
+      await collectOrganisationUnitData(sessionid, {
+        orgUnit
+      })
+      response = await returnNextMenu(sessionid, next_menu, menus);
     } else {
-      //checking for validity of values for other priod types
-      if (answer > 0 && maximum_value && answer <= maximum_value) {
-        const period_value = getPeriodBytype(period_type, answer);
-        const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
-        await collectPeriodData(sessionid, {
-          period
-        });
-      } else {
-        const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
-        response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
-      }
+      const retry_message = menu.retry_message || `You did not enter a valud code, try again`;
+      response = await returnNextMenu(sessionid, menu.id, menus, retry_message);
+      console.log('Response:', response);
     }
   } else {
-    const retry_message = menu.retry_message || `You did not enter numerical value, try again`;
-    response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+    response = await returnNextMenu(sessionid, menu.id, menus)
   }
   return response;
 };

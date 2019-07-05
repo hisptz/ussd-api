@@ -2,6 +2,7 @@ import {
   getSessionDataValue,
   updateSessionDataValues,
   addSessionDatavalues,
+  updateUserSession,
   getCurrentSession
 } from '../../db';
 import {
@@ -133,6 +134,14 @@ export const collectPeriodData = async (sessionid, obj) => {
   }
   return addSessionDatavalues({
     sessionid,
+    ...obj
+  });
+};
+
+export const collectOrganisationUnitData = async (sessionid, obj) => {
+  const sessionData = await getCurrentSession(sessionid);
+  return updateUserSession(sessionid, {
+    ...sessionData,
     ...obj
   });
 };
