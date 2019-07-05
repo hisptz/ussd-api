@@ -283,7 +283,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
         '2': 'NO'
       }
     };
-    if (connfirmationSummary !== "") {
+    if (menu.show_confirmation_summary) {
       message.text += `\n${connfirmationSummary}`;
     }
   } else if (menu.type === 'ou') {
