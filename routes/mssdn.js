@@ -14,12 +14,12 @@ const requestHandler = async (req, res) => {
   const {
     sessionid,
     telco,
-    USSDRequest,
+    input,
     msisdn,
     USSDType
   } = req.query;
   const isNewRequest = USSDType === 'NR';
-  let response = await repeatingRequest(sessionid, USSDRequest, msisdn);
+  let response = await repeatingRequest(sessionid, input, msisdn);
   /*if (isNewRequest) {
     response = await returnAuthenticationResponse(msisdn, sessionid);
   } else {
