@@ -66,10 +66,9 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       };
       const insertResults = await addUserSession({
         ...session_data,
-        //datastore: JSON.stringify(dataStore)
-        datastore: dataStore
+        datastore: JSON.stringify(dataStore)
+        //datastore: dataStore
       });
-      console.log('insertResults:', insertResults);
       currentmenu = starting_menu.id;
       datastore = dataStore;
       retries = 0;
