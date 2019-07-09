@@ -18,3 +18,17 @@ export const getUserFromDHIS2 = async phoneNumber => {
   const data = await response.json();
   return data;
 };
+export const getUserGroup = async id => {
+  const baseUrl = appConfig.url
+  const url = `${baseUrl}/api/userGroups/${id}.json?fields=users[phoneNumber]`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization
+    }
+  });
+
+  const data = await response.json();
+  return data;
+};

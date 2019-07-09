@@ -20,6 +20,11 @@ import {
   getOrganisationUnit
 }
   from '../../endpoints/organisationUnit';
+
+import {
+  getUserGroup
+}
+  from '../../endpoints/users';
 import {
   getEventDate,
   getCurrentWeekNumber,
@@ -284,13 +289,42 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
     })
   }
 
-  const response = await postEventData({
+  console.log(JSON.stringify(sessions.datastore.menus[sessions.currentmenu]));
+
+  const event = {
     program,
     programStage,
     eventDate: getEventDate(),
     orgUnit,
     status: 'COMPLETED',
     dataValues: dtArray
-  });
+  };
+
+  const response = await postEventData(event);
+  const menu = sessions.datastore.menus[sessions.currentmenu];
+  if (menu.programNotificationTemplates) {
+    menu.programNotificationTemplates.forEach(async (programNotificationTemplate) =>{
+      let recipients = [];
+      let message = programNotificationTemplate.messageTemplate; 
+      
+      event.dataValues.forEach((dataValue) => {
+        if (programNotificationTemplate.notificationRecipient === 'DATA_ELEMENT' && dataValue.dataElement === programNotificationTemplate.recipientDataElement.id) {
+          recipients.push(dataValue.value);
+        }
+        message = message.split('#{' + dataValue.dataElement + '}').join(dataValue.value);
+      })
+      const orgUnitDetails = await getOrganisationUnit(orgUnit);
+      message = message.split('V{org_unit_name}').join(orgUnitDetails.name);
+      message = message.split('V{org_unit_parent_name}').join(orgUnitDetails.parent.name);
+      if (programNotificationTemplate.notificationRecipient === 'USER_GROUP') {
+        const userGroup = await getUserGroup(programNotificationTemplate.recipientUserGroup.id);
+        userGroup.users.forEach(async (user) =>{
+          const result = await sendSMS([user.phoneNumber], message);
+        })
+      } else {
+        const result = await sendSMS(recipients, message);
+      }
+    });
+  }
   return response;
 };
