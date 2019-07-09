@@ -16,6 +16,36 @@ export const getDataSet = id => {
     }).json;
 };
 
+var operands = {};
+export const getDataSetOperands = async id => {
+
+    if (!operands[id]){
+        const baseUrl = appConfig.url
+        let url = `${baseUrl}/api/dataSets/${id}.json?fields=dataSetElements[dataElement[id,shortName]]`;
+        const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+        const results = await r2.get(url, {
+            headers: {
+                Authorization
+            }
+        }).json
+        const dataElements = results.dataSetElements.map((dataSetElement) => {
+            return dataSetElement.dataElement.id
+        });
+        console.log(dataElements);
+        url = `${baseUrl}/api/dataElementOperands.json?filter=dataElement.id:in:[${dataElements.join(',')}]&fields=id,shortName`;
+        console.log('url:', url);
+
+        operands[id] = r2.get(url, {
+            headers: {
+                Authorization
+            }
+        }).json;
+    }
+    
+    return operands[id];
+};
+
 export const complete = (dataSet,period,orgUnit) => {
     const baseUrl = appConfig.url
     const url = `${baseUrl}/api/completeDataSetRegistrations`;

@@ -11,7 +11,7 @@ import {
   postEventData
 } from '../../endpoints/eventData';
 import {
-  getDataSet, complete
+  getDataSet, complete, getDataSetOperands
 } from '../../endpoints/dataSet';
 import {
   sendSMS
@@ -104,10 +104,28 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
     notSet: []
   };
   if(menu.dataSet){
+    console.log(menu.dataSet);
     const dataSet = await getDataSet(menu.dataSet);
+
+    const operands = await getDataSetOperands(menu.dataSet);
+
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year +sessionDatavalues.period, session.orgUnit);
-    const ids = [];
+    operands.dataElementOperands.forEach((dataElementOperand) => {
+      let found = false;
+      if (dataValueSet.dataValues) {
+        dataValueSet.dataValues.forEach((dataValue) => {
+          if (dataValue.dataElement + '.' + dataValue.categoryOptionCombo === dataElementOperand.id) {
+            found = true;
+          }
+        })
+      }
+      if (!found && menu.compulsory && menu.compulsory.indexOf(dataElementOperand.id) > -1) {
+        returnValue.notSet.push(dataElementOperand.shortName);
+      }
+    })
+    /*const ids = [];
     dataSet.dataSetElements.forEach((dataSetElement) => {
+      console.log(JSON.stringify(dataSetElement));
       dataSetElement.categoryCombo.categoryOptionCombos.forEach((categoryOptionCombo)=> {
         let found = false;
         if (dataValueSet.dataValues) {
@@ -122,7 +140,7 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
           ids.push(dataSetElement.dataElement.id + "." + categoryOptionCombo.id);
         }
       })
-    })
+    })*/
   }
   return returnValue;
 };
@@ -188,6 +206,7 @@ const sendAggregateData = async sessionid => {
     period: finalPeriod,
     orgUnit
   }));
+  console.log(JSON.stringify(dtArray));
   const response = await postAggregateData({
     dataValues: dtArray
   });
