@@ -281,10 +281,11 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     message = {
       response_type: 2,
       text: menu.title,
-      options: {
-        '1': 'Ndiyo',
-        '2': 'Hapana'
-      }
+      options: returnOptions(menu)
+      /*options: {
+        '1': 'Kutuma',
+        '2': 'Kukataa'
+      }*/
     };
     if (menu.show_confirmation_summary) {
       message.text += `\n${connfirmationSummary}`;
