@@ -282,8 +282,8 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       response_type: 2,
       text: menu.title,
       options: {
-        '1': 'YES',
-        '2': 'NO'
+        '1': 'Ndiyo',
+        '2': 'Hapana'
       }
     };
     if (menu.show_confirmation_summary) {
