@@ -45,6 +45,7 @@ const successStatus = ['SUCCESS', 'OK']
 const OK = 'OK';
 
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
+  console.log('USSDRequest Input:', USSDRequest);
   let response;
   try{
     let currentmenu, datastore, retries;
@@ -92,7 +93,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const _currentMenu = menus[currentmenu];
     // checking for previous menu is not auth and checking if user need previous menu
     const _previous_menu = menus[_currentMenu.previous_menu] || {}
-    if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '99' && menu_types_with_back.includes(_currentMenu.type)) {
+    if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
       response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
     } else {
       if (_currentMenu.type === 'auth') {
@@ -295,7 +296,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   }
   // checking if previous menu is not of type auth and add back menu  
   if (_previous_menu && _previous_menu.type !== 'auth' && menu_types_with_back.includes(menu.type)) {
-    message.text += `\n99 Back`
+    message.text += `\n# Back`
   }
   if (additional_message) {
     message.text += `\n${additional_message}`;
