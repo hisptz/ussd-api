@@ -303,7 +303,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
         const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
         console.log('period:', period);
         if(period.indexOf('W') > -1){
-          if(parseInt(period.substr(1)) > getWeekNumber(new Date())){
+          if(parseInt(period.substr(1)) >= getWeekNumber(new Date())){
             const retry_message = `Future periods are not allowed, try again`;
             response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
           } else {
