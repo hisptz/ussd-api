@@ -298,7 +298,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   }
   // checking if previous menu is not of type auth and add back menu  
   if (_previous_menu && _previous_menu.type !== 'auth' && menu_types_with_back.includes(menu.type)) {
-    message.text += `\n# Back`
+    message.text += `\n# Rudi`
   }
   if (additional_message) {
     message.text += `\n${additional_message}`;
