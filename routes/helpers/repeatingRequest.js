@@ -15,6 +15,7 @@ const {
 import {
   collectData,
   submitData,
+  completeForm,
   collectPeriodData,
   collectOrganisationUnitData,
   validatedData
@@ -164,6 +165,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                 // handling error message
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
                 if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
+                  await completeForm(sessionid, msisdn);
                   response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
                 } else {
                   //terminate with proper error messages

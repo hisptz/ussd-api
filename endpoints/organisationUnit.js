@@ -6,7 +6,7 @@ import {
 
 export const getOrganisationUnit = id => {
     const baseUrl = appConfig.url
-    const url = `${baseUrl}/api/organisationUnits/${id}.json?fields=id,name,parent[id,name]`;
+    const url = `${baseUrl}/api/organisationUnits/${id}.json?fields=id,code,name,parent[id,name]`;
     const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
     return r2.get(url, {

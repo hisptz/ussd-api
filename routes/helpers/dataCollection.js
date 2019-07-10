@@ -197,7 +197,7 @@ const sendAggregateData = async sessionid => {
   });
   return response;
 };
-const completeForm = async (sessionid, phoneNumber) => {
+export const completeForm = async (sessionid, phoneNumber) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const session = await getCurrentSession(sessionid);
   const {
@@ -220,9 +220,7 @@ const completeForm = async (sessionid, phoneNumber) => {
   //phoneNumbers.push();
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
   const message = 'Taarifa ya mwaka ' + year + ' mwezi ' + period+ 
-  ' Kutoka FIN imepokelewa kikamilifu.' +
-    + year + '' + period.substr(1) + '-' + (new Date()).toISOString().substr(14).split('.').join('').split(':').join('').split('Z').join('')
-  + ', District: ' + orgUnitDetails.parent.name + ', Facility Name: ' + orgUnitDetails.name + '. Thank you';
+    ' Kutoka FIN imepokelewa kikamilifu kutoka .' + orgUnitDetails.code + '.';
   const result = await sendSMS(phoneNumbers, message);
   return response;
 };
