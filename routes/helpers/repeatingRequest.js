@@ -301,9 +301,21 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
       if (answer > 0 && maximum_value && answer <= maximum_value) {
         const period_value = getPeriodBytype(period_type, answer);
         const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
-        await collectPeriodData(sessionid, {
-          period
-        });
+        console.log('period:', period);
+        if(period.indexOf('W') > -1){
+          if(parseInt(period.substr(1)) > getWeekNumber(d)){
+            const retry_message = `Future periods are not allowed, try again`;
+            response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
+          } else {
+            await collectPeriodData(sessionid, {
+              period
+            });
+          }
+        } else {
+          await collectPeriodData(sessionid, {
+            period
+          });
+        }
       } else {
         const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
         response = await returnNextMenu(sessionid, menu.id, menus, retry_message)
@@ -315,7 +327,19 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
   }
   return response;
 };
-
+function getWeekNumber(d) {
+  // Copy date so don't modify original
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  // Set to nearest Thursday: current date + 4 - current day number
+  // Make Sunday's day number 7
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  // Get first day of year
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  // Calculate full weeks to nearest Thursday
+  var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  // Return array of year and week number
+  return weekNo;
+}
 const getPeriodBytype = (period_type, value) => {
   return period_type === 'Monthly' ? value > 9 ? `${value}` : `0${value}` : value;
 }
