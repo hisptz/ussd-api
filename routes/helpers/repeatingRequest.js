@@ -378,7 +378,11 @@ const returnOptions = ({
 }) => {
   let returnOptions = {};
   options.forEach((option) => {
-    returnOptions[option.response] = option.title;
+    if (typeof option.response === 'boolean'){
+      returnOptions[option.response?'1':'2'] = option.title;
+    }else {
+      returnOptions[option.response] = option.title;
+    }
   })
   return returnOptions;
 };

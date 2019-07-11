@@ -5,6 +5,9 @@ import {
 import {
   repeatingRequest
 } from './helpers/repeatingRequest';
+import {
+  sendEGASMS
+} from '../endpoints/sms'
 
 const db = require('../db');
 
@@ -17,6 +20,13 @@ const format = (response) => {
     header_type: response.response_type === 1?"3":"" + response.response_type
   }
 }
+
+
+const smsSending = async () => {
+  let res = await sendEGASMS();
+  console.log('res:', res);
+};
+//smsSending();
 const requestHandler = async (req, res) => {
   const {
     sessionid,
