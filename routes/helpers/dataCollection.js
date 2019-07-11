@@ -212,6 +212,39 @@ const sendAggregateData = async sessionid => {
   });
   return response;
 };
+
+export const ruleNotPassed = async (sessionid, menu, answer) => {
+  if (menu.rules){
+    const sessionDatavalues = await getSessionDataValue(sessionid);
+    const {
+      dataValues
+    } = sessionDatavalues;
+    let dtValues = dataValues;
+    try {
+      dtValues = JSON.parse(dataValues);
+    } catch (e) {
+
+    }
+    let retValue = false;
+    menu.rules.forEach((rule) => {
+      let ruleEval = rule.condition;
+      dtValues.forEach((dtValue) => {
+        ruleEval = ruleEval.split('#{' + dtValue.dataElement + '}').join(dtValue.value);
+      })
+      ruleEval = ruleEval.split('#{' + menu.data_element + '}').join(answer);
+      try{
+        if (eval('(' + ruleEval + ')')){
+          retValue = rule.action;
+        }
+      }catch(e){
+
+      }
+    })
+    return retValue;
+  }else {
+    return false;
+  }
+};
 const completeForm = async (sessionid, phoneNumber) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const session = await getCurrentSession(sessionid);

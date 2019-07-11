@@ -6,7 +6,8 @@ import {
   collectData,
   submitData,
   collectPeriodData,
-  validatedData
+  validatedData,
+  ruleNotPassed
 } from './dataCollection';
 import {
   getConfirmationSummarySummary
@@ -83,10 +84,16 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
           }
         } else {
+          const ruleHasNotPassed = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
+          console.log('ruleHasNotPassed:', ruleHasNotPassed);
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
             const retry_message = menus.retry_message || 'You did not enter numerical value, try again'
             response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
+          } else if (ruleHasNotPassed) {
+            if (ruleHasNotPassed.type === 'ERROR'){
+              response = await returnNextMenu(sessionid, _currentMenu.id, menus, ruleHasNotPassed.errorMessage);
+            }
           } else {
             response = await collectData(sessionid, _currentMenu, USSDRequest);
             response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
