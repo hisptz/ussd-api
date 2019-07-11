@@ -220,7 +220,7 @@ export const completeForm = async (sessionid, phoneNumber) => {
   //phoneNumbers.push();
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
   const message = 'Taarifa ya mwaka ' + year + ' mwezi ' + period+ 
-    ' Kutoka FIN ' + orgUnitDetails.code + ' imepokelewa kikamilifu kutoka .';
+    ' Kutoka FIN ' + orgUnitDetails.code + ' imepokelewa kikamilifu.';
   const result = await sendSMS(phoneNumbers, message);
   return response;
 };
