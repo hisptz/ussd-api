@@ -22,11 +22,6 @@ const format = (response) => {
 }
 
 
-const smsSending = async () => {
-  let res = await sendEGASMS();
-  console.log('res:', res);
-};
-//smsSending();
 const requestHandler = async (req, res) => {
   const {
     sessionid,
