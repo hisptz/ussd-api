@@ -84,7 +84,39 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
     return completeForm(sessionid, msisdn);
   }
 };
+export const ruleNotPassed = async (sessionid, menu, answer) => {
+  if (menu.rules) {
+    const sessionDatavalues = await getSessionDataValue(sessionid);
+    
+    let retValue = false;
+    menu.rules.forEach((rule) => {
+      let ruleEval = rule.condition;
+      if (sessionDatavalues && sessionDatavalues.dataValues){
+        let dtValues = sessionDatavalues.dataValues;
+        try {
+          dtValues = JSON.parse(sessionDatavalues.dataValues);
+        } catch (e) {
 
+        }
+        dtValues.forEach((dtValue) => {
+          ruleEval = ruleEval.split('#{' + dtValue.dataElement + '}').join(dtValue.value);
+        })
+      }
+      ruleEval = ruleEval.split('#{' + menu.data_element + '}').join(answer);
+      ruleEval = ruleEval.split('#{answer}').join(answer);
+      try {
+        if (eval('(' + ruleEval + ')')) {
+          retValue = rule.action;
+        }
+      } catch (e) {
+
+      }
+    })
+    return retValue;
+  } else {
+    return false;
+  }
+};
 export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   

@@ -18,7 +18,8 @@ import {
   completeForm,
   collectPeriodData,
   collectOrganisationUnitData,
-  validatedData
+  validatedData,
+  ruleNotPassed
 } from './dataCollection';
 import {
   getConfirmationSummarySummary
@@ -442,16 +443,24 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
   } = menu;
   //checking for period value and return appropriate menu in case of wrong selection
   if (isNumeric(answer)) {
-    const results = await getOrganisationUnitByCode(answer);
-    if (results.organisationUnits.length > 0){
-      const orgUnit = results.organisationUnits[0].id;
-      await collectOrganisationUnitData(sessionid, {
-        orgUnit
-      })
-      response = await returnNextMenu(sessionid, next_menu, menus);
+    const ruleHasNotPassed = await ruleNotPassed(sessionid, menu, answer);
+
+    if (ruleHasNotPassed) {
+      if (ruleHasNotPassed.type === 'ERROR') {
+        response = await returnNextMenu(sessionid, menu.id, menus, ruleHasNotPassed.errorMessage);
+      }
     } else {
-      const retry_message = menu.retry_message || `You did not enter a valid code, try again`;
-      response = await returnNextMenu(sessionid, menu.id, menus, retry_message);
+      const results = await getOrganisationUnitByCode(answer);
+      if (results.organisationUnits.length > 0) {
+        const orgUnit = results.organisationUnits[0].id;
+        await collectOrganisationUnitData(sessionid, {
+          orgUnit
+        })
+        response = await returnNextMenu(sessionid, next_menu, menus);
+      } else {
+        const retry_message = menu.retry_message || `You did not enter a valid code, try again`;
+        response = await returnNextMenu(sessionid, menu.id, menus, retry_message);
+      }
     }
   } else {
     response = await returnNextMenu(sessionid, menu.id, menus)
