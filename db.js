@@ -35,10 +35,7 @@ export const updateUserSession = (sessionid, data, testConn) => {
 export const getCurrentSessionByPhoneNumber = (mssdn, sessionTimeout, testConn) => {
     const conn = testConn || connection;
     return conn('sessions')
-        .where({
-            'mssdn': mssdn,
-            'done': false,
-        }).andWhere(conn.raw("DATE_PART('minute', now()) - DATE_PART('minute', started) <= ?", sessionTimeout))
+        .where('mssdn', mssdn).andWhere('done', false).andWhere(conn.raw("DATE_PART('minute', now()) - DATE_PART('minute', started) <= ?", sessionTimeout))
         .first();
 };
 export const getCurrentSession = (sessionid, testConn) => {
