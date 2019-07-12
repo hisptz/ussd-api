@@ -104,7 +104,6 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
     notSet: []
   };
   if(menu.dataSet){
-    console.log(menu.dataSet);
     const dataSet = await getDataSet(menu.dataSet);
 
     const operands = await getDataSetOperands(menu.dataSet);
@@ -123,24 +122,6 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
         returnValue.notSet.push(dataElementOperand.shortName);
       }
     })
-    /*const ids = [];
-    dataSet.dataSetElements.forEach((dataSetElement) => {
-      console.log(JSON.stringify(dataSetElement));
-      dataSetElement.categoryCombo.categoryOptionCombos.forEach((categoryOptionCombo)=> {
-        let found = false;
-        if (dataValueSet.dataValues) {
-          dataValueSet.dataValues.forEach((dataValue) => {
-            if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryOptionCombo === categoryOptionCombo.id) {
-              found = true;
-            }
-          })
-        }
-        if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + "." + categoryOptionCombo.id) > -1) {
-          returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + categoryOptionCombo.shortName);
-          ids.push(dataSetElement.dataElement.id + "." + categoryOptionCombo.id);
-        }
-      })
-    })*/
   }
   return returnValue;
 };
@@ -206,7 +187,6 @@ const sendAggregateData = async sessionid => {
     period: finalPeriod,
     orgUnit
   }));
-  console.log(JSON.stringify(dtArray));
   const response = await postAggregateData({
     dataValues: dtArray
   });
@@ -340,8 +320,6 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
       }
     })
   }
-
-  console.log(JSON.stringify(sessions.datastore.menus[sessions.currentmenu]));
 
   const event = {
     program,

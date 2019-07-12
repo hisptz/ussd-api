@@ -6,6 +6,10 @@ import {
   repeatingRequest
 } from './helpers/repeatingRequest';
 
+import {
+  updateUserSession
+} from './helpers/dataCollection';
+
 const db = require('../db');
 
 const router = express.Router();
@@ -18,6 +22,7 @@ const requestHandler = async (req, res) => {
     msisdn,
     USSDType
   } = req.query;
+  console.log(req.query);
   //const isNewRequest = USSDType === 'NR';
   let response;
   const session = await db.getCurrentSessionByPhoneNumber(msisdn,2);

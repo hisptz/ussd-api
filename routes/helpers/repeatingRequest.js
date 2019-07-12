@@ -85,7 +85,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           }
         } else {
           const ruleHasNotPassed = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
-          console.log('ruleHasNotPassed:', ruleHasNotPassed);
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
             const retry_message = menus.retry_message || 'You did not enter numerical value, try again'
@@ -308,7 +307,6 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
       if (answer > 0 && maximum_value && answer <= maximum_value) {
         const period_value = getPeriodBytype(period_type, answer);
         const period = period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`
-        console.log('period:', period);
         if(period.indexOf('W') > -1){
           if(parseInt(period.substr(1)) >= getWeekNumber(new Date())){
             const retry_message = `Future periods are not allowed, try again`;
