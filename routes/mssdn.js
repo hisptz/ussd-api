@@ -15,6 +15,7 @@ const db = require('../db');
 const router = express.Router();
 
 const requestHandler = async (req, res) => {
+  console.log(req.query);
   let {
     sessionid,
     telco,
@@ -22,7 +23,6 @@ const requestHandler = async (req, res) => {
     msisdn,
     USSDType
   } = req.query;
-  console.log(req.query);
   //const isNewRequest = USSDType === 'NR';
   let response;
   const session = await db.getCurrentSessionByPhoneNumber(msisdn,2);
@@ -32,9 +32,8 @@ const requestHandler = async (req, res) => {
   } else {
     response = await returnAuthenticationResponse(msisdn, sessionid);
   }
-  console.log(response);
   if (response.indexOf('C;') > -1){
-    await updateUserSession(sessionid, {
+    await db.updateUserSession(sessionid, {
       done: true
     });
   }
