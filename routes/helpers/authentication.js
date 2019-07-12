@@ -11,11 +11,11 @@ const {
   generateCode
 } = require('dhis2-uid');
 
-export const returnAuthenticationResponse = async (mssdin, sessionid) => {
+export const returnAuthenticationResponse = async (mssdn, sessionid) => {
   let response;
   const {
     users
-  } = await getUserFromDHIS2(mssdin);
+  } = await getUserFromDHIS2(mssdn);
   const dataStore = await getDataStoreFromDHIS2();
   const {
     settings,
@@ -34,9 +34,12 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
       const session_data = {
         id,
         name,
+        mssdn,
         sessionid,
         orgUnit: orgUnits[0].id,
         currentmenu: starting_menu.id,
+        started: new Date(),
+        done: false,
         retries: 0
       };
       await addUserSession({

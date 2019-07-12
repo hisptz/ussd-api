@@ -11,19 +11,27 @@ const db = require('../db');
 const router = express.Router();
 
 const requestHandler = async (req, res) => {
-  const {
+  let {
     sessionid,
     telco,
     USSDRequest,
     msisdn,
     USSDType
   } = req.query;
-  const isNewRequest = USSDType === 'NR';
+  //const isNewRequest = USSDType === 'NR';
   let response;
-  if (isNewRequest) {
-    response = await returnAuthenticationResponse(msisdn, sessionid);
-  } else {
+  const session = await db.getCurrentSessionByPhoneNumber(msisdn,2);
+  if (session){
+    sessionid = session.sessionid;
     response = await repeatingRequest(sessionid, USSDRequest, msisdn);
+  } else {
+    response = await returnAuthenticationResponse(msisdn, sessionid);
+  }
+  console.log(response);
+  if (response.indexOf('C;') > -1){
+    await updateUserSession(sessionid, {
+      done: true
+    });
   }
   res.send(response);
 };
