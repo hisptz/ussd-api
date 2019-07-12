@@ -15,10 +15,6 @@ const db = require('../db');
 const router = express.Router();
 
 const requestHandler = async (req, res) => {
-  if (req.query.msisdn !== '255758311851') {
-    res.send('C;${sessionid};Server Error. Please try again.');
-    return;
-  }
   try{
     console.log(req.query);
     let {
