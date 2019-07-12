@@ -32,7 +32,7 @@ const requestHandler = async (req, res) => {
     let response;
     const session = await db.getCurrentSessionByPhoneNumber(msisdn, 2);
     if (session) {
-      await db.updateUserSession(sessionid, {
+      await db.updateUserSession(session.sessionid, {
         sessionid: sessionid
       });
       response = await repeatingRequest(sessionid, USSDRequest, msisdn);
