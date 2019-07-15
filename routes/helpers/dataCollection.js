@@ -251,9 +251,13 @@ export const completeForm = async (sessionid, phoneNumber) => {
   const phoneNumbers = [phoneNumber];
   //phoneNumbers.push();
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
-  const message = 'Taarifa ya mwaka ' + year + ' mwezi ' + period+ 
-    ' Kutoka FIN ' + orgUnitDetails.code + ' imepokelewa kikamilifu.';
-  const result = await sendSMS(phoneNumbers, message);
+  if (menu.submission_message){
+    let message = menu.submission_message;
+    message = message.split('${period_year}').join(year);
+    message = message.split('${sub_period}').join(period);
+    message = message.split('${org_unit_code}').join(orgUnitDetails.code);
+    const result = await sendSMS(phoneNumbers, message);
+  }
   return response;
 };
 
