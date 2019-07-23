@@ -40,7 +40,6 @@ const requestHandler = async (req, res) => {
       });
     }
     res.send(response);
-    console.log('response:', response);
   }catch(e){
     res.send('C;${sessionid};Server Error. Please try again.');
     console.log(e.stack);

@@ -32,10 +32,8 @@ export const getDataSetOperands = async id => {
         const dataElements = results.dataSetElements.map((dataSetElement) => {
             return dataSetElement.dataElement.id
         });
-        console.log(dataElements);
         url = `${baseUrl}/api/dataElementOperands.json?filter=dataElement.id:in:[${dataElements.join(',')}]&fields=id,shortName`;
-        console.log('url:', url);
-
+        
         operands[id] = r2.get(url, {
             headers: {
                 Authorization
@@ -47,10 +45,28 @@ export const getDataSetOperands = async id => {
 };
 
 export const complete = (dataSet,period,orgUnit) => {
+    console.log('This is');
     const baseUrl = appConfig.url
     const url = `${baseUrl}/api/completeDataSetRegistrations`;
     const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
+    if (appConfig.otherServers){
+        appConfig.otherServers.forEach(async (server) => {
+            await r2.post(server.url, {
+                headers: {
+                    Authorization: getAuthorizationString(server.username, server.password)
+                },
+                json: {
+                    "completeDataSetRegistrations": [
+                        {
+                            "dataSet": dataSet,
+                            "period": period,
+                            "organisationUnit": orgUnit
+                        }]
+                }
+            }).json;
+        })
+    }
     return r2.post(url, {
         headers: {
             Authorization
