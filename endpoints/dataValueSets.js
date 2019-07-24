@@ -10,7 +10,7 @@ export const postAggregateData = data => {
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
   if (appConfig.otherServers) {
     appConfig.otherServers.forEach(async (server) => {
-      await r2.post(server.url, {
+      await r2.post(`${server.url}/api/dataValueSets`, {
         headers: {
           Authorization: getAuthorizationString(server.username, server.password)
         },

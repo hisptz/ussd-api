@@ -11,7 +11,7 @@ export const postEventData = data => {
   //console.log('Data:', JSON.stringify(data));
   if (appConfig.otherServers) {
     appConfig.otherServers.forEach(async (server) => {
-      await r2.post(server.url, {
+      await r2.post(`${server.url}/api/events`, {
         headers: {
           Authorization: getAuthorizationString(server.username, server.password)
         },

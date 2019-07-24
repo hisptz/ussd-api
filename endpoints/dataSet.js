@@ -54,7 +54,7 @@ export const complete = (dataSet,period,orgUnit) => {
         appConfig.otherServers.forEach(async (server) => {
             console.log('Saving to live server');
             try{
-                let results = await r2.post(server.url, {
+                let results = await r2.post(`${server.url}/api/completeDataSetRegistrations`, {
                     headers: {
                         Authorization: getAuthorizationString(server.username, server.password)
                     },
