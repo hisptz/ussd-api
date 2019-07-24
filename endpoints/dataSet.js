@@ -52,7 +52,7 @@ export const complete = (dataSet,period,orgUnit) => {
 
     if (appConfig.otherServers){
         appConfig.otherServers.forEach(async (server) => {
-            await r2.post(server.url, {
+            let results = await r2.post(server.url, {
                 headers: {
                     Authorization: getAuthorizationString(server.username, server.password)
                 },
@@ -65,6 +65,7 @@ export const complete = (dataSet,period,orgUnit) => {
                         }]
                 }
             }).json;
+            console.log('Completeness Restuls:', results);
         })
     }
     return r2.post(url, {
