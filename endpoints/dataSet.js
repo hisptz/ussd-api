@@ -53,19 +53,23 @@ export const complete = (dataSet,period,orgUnit) => {
     if (appConfig.otherServers){
         appConfig.otherServers.forEach(async (server) => {
             console.log('Saving to live server');
-            let results = await r2.post(server.url, {
-                headers: {
-                    Authorization: getAuthorizationString(server.username, server.password)
-                },
-                json: {
-                    "completeDataSetRegistrations": [
-                        {
-                            "dataSet": dataSet,
-                            "period": period,
-                            "organisationUnit": orgUnit
-                        }]
-                }
-            }).json;
+            try{
+                let results = await r2.post(server.url, {
+                    headers: {
+                        Authorization: getAuthorizationString(server.username, server.password)
+                    },
+                    json: {
+                        "completeDataSetRegistrations": [
+                            {
+                                "dataSet": dataSet,
+                                "period": period,
+                                "organisationUnit": orgUnit
+                            }]
+                    }
+                }).json;
+            }catch(e){
+                console.log(e.stack);
+            }
             console.log('Completeness Restuls:', results);
         })
     }
