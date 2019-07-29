@@ -4,20 +4,22 @@ import {
   getAuthorizationString
 } from '../config/app.config';
 
+const uploadData = (data) => {
+  return async (server) => {
+    await r2.post(`${server.url}/api/events`, {
+      headers: {
+        Authorization: getAuthorizationString(server.username, server.password)
+      },
+      json: data
+    }).json;
+  }
+}
 export const postEventData = data => {
   const baseUrl = appConfig.url
   const url = `${baseUrl}/api/events`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
-  //console.log('Data:', JSON.stringify(data));
   if (appConfig.otherServers) {
-    appConfig.otherServers.forEach(async (server) => {
-      await r2.post(`${server.url}/api/events`, {
-        headers: {
-          Authorization: getAuthorizationString(server.username, server.password)
-        },
-        json: data
-      }).json;
-    })
+    appConfig.otherServers.forEach(uploadData(data))
   }
   return r2.post(url, {
     headers: {

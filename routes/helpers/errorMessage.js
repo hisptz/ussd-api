@@ -28,10 +28,10 @@ export const getSanitizedErrorMessage = async (httpResponse) => {
             }
         })
     }
-    let sanitizedMessage = httpStatus ? `httpStatus : ${httpStatus}\n` : ``;
-    sanitizedMessage += httpStatusCode ? `httpStatusCode : ${httpStatusCode}\n` : ``;
-    sanitizedMessage += status ? `status : ${status}\n` : ``;
+    let sanitizedMessage = '';//httpStatus ? `httpStatus : ${httpStatus}\n` : ``;
+    //sanitizedMessage += httpStatusCode ? `httpStatusCode : ${httpStatusCode}\n` : ``;
+    //sanitizedMessage += status ? `status : ${status}\n` : ``;
     sanitizedMessage += message ? `${message}\n` : ``;
-    sanitizedMessage += importSummaries[0].description !== '' ? `${importSummaries[0].description}\n` : ``;
+    //sanitizedMessage += importSummaries[0].description !== '' ? `${importSummaries[0].description}\n` : ``;
     return sanitizedMessage;
 }

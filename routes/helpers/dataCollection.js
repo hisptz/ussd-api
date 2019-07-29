@@ -331,8 +331,9 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
     dataValues: dtArray
   };
 
-  const response = await postEventData(event);
   const menu = sessions.datastore.menus[sessions.currentmenu];
+  const messages = [];
+  let noErrors = true;
   if (menu.programNotificationTemplates) {
     menu.programNotificationTemplates.forEach(async (programNotificationTemplate) =>{
       let recipients = [];
@@ -350,12 +351,37 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
       if (programNotificationTemplate.notificationRecipient === 'USER_GROUP') {
         const userGroup = await getUserGroup(programNotificationTemplate.recipientUserGroup.id);
         userGroup.users.forEach(async (user) =>{
-          const result = await sendSMS([user.phoneNumber], message);
+          messages.push({
+            numbers: [user.phoneNumber],
+            sms: message
+          })
         })
       } else {
-        const result = await sendSMS(recipients, message);
+        messages.push({
+          numbers: recipients,
+          sms: message
+        })
+      }
+      if(message.indexOf('#{') > -1){
+        noErrors = true;
       }
     });
   }
-  return response;
+  if (noErrors){
+    const response = await postEventData(event);
+    for (const message of messages) {
+      await sendSMS(message.numbers, message.sms);
+    }
+    return response;
+  } else {
+    return {
+      httpStatus: 'ERROR',
+      httpStatusCode: 404,
+      status: 'ERROR',
+      message:'Server error. Try again.',
+      response: {},
+      conflicts:[],
+      importCount: {}
+    }
+  }
 };
