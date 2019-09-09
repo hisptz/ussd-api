@@ -226,7 +226,6 @@ export const ruleNotPassed = async (sessionid, menu, answer) => {
   }
 };
 const completeForm = async (sessionid, phoneNumber) => {
-  console.log('Started Completing');
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const session = await getCurrentSession(sessionid);
   const {

@@ -45,14 +45,12 @@ export const getDataSetOperands = async id => {
 };
 
 export const complete = (dataSet,period,orgUnit) => {
-    console.log('This is');
     const baseUrl = appConfig.url
     const url = `${baseUrl}/api/completeDataSetRegistrations`;
     const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
     if (appConfig.otherServers){
         appConfig.otherServers.forEach(async (server) => {
-            console.log('Saving to live server');
             try{
                 let results = await r2.post(`${server.url}/api/completeDataSetRegistrations`, {
                     headers: {
@@ -70,7 +68,6 @@ export const complete = (dataSet,period,orgUnit) => {
             }catch(e){
                 console.log(e.stack);
             }
-            console.log('Completeness Restuls:', results);
         })
     }
     return r2.post(url, {
