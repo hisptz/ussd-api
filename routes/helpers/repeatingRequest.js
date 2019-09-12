@@ -199,12 +199,14 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   } else if (menu.type === 'message') {
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
-    const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
     const submitOptions = ['YES', 'NO'];
     const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
     message = `P;${sessionid};${submitMsgString}`;
-    if (connfirmationSummary !== "") {
-      message += `\n${connfirmationSummary}`;
+    if(menu.showSummary){
+      const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
+      if (connfirmationSummary !== "") {
+        message += `\n${connfirmationSummary}`;
+      }
     }
   }
   // checking if previous menu is not of type auth and add back menu  
