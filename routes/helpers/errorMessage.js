@@ -24,13 +24,13 @@ export const getSanitizedErrorMessage = async httpResponse => {
     // });
   }
 
-  sanitizedMessage += httpStatus ? `httpStatus : ${httpStatus}\n` : ``;
-  sanitizedMessage += `SUMMARY \n`;
+  sanitizedMessage += httpResponse.status ? `${httpResponse.status}\n` : ``;
+  sanitizedMessage += conflicts[0] ? `message: ${conflicts[0].value}\n` : ``;
   sanitizedMessage += importCount.imported > 0 ? `imported : ${importCount.imported}\n` : ``;
   sanitizedMessage += importCount.updated > 0 ? `updated : ${importCount.updated}\n` : ``;
   sanitizedMessage += importCount.ignored > 0 ? `ignored : ${importCount.ignored}\n` : ``;
   sanitizedMessage += importCount.deleted > 0 ? `deleted : ${importCount.deleted}\n` : ``;
-  sanitizedMessage += conflicts[0] ? `message: ${conflicts[0].value}` : ``;
+
   //   let sanitizedMessage = httpStatus ? `httpStatus : ${httpStatus}\n` : ``;
   //   sanitizedMessage += httpStatusCode ? `httpStatusCode : ${httpStatusCode}\n` : ``;
   //   sanitizedMessage += status ? `status : ${status}\n` : ``;
