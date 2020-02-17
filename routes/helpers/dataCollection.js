@@ -1,46 +1,21 @@
-import {
-  getSessionDataValue,
-  updateSessionDataValues,
-  addSessionDatavalues,
-  updateUserSession,
-  getCurrentSession
-} from '../../db';
-import {
-  postAggregateData, getAggregateData
-} from '../../endpoints/dataValueSets';
-import {
-  postEventData
-} from '../../endpoints/eventData';
-import {
-  getDataSet, complete
-} from '../../endpoints/dataSet';
-import {
-  sendSMS
-} from '../../endpoints/sms';
-import {
-  getOrganisationUnit
-}
-  from '../../endpoints/organisationUnit';
-import {
-  getEventDate,
-  getCurrentWeekNumber,
-  getRandomCharacters
-} from './periods';
+import { getSessionDataValue, updateSessionDataValues, addSessionDatavalues, updateUserSession, getCurrentSession } from '../../db';
+import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
+import { postEventData } from '../../endpoints/eventData';
+import { getDataSet, complete } from '../../endpoints/dataSet';
+import { sendSMS } from '../../endpoints/sms';
+import { getOrganisationUnit } from '../../endpoints/organisationUnit';
+import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  const {
-    dataType,
-    category_combo,
-    data_element,
-    program,
-    program_stage
-  } = _currentMenu;
-  const dataValue = [{
-    dataElement: data_element,
-    categoryOptionCombo: category_combo,
-    value: USSDRequest
-  }];
+  const { dataType, category_combo, data_element, program, program_stage } = _currentMenu;
+  const dataValue = [
+    {
+      dataElement: data_element,
+      categoryOptionCombo: category_combo,
+      value: USSDRequest
+    }
+  ];
   const data = {
     sessionid,
     programStage: program_stage,
@@ -49,11 +24,9 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   };
   if (sessionDatavalues) {
     let oldDataValues = sessionDatavalues.dataValues;
-    try{
+    try {
       oldDataValues = JSON.parse(oldDataValues);
-    }catch(e){
-
-    }
+    } catch (e) {}
     const dataValues = [...oldDataValues, ...dataValue];
     return updateSessionDataValues(sessionid, {
       ...data,
@@ -70,12 +43,12 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 };
 
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, menus) => {
+  console.log('-------------------------*******----------------------------');
+
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  const {
-    datatype,
-    program,
-    programStage
-  } = sessionDatavalues;
+
+  console.log('sessionDataValues', sessionDatavalues);
+  const { datatype, program, programStage } = sessionDatavalues;
   if (datatype === 'aggregate') {
     return sendAggregateData(sessionid);
   } else if (datatype === 'event') {
@@ -87,20 +60,18 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
 export const ruleNotPassed = async (sessionid, menu, answer) => {
   if (menu.rules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
-    
+
     let retValue = false;
-    menu.rules.forEach((rule) => {
+    menu.rules.forEach(rule => {
       let ruleEval = rule.condition;
-      if (sessionDatavalues && sessionDatavalues.dataValues){
+      if (sessionDatavalues && sessionDatavalues.dataValues) {
         let dtValues = sessionDatavalues.dataValues;
         try {
           dtValues = JSON.parse(sessionDatavalues.dataValues);
-        } catch (e) {
-
-        }
-        dtValues.forEach((dtValue) => {
+        } catch (e) {}
+        dtValues.forEach(dtValue => {
           ruleEval = ruleEval.split('#{' + dtValue.dataElement + '}').join(dtValue.value);
-        })
+        });
       }
       ruleEval = ruleEval.split('#{' + menu.data_element + '}').join(answer);
       ruleEval = ruleEval.split('#{answer}').join(answer);
@@ -108,10 +79,8 @@ export const ruleNotPassed = async (sessionid, menu, answer) => {
         if (eval('(' + ruleEval + ')')) {
           retValue = rule.action;
         }
-      } catch (e) {
-
-      }
-    })
+      } catch (e) {}
+    });
     return retValue;
   } else {
     return false;
@@ -119,38 +88,36 @@ export const ruleNotPassed = async (sessionid, menu, answer) => {
 };
 export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  
+
   const session = await getCurrentSession(sessionid);
   let menu = session.datastore;
   try {
     menu = JSON.parse(session.datastore);
-  } catch (e) {
-
-  }
+  } catch (e) {}
   menu = menu.menus[session.currentmenu];
   const returnValue = {
     notSet: []
   };
-  if(menu.dataSet){
+  if (menu.dataSet) {
     const dataSet = await getDataSet(menu.dataSet);
-    const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year +sessionDatavalues.period, session.orgUnit);
+    const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
     const ids = [];
-    dataSet.dataSetElements.forEach((dataSetElement) => {
-      dataSetElement.categoryCombo.categoryOptionCombos.forEach((categoryOptionCombo)=> {
+    dataSet.dataSetElements.forEach(dataSetElement => {
+      dataSetElement.categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo => {
         let found = false;
         if (dataValueSet.dataValues) {
-          dataValueSet.dataValues.forEach((dataValue) => {
+          dataValueSet.dataValues.forEach(dataValue => {
             if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryOptionCombo === categoryOptionCombo.id) {
               found = true;
             }
-          })
+          });
         }
-        if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + "." + categoryOptionCombo.id) > -1) {
-          returnValue.notSet.push(dataSetElement.dataElement.shortName + " " + categoryOptionCombo.shortName);
-          ids.push(dataSetElement.dataElement.id + "." + categoryOptionCombo.id);
+        if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + '.' + categoryOptionCombo.id) > -1) {
+          returnValue.notSet.push(dataSetElement.dataElement.shortName + ' ' + categoryOptionCombo.shortName);
+          ids.push(dataSetElement.dataElement.id + '.' + categoryOptionCombo.id);
         }
-      })
-    })
+      });
+    });
   }
   return returnValue;
 };
@@ -180,50 +147,40 @@ export const collectOrganisationUnitData = async (sessionid, obj) => {
 
 export const getCurrentSessionDataValue = async sessionid => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  let {
-    dataValues,
-    datatype
-  } = sessionDatavalues;
+  let { dataValues, datatype } = sessionDatavalues;
   try {
     dataValues = JSON.parse(dataValues);
-  } catch (e) {
-
-  }
+  } catch (e) {}
   return {
     dataValues: dataValues,
     datatype
   };
-}
+};
 
 const sendAggregateData = async sessionid => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
-  const {
-    dataValues,
-    year,
-    period
-  } = sessionDatavalues;
-  const {
-    orgUnit
-  } = sessions;
+  const { dataValues, year, period } = sessionDatavalues;
+  const { orgUnit } = sessions;
   const finalPeriod = `${year}${period}`;
   let dtValues = dataValues;
   try {
     dtValues = JSON.parse(dataValues);
-  } catch (e) {
+  } catch (e) {}
+  const dtArray = dtValues
+    .map(({ categoryOptionCombo, dataElement, value }) => ({
+      categoryOptionCombo,
+      dataElement,
+      value,
+      period: finalPeriod,
+      orgUnit
+    }))
+    .filter(dt => {
+      return dt.dataElement ? true : false;
+    });
 
-  }
-  const dtArray = dtValues.map(({
-    categoryOptionCombo,
-    dataElement,
-    value
-  }) => ({
-    categoryOptionCombo,
-    dataElement,
-    value,
-    period: finalPeriod,
-    orgUnit
-  }));
+  console.log('data to post ::', dtArray);
+
   const response = await postAggregateData({
     dataValues: dtArray
   });
@@ -232,26 +189,18 @@ const sendAggregateData = async sessionid => {
 export const completeForm = async (sessionid, phoneNumber) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const session = await getCurrentSession(sessionid);
-  const {
-    dataValues,
-    year,
-    period
-  } = sessionDatavalues;
-  const {
-    orgUnit
-  } = session;
+  const { dataValues, year, period } = sessionDatavalues;
+  const { orgUnit } = session;
   let menu = session.datastore;
   try {
     menu = JSON.parse(session.datastore);
-  } catch (e) {
-
-  }
+  } catch (e) {}
   menu = menu.menus[session.currentmenu];
-  const response = await complete(menu.dataSet,year + '' + period, orgUnit);
+  const response = await complete(menu.dataSet, year + '' + period, orgUnit);
   const phoneNumbers = [phoneNumber];
   //phoneNumbers.push();
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
-  if (menu.submission_message){
+  if (menu.submission_message) {
     let message = menu.submission_message;
     message = message.split('${period_year}').join(year);
     message = message.split('${sub_period}').join(period);
@@ -264,32 +213,18 @@ export const completeForm = async (sessionid, phoneNumber) => {
 const sendEventData = async (sessionid, program, programStage, msisdn) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
-  const {
-    dataValues
-  } = sessionDatavalues;
-  const {
-    orgUnit
-  } = sessions;
+  const { dataValues } = sessionDatavalues;
+  const { orgUnit } = sessions;
   let datastore = sessions.datastore;
   try {
     datastore = JSON.parse(session.datastore);
-  } catch (e) {
-
-  }
-  const {
-    phone_number_mapping,
-    auto_generated_field
-  } = datastore.settings;
+  } catch (e) {}
+  const { phone_number_mapping, auto_generated_field } = datastore.settings;
   let dtValues = dataValues;
   try {
     dtValues = JSON.parse(dataValues);
-  } catch (e) {
-
-  }
-  let dtArray = dtValues.map(({
-    dataElement,
-    value
-  }) => ({
+  } catch (e) {}
+  let dtArray = dtValues.map(({ dataElement, value }) => ({
     dataElement,
     value
   }));
@@ -297,34 +232,28 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
   if (phone_number_mapping && phone_number_mapping[program]) {
     const mappings = phone_number_mapping[program];
     mappings.map(mapping => {
-      const {
-        program_stage,
-        data_element
-      } = mapping;
+      const { program_stage, data_element } = mapping;
       if (program_stage && programStage === program_stage && data_element) {
         dtArray.push({
           dataElement: data_element,
           value: msisdn
-        })
+        });
       }
-    })
+    });
   }
   // adding  auto generated fields if exist on mapping
   if (auto_generated_field && auto_generated_field[program]) {
     const mappings = auto_generated_field[program];
     mappings.map(mapping => {
-      const {
-        program_stage,
-        data_element
-      } = mapping;
+      const { program_stage, data_element } = mapping;
       const value = `${getCurrentWeekNumber()}-${getRandomCharacters(12)}`;
       if (program_stage && programStage === program_stage && data_element) {
         dtArray.push({
           dataElement: data_element,
           value
-        })
+        });
       }
-    })
+    });
   }
 
   const response = await postEventData({
