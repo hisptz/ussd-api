@@ -35,6 +35,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const session_details = await getCurrentSession(sessionid);
 
     if (!session_details) {
+      console.log('session details not ther');
+
       const dataStore = await getDataStoreFromDHIS2();
       const { settings, menus } = dataStore;
       const starting_menu = menus[settings.starting_menu];
@@ -60,9 +62,12 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       };
       return response;
     } else {
+      console.log('session details EXIST');
       currentmenu = session_details.currentmenu;
       datastore = session_details.datastore;
       retries = session_details.retries;
+
+      console.log('currentMenu :: ', currentmenu, 'retries :: ', retries);
     }
     try {
       datastore = JSON.parse(datastore);
@@ -126,6 +131,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
 
       // if you are to submit data submit here.
       if (_currentMenu.submit_data) {
+        console.log('data submissions ::::> ', _currentMenu.submit_data);
         console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
           console.log('route2');
