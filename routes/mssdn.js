@@ -17,6 +17,9 @@ const format = response => {
 
 const requestHandler = async (req, res) => {
   let { sessionid, telco, USSDRequest, input, msisdn, USSDType } = req.query;
+  if(USSDRequest && !input){
+    input = USSDRequest;
+  }
   //input = USSDRequest;
   //console.log('req.query:', req.query, input);
   const isNewRequest = USSDType === 'NR';
