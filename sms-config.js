@@ -38,7 +38,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha waliopewa ALU ni wengi kuliko wenye majibu chanya pia wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha waliopewa ALU ni wengi kuliko wenye majibu chanya pia wagonjwa wenye homa wamekuwa wengi. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -47,7 +47,7 @@ export const configurations = [
     },
     //Starting Here
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ya Malaria ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya Malaria pia wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ya Malaria ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya Malaria pia wagonjwa wenye homa wamekuwa wengi. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -55,7 +55,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha baadhi ya watoto wenye nimonia hawakupewa Amox DT pia wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha baadhi ya watoto wenye nimonia hawakupewa Amox DT pia wagonjwa wenye homa wamekuwa wengi. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -63,7 +63,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha baadhi ya watoto wenye kuhara hawakupewa ZINC na ORS, pia wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha baadhi ya watoto wenye kuhara hawakupewa ZINC na ORS, pia wagonjwa wenye homa wamekuwa wengi. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -119,7 +119,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria, wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo. Pia imeonekana waliopewa ALU ni wengi kuliko wenye majibu chanya.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria, wagonjwa wenye homa wamekuwa wengi. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto. Pia imeonekana waliopewa ALU ni wengi kuliko wenye majibu chanya.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -128,7 +128,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha,baadhi ya watoto wenye nimonia hawakupewa Amox DT,  imeonekana waliopewa ALU ni wengi kuliko wenye majibu chanya, wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha,baadhi ya watoto wenye nimonia hawakupewa Amox DT,  imeonekana waliopewa ALU ni wengi kuliko wenye majibu chanya, wagonjwa wenye homa wamekuwa wengi. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -137,7 +137,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha,baadhi ya watoto wenye kuhara hawakupewa ZINC na ORS,  Pia imeonekana waliopewa ALU ni wengi kuliko wenye majibu chanya, wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha,baadhi ya watoto wenye kuhara hawakupewa ZINC na ORS,  Pia imeonekana waliopewa ALU ni wengi kuliko wenye majibu chanya, wagonjwa wenye homa wamekuwa wengi. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -182,7 +182,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria, wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo. ,waliopewa ALU ni wengi kuliko wenye majibu chanya na pia baadhi ya watoto  wenye nimonia hawakupewa Amox DT.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria,waliopewa ALU ni wengi kuliko wenye majibu chanya, baadhi ya watoto  wenye nimonia hawakupewa Amox DT,na idadi ya wenye homa ni kubwa. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -192,7 +192,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria, wagonjwa wenye homa wamekuwa wengi. Hakikisha huwa unatumia kipimajoto kuthibitisha homa hizo. ,waliopewa ALU ni wengi kuliko wenye majibu chanya na pia baadhi ya watoto  wenye kuhara hawakupewa ZINC na ORS.",
+        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria ,waliopewa ALU ni wengi kuliko wenye majibu chanya , baadhi ya watoto  wenye kuhara hawakupewa ZINC na ORS na idadi ya wenye homa ni kubwa. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             H9KUB8rcui9: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],
@@ -202,7 +202,7 @@ export const configurations = [
         },
     },
     {
-        message: "{orgUnit.name} {orgUnit.code}. Hongera kwa kutuma taarifa za mwezi {period}. Takwimu zako zinaonyesha dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria, waliopewa ALU ni wengi kuliko wenye majibu chanya na pia baadhi ya watoto  wenye kuhara hawakupewa ZINC na ORS, baadhi ya watoto  wenye nimonia hawakupewa Amox DT.",
+        message: "{orgUnit.name} {orgUnit.code}. Takwimu zako zinaonyesha kuwa wagonjwa waliopewa ALU ni wengi kuliko wenye majibu chanya, dawa mseto ilitolewa kwa wagonjwa ambao hawakuwa na majibu ya malaria ,baadhi ya watoto  wenye nimonia hawakupewa Amox DT, baadhi ya watoto  wenye kuhara hawakupewa ZINC na ORS na idadi ya wenye  homa ni kubwa. Hakikisha unathibitisha homa hizo kwa kutumia kipima joto.",
         conditions: [],
         otherConditions: {
             orCL6SVj4Ia: ["yFvwGue43EQ", "C0m3Tnw9rDu", "z7yljE98jsl"],

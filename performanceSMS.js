@@ -19,7 +19,11 @@ const configurations = require('./sms-config').configurations;
 const baseUrl = appConfig.url
 
 const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
-
+let test ={
+    code: '0102051',
+    pe:'201904',
+    sms: false
+}
 function getLegend() {
     const url = `${baseUrl}/api/legendSets.json?fields=legends[id,startValue,endValue,color]`;
     return r2.get(url, {
@@ -29,7 +33,7 @@ function getLegend() {
     }).json;
 }
 function getOrganisationUnits(page = 1) {
-    const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&filter=code:in:[0101044]&fields=id,name,code,phoneNumber,attributeValues`;
+    const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&filter=code:in:[${test.code}]&fields=id,name,code,phoneNumber,attributeValues`;
     //const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&filter=id:eq:EjxCAxGdiZ8&fields=id,name,phoneNumber,attributeValues`;
     console.log('Org Unit:',url);
     return r2.get(url, {
@@ -39,7 +43,7 @@ function getOrganisationUnits(page = 1) {
     }).json;
 }
 function getAnalytics(ou){
-    const url = `${baseUrl}/api/analytics?dimension=dx:${indicators.join(';')}&dimension=pe:201904&dimension=ou:${ou.join(';')}&displayProperty=NAME&hierarchyMeta=true`;
+    const url = `${baseUrl}/api/analytics?dimension=dx:${indicators.join(';')}&dimension=pe:${test.pe}&dimension=ou:${ou.join(';')}&displayProperty=NAME&hierarchyMeta=true`;
     console.log('Url:',url)
     return r2.get(url, {
         headers: {
@@ -142,15 +146,27 @@ async function load(page){
         message = message.split('{orgUnit.code}').join(ou.code);
         if (message !== '' && message.indexOf('Ndugu mtoa dawa, hujatuma ripoti ya mwezi') === -1)
         {
-            
+            var arr = []
+            Object.keys(ouMapping[ou.id].indicators).forEach((key)=>{
+                arr.push({
+                    id:key,
+                    indicator:data.metaData.items[key].name,
+                    value: ouMapping[ou.id].indicators[key]
+                })
+            })
+            console.table(arr);
             //console.log(ou.id,JSON.stringify(ouMapping[ou.id].indicators), message);
             console.log(ou.id, message);
             try{
-                let rsults = await sendSMS(["0718026490"],message);
+                /*let rsults = await sendSMS(["0718026490"],message);
                 console.log('SMS Results:',rsults);
                 //await sendSMS(["0713311946"],message);
-                rsults = await sendSMS(["0757847423"],message);
-                console.log('SMS Results:',rsults);
+                let rsults = await sendSMS(["0757847423"],message);
+                console.log('SMS Results:',rsults);*/
+                if(test.sms){
+                    let rsults = await sendSMS(["0757847423"],message);
+                    console.log('SMS Results:',rsults); 
+                }
             }catch(e){
                 console.log('SMS Error:',e)
             }
