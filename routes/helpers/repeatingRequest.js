@@ -13,6 +13,7 @@ import {
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
+import { getEventData } from '../../endpoints/eventData';
 // Deals with curren menu.
 
 const periodTypes = {
@@ -96,7 +97,30 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       // console.log('----------------i get here-------------------------------------------------------');
       // console.log('currentMEnu', _currentMenu);
       // console.log('previousMEnu', _previous_menu);
-      if (_currentMenu.type === 'id_generator') {
+      if (_currentMenu.type === 'fetch') {
+        let referralDetails = await getEventData(_currentMenu.data_id, USSDRequest, _currentMenu.program);
+        let referralDataValues = referralDetails['events'][0]['dataValues'];
+        let referralFrom = referralDetails['events'][0].orgUnitName;
+
+        //await addSessionDatavalues(sessionid, { eventId: 123 });
+
+        console.log('referral from', referralFrom);
+        let message =
+          'Taarifa za rufaa' +
+          '<br/>Kituo:' +
+          referralFrom +
+          '<br/>Umri:' +
+          referralDataValues[2]['value'] +
+          '<br/>Jinsia:' +
+          referralDataValues[3]['value'] +
+          '<br/>Sababu:' +
+          referralDataValues[1]['value'] +
+          '<br/> Je taarifa za rufaa ni sahihi? <br/><br/>';
+        response = { response_type: 2, text: message, options: returnOptions(menus[_currentMenu.next_menu]) };
+        //console.log('event details ::-->> ', referralDetails);
+
+        returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+      } else if (_currentMenu.type === 'id_generator') {
         //_currentMenu.options = [{ response: USSDRequest, title: 'bnfjkebfyuweu', value: 'bnfjkebfyuweu' }];
         console.log('got into the id gen block');
         const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, id_gen_menu, USSDRequest, menus);
@@ -326,6 +350,13 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       response_type: 2,
       text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo',
       options: returnOptions(id_gen_menu)
+    };
+  } else if (menu.type == 'fetch') {
+    //fetch event details
+
+    message = {
+      response_type: 2,
+      text: menu.title
     };
   }
   // checking if previous menu is not of type auth and add back menu
