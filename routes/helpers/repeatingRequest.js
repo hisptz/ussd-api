@@ -13,6 +13,7 @@ import {
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
+import { getEventData } from '../../endpoints/eventData';
 // Deals with curren menu.
 
 const periodTypes = {
@@ -21,6 +22,18 @@ const periodTypes = {
   BiMonthly: 'S',
   Quoterly: 'Q'
 };
+
+const makeLocalUid = () => {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  for (let i = 0; i < 11; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
+var id_gen_menu = {};
+
 const numericalValueTypes = ['INTEGER_NEGATIVE', 'INTEGER_POSITIVE', 'INTEGER', 'NUMBER', 'INTEGER_ZERO_OR_POSITIVE'];
 const menu_types_with_back = ['options', 'data', 'period'];
 const dataSubmissionOptions = [true, false];
@@ -28,14 +41,14 @@ const successStatus = ['SUCCESS', 'OK'];
 const OK = 'OK';
 
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
-  //console.log('USSDRequest Input:', USSDRequest);
+  //console.log('USSDRequest Input:', USSDRequest)
   let response;
   try {
     let currentmenu, datastore, retries;
     const session_details = await getCurrentSession(sessionid);
 
     if (!session_details) {
-      console.log('session details not ther');
+      console.log('session details not there');
 
       const dataStore = await getDataStoreFromDHIS2();
       const { settings, menus } = dataStore;
@@ -62,18 +75,19 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       };
       return response;
     } else {
-      console.log('session details EXIST');
+      //console.log('session details EXIST');
       currentmenu = session_details.currentmenu;
       datastore = session_details.datastore;
       retries = session_details.retries;
 
-      console.log('currentMenu :: ', currentmenu, 'retries :: ', retries);
+      //console.log('currentMenu :: ', currentmenu, 'retries :: ', retries);
     }
     try {
       datastore = JSON.parse(datastore);
     } catch (e) {}
     const menus = datastore.menus;
     const _currentMenu = menus[currentmenu];
+
     // checking for previous menu is not auth and checking if user need previous menu
     const _previous_menu = menus[_currentMenu.previous_menu] || {};
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
@@ -83,7 +97,49 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       // console.log('----------------i get here-------------------------------------------------------');
       // console.log('currentMEnu', _currentMenu);
       // console.log('previousMEnu', _previous_menu);
-      if (_currentMenu.type === 'auth') {
+      if (_currentMenu.type === 'fetch') {
+        let referralDetails = await getEventData(_currentMenu.data_id, USSDRequest, _currentMenu.program);
+        let referralDataValues = referralDetails['events'][0]['dataValues'];
+        let referralFrom = referralDetails['events'][0].orgUnitName;
+
+        //await addSessionDatavalues(sessionid, { eventId: 123 });
+
+        console.log('referral from', referralFrom);
+        let message =
+          'Taarifa za rufaa' +
+          '<br/>Kituo:' +
+          referralFrom +
+          '<br/>Umri:' +
+          referralDataValues[2]['value'] +
+          '<br/>Jinsia:' +
+          referralDataValues[3]['value'] +
+          '<br/>Sababu:' +
+          referralDataValues[1]['value'] +
+          '<br/> Je taarifa za rufaa ni sahihi? <br/><br/>';
+        response = { response_type: 2, text: message, options: returnOptions(menus[_currentMenu.next_menu]) };
+        //console.log('event details ::-->> ', referralDetails);
+
+        returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+      } else if (_currentMenu.type === 'id_generator') {
+        //_currentMenu.options = [{ response: USSDRequest, title: 'bnfjkebfyuweu', value: 'bnfjkebfyuweu' }];
+        console.log('got into the id gen block');
+        const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, id_gen_menu, USSDRequest, menus);
+        if (passed) {
+          console.log('correct Options :::', correctOption);
+          response = await collectData(sessionid, id_gen_menu, correctOption);
+          if (next_menu_response) {
+            response = next_menu_response;
+          } else {
+            response = await returnNextMenu(sessionid, id_gen_menu.next_menu, menus);
+          }
+        } else {
+          // Return menu for data collector with options
+          const retry_message = menus.retry_message || 'You did not enter the correct choice, try again';
+          response = await returnNextMenu(sessionid, id_gen_menu.id, menus, retry_message);
+        }
+        response = checkOptionsAnswer(sessionid, id_gen_menu, USSDRequest, menus);
+        response = await returnNextMenu(sessionid, id_gen_menu.next_menu, menus);
+      } else if (_currentMenu.type === 'auth') {
         if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
           response = {
             response_type: 1,
@@ -93,10 +149,14 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
         }
       } else if (_currentMenu.type === 'data') {
+        console.log('where data is collected');
         const { options } = _currentMenu;
         if (options && options.length) {
+          //console.log('test here', sessionid, 'current menu :::', _currentMenu, 'ussd req ::::', USSDRequest, 'menus :::', menus);
+
           const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
           if (passed) {
+            console.log('correct Options :::', correctOption);
             response = await collectData(sessionid, _currentMenu, correctOption);
             if (next_menu_response) {
               response = next_menu_response;
@@ -128,7 +188,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         //console.log('do i get here?');
         response = terminateWithMessage(sessionid, _currentMenu);
       }
-
       // if you are to submit data submit here.
       if (_currentMenu.submit_data) {
         console.log('data submissions ::::> ', _currentMenu.submit_data);
@@ -190,7 +249,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
     }
   } catch (e) {
-    //console.log(e.stack);
+    console.log(e);
     response = {
       response_type: 1,
       text: 'Server Error. Please try again.'
@@ -279,6 +338,22 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       message.text += `\n${connfirmationSummary}`;
     }
   } else if (menu.type === 'ou') {
+    message = {
+      response_type: 2,
+      text: menu.title
+    };
+  } else if (menu.type === 'id_generator') {
+    let generatedId = makeLocalUid();
+    id_gen_menu = menus[menu.id];
+    id_gen_menu['options'] = [{ id: '123', response: '1', title: generatedId, value: generatedId }];
+    message = {
+      response_type: 2,
+      text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo',
+      options: returnOptions(id_gen_menu)
+    };
+  } else if (menu.type == 'fetch') {
+    //fetch event details
+
     message = {
       response_type: 2,
       text: menu.title
