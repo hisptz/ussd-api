@@ -19,11 +19,7 @@ const configurations = require('./sms-config').configurations;
 const baseUrl = appConfig.url
 
 const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
-let test = {
-    code: '0101013',
-    pe: '201904',
-    sms: false
-}
+
 function getLegend() {
     const url = `${baseUrl}/api/legendSets.json?fields=legends[id,startValue,endValue,color]`;
     return r2.get(url, {
@@ -239,10 +235,6 @@ async function load(page) {
                 try {
                     console.log(phoneNumbers, message);
                     //await sendSMS(phoneNumbers,message);
-                    if (test.sms) {
-                        let rsults = await sendSMS(["0718026490", "0742772849"], message);
-                        console.log('SMS Results:', rsults);
-                    }
                 } catch (e) {
                     console.log('SMS Error:', e)
                 }
