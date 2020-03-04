@@ -3,8 +3,8 @@ import {
     appConfig,
     getAuthorizationString
 } from './config/app.config';
-import {sendSMS} from './endpoints/sms';
-const legendSet = {"created": "2018-10-15T05:15:47.506", "lastUpdated": "2018-10-15T05:19:31.722", "name": "Legend 2", "href": "http://154.118.230.229/api/legendSets/pAtZWUyG6mw", "id": "pAtZWUyG6mw", "displayName": "Legend 2", "publicAccess": "rw------", "externalAccess": false, "favorite": false, "lastUpdatedBy": {"id": "M5zQapPyTZI"}, "access": {"read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true}, "user": {"id": "M5zQapPyTZI"}, "favorites": [], "userGroupAccesses": [], "attributeValues": [], "legends": [{"lastUpdated": "2018-10-15T05:19:31.723", "id": "BRGJJBdawSe", "created": "2018-10-15T05:19:31.723", "name": "0 - 20", "endValue": 20.0, "color": "#1a9641", "displayName": "0 - 20", "externalAccess": false, "startValue": 0.0, "favorite": false, "access": {"read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true}, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": []}, {"lastUpdated": "2018-10-15T05:19:31.723", "id": "VnDKBTKGizy", "created": "2018-10-15T05:19:31.723", "name": "20 - 40", "endValue": 40.0, "color": "#a6d96a", "displayName": "20 - 40", "externalAccess": false, "startValue": 20.0, "favorite": false, "access": {"read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true}, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": []}, {"lastUpdated": "2018-10-15T05:19:31.724", "id": "yFvwGue43EQ", "created": "2018-10-15T05:19:31.724", "name": "80-101", "endValue": 101.0, "color": "#fdae61", "displayName": "80-101", "externalAccess": false, "startValue": 80.0, "favorite": false, "access": {"read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true}, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": []}, {"lastUpdated": "2018-10-15T05:19:31.723", "id": "C0m3Tnw9rDu", "created": "2018-10-15T05:19:31.723", "name": "40 - 80", "endValue": 80.0, "color": "#ffffbf", "displayName": "40 - 80", "externalAccess": false, "startValue": 40.0, "favorite": false, "access": {"read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true}, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": []}, {"lastUpdated": "2018-10-15T05:19:31.724", "id": "z7yljE98jsl", "created": "2018-10-15T05:19:31.724", "name": "101+", "endValue": 100000.0, "color": "#d7191c", "displayName": "101+", "externalAccess": false, "startValue": 101.0, "favorite": false, "access": {"read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true}, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": []}], "translations": [], "userAccesses": []};
+import { sendSMS } from './endpoints/sms';
+const legendSet = { "created": "2018-10-15T05:15:47.506", "lastUpdated": "2018-10-15T05:19:31.722", "name": "Legend 2", "href": "http://154.118.230.229/api/legendSets/pAtZWUyG6mw", "id": "pAtZWUyG6mw", "displayName": "Legend 2", "publicAccess": "rw------", "externalAccess": false, "favorite": false, "lastUpdatedBy": { "id": "M5zQapPyTZI" }, "access": { "read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true }, "user": { "id": "M5zQapPyTZI" }, "favorites": [], "userGroupAccesses": [], "attributeValues": [], "legends": [{ "lastUpdated": "2018-10-15T05:19:31.723", "id": "BRGJJBdawSe", "created": "2018-10-15T05:19:31.723", "name": "0 - 20", "endValue": 20.0, "color": "#1a9641", "displayName": "0 - 20", "externalAccess": false, "startValue": 0.0, "favorite": false, "access": { "read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true }, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": [] }, { "lastUpdated": "2018-10-15T05:19:31.723", "id": "VnDKBTKGizy", "created": "2018-10-15T05:19:31.723", "name": "20 - 40", "endValue": 40.0, "color": "#a6d96a", "displayName": "20 - 40", "externalAccess": false, "startValue": 20.0, "favorite": false, "access": { "read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true }, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": [] }, { "lastUpdated": "2018-10-15T05:19:31.724", "id": "yFvwGue43EQ", "created": "2018-10-15T05:19:31.724", "name": "80-101", "endValue": 101.0, "color": "#fdae61", "displayName": "80-101", "externalAccess": false, "startValue": 80.0, "favorite": false, "access": { "read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true }, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": [] }, { "lastUpdated": "2018-10-15T05:19:31.723", "id": "C0m3Tnw9rDu", "created": "2018-10-15T05:19:31.723", "name": "40 - 80", "endValue": 80.0, "color": "#ffffbf", "displayName": "40 - 80", "externalAccess": false, "startValue": 40.0, "favorite": false, "access": { "read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true }, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": [] }, { "lastUpdated": "2018-10-15T05:19:31.724", "id": "z7yljE98jsl", "created": "2018-10-15T05:19:31.724", "name": "101+", "endValue": 100000.0, "color": "#d7191c", "displayName": "101+", "externalAccess": false, "startValue": 101.0, "favorite": false, "access": { "read": true, "update": true, "externalize": true, "delete": true, "write": true, "manage": true }, "favorites": [], "translations": [], "userGroupAccesses": [], "attributeValues": [], "userAccesses": [] }], "translations": [], "userAccesses": [] };
 arrayToObject
 const indicators = [
     "H9KUB8rcui9",
@@ -19,11 +19,7 @@ const configurations = require('./sms-config').configurations;
 const baseUrl = appConfig.url
 
 const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
-let test ={
-    code: '0102051',
-    pe:'201904',
-    sms: false
-}
+
 function getLegend() {
     const url = `${baseUrl}/api/legendSets.json?fields=legends[id,startValue,endValue,color]`;
     return r2.get(url, {
@@ -33,23 +29,82 @@ function getLegend() {
     }).json;
 }
 function getOrganisationUnits(page = 1) {
-    const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&filter=code:in:[${test.code}]&fields=id,name,code,phoneNumber,attributeValues`;
+    const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&order=name:asc&filter=organisationUnitGroups.id:eq:QWHGAtRYcr0&filter=organisationUnitGroups.id:eq:v2yuaIqu4tZ&rootJunction=OR&fields=id,name,code,phoneNumber,attributeValues`;
     //const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&filter=id:eq:EjxCAxGdiZ8&fields=id,name,phoneNumber,attributeValues`;
-    console.log('Org Unit:',url);
+    console.log('Org Unit:', url);
     return r2.get(url, {
         headers: {
             Authorization
         }
     }).json;
 }
-function getAnalytics(ou){
-    const url = `${baseUrl}/api/analytics?dimension=dx:${indicators.join(';')}&dimension=pe:${test.pe}&dimension=ou:${ou.join(';')}&displayProperty=NAME&hierarchyMeta=true`;
-    console.log('Url:',url)
+function getPeriod() {
+    let year = (new Date()).getFullYear().toString();
+    let month = (new Date()).getMonth();
+    let monthStr;
+    if (month === 0) {
+        monthStr = '12';
+    } else if (month < 10) {
+        monthStr = '0' + month;
+    } else {
+        monthStr = '' + month;
+    }
+    return year + monthStr;
+}
+function getAnalytics(ou) {
+    const url = `${baseUrl}/api/analytics?dimension=dx:${indicators.join(';')}&dimension=pe:${getPeriod()}&dimension=ou:${ou.join(';')}&displayProperty=NAME&hierarchyMeta=true`;
+    console.log('Url:', url)
     return r2.get(url, {
         headers: {
             Authorization
         }
     }).json;
+}
+var sentSMS;
+async function getSentSMS() {
+    const url = `${baseUrl}/api/dataStore/performance_sms_sent/${getPeriod()}`;
+    try {
+        let results = await r2.get(url, {
+            headers: {
+                Authorization
+            }
+        }).json;
+        if(results.httpStatusCode === 404){
+            sentSMS = {};
+        }else{
+            sentSMS = {...results};
+        }
+    } catch (e) {
+        console.error(e.code);
+        throw e;
+    }
+}
+async function saveSentSMS() {
+    const url = `${baseUrl}/api/dataStore/performance_sms_sent/${getPeriod()}`;
+    try {
+        let results = await r2.put(url, {
+            headers: {
+                Authorization
+            },
+            json: sentSMS
+        }).json;
+        if(results.httpStatusCode === 404){
+            try {
+                results = await r2.post(url, {
+                    headers: {
+                        Authorization
+                    },
+                    json: sentSMS
+                }).json;
+            } catch (e) {
+                console.error(e.code);
+                throw e;
+            }
+        }
+    } catch (e) {
+        console.error(e.code);
+        throw e;
+    }
 }
 const arrayToObject = (array) =>
     array.reduce((obj, item) => {
@@ -57,17 +112,22 @@ const arrayToObject = (array) =>
         return obj
     }, {});
 const legend = {};
-async function start(){
-    let legendSetsResults = await getLegend();
-    legendSetsResults.legendSets.forEach((legendSet) => {
-        legendSet.legends.forEach((leg) => {
-            legend[leg.id] = leg;
+async function start() {
+    try {
+        let legendSetsResults = await getLegend();
+        legendSetsResults.legendSets.forEach((legendSet) => {
+            legendSet.legends.forEach((leg) => {
+                legend[leg.id] = leg;
+            })
         })
-    })
-    await load(1);
-    console.log('Finished')
+        await load(1);
+    } catch (e) {
+        await sendSMS(["0718026490"], "Network error fetching legends.");
+        console.error(e.code);
+        throw e;
+    }
 }
-async function load(page){
+async function load(page) {
     console.log('Started Page:', page);
     const ouResults = await getOrganisationUnits(page);
     //ouResults.organisationUnits = ouResults.organisationUnits.filter((ou) => ou.id === "PLLbHn8QAbN")
@@ -79,18 +139,23 @@ async function load(page){
     const data = await getAnalytics(ouResults.organisationUnits.map((ou) => {
         ouMapping[ou.id] = {
             details: ou,
-            indicators:{
+            indicators: {
                 ...initialIndicatorValues
             }
         }
         return ou.id;
     }))
     const period = data.metaData.items[data.metaData.dimensions.pe[0]].name;
+    await getSentSMS();
     console.log('Period:', period);
     data.rows.forEach((row) => {
         ouMapping[row[2]].indicators[row[0]] = row[3];
     });
-    for(let ou of ouResults.organisationUnits){
+    console.table(legend);
+    for (let ou of ouResults.organisationUnits) {
+        if(sentSMS[ou.id] && sentSMS[ou.id].done){
+            continue;
+        }
         let message = '';
         Object.keys(ouMapping[ou.id].indicators).some((key) => {
             if (ouMapping[ou.id].indicators[key] === 'blank') {
@@ -112,20 +177,20 @@ async function load(page){
                     })
                     if (conf.otherConditions[key]) {
                         conf.otherConditions[key].forEach((con) => {
-                            if(con.length === 11){
+                            if (con.length === 11) {
                                 if (legend[con].startValue <= parseFloat(ouMapping[ou.id].indicators[key])
                                     && legend[con].endValue >= parseFloat(ouMapping[ou.id].indicators[key])) {
                                     conditionMmap[key] = true;
                                 };
                             } else {
-                                try{
-                                    if (eval(con.split('{' + key + '}').join(ouMapping[ou.id].indicators[key]))){
+                                try {
+                                    if (eval(con.split('{' + key + '}').join(ouMapping[ou.id].indicators[key]))) {
                                         conditionMmap[key] = true;
                                     }
-                                }catch(e){
+                                } catch (e) {
 
                                 }
-                                
+
                             }
                         })
                     }
@@ -144,42 +209,50 @@ async function load(page){
         message = message.split('{period}').join(period);
         message = message.split('{orgUnit.name}').join(ou.name);
         message = message.split('{orgUnit.code}').join(ou.code);
-        if (message !== '' && message.indexOf('Ndugu mtoa dawa, hujatuma ripoti ya mwezi') === -1)
-        {
+        if (message !== '' && message.indexOf('Ndugu mtoa dawa, hujatuma ripoti ya mwezi') === -1) {
             var arr = []
-            Object.keys(ouMapping[ou.id].indicators).forEach((key)=>{
+            Object.keys(ouMapping[ou.id].indicators).forEach((key) => {
                 arr.push({
-                    id:key,
-                    indicator:data.metaData.items[key].name,
+                    id: key,
+                    indicator: data.metaData.items[key].name,
                     value: ouMapping[ou.id].indicators[key]
                 })
             })
             console.table(arr);
             //console.log(ou.id,JSON.stringify(ouMapping[ou.id].indicators), message);
-            console.log(ou.id, message);
-            try{
-                /*let rsults = await sendSMS(["0718026490"],message);
-                console.log('SMS Results:',rsults);
-                //await sendSMS(["0713311946"],message);
-                let rsults = await sendSMS(["0757847423"],message);
-                console.log('SMS Results:',rsults);*/
-                if(test.sms){
-                    let rsults = await sendSMS(["0757847423"],message);
-                    console.log('SMS Results:',rsults); 
-                }
-            }catch(e){
-                console.log('SMS Error:',e)
+            let phoneNumbers = [];
+            if (ou.phoneNumber && ou.phoneNumber !== '') {
+                phoneNumbers.push(ou.phoneNumber)
             }
-            //process.exit(0);
-        }else{
+            let foundInAttribute = false;
+            ou.attributeValues.forEach((attributeValue) => {
+                if (attributeValue.attribute.id === "NgmZX27k7gf" && attributeValue.value !== "" && phoneNumbers.indexOf(attributeValue.value) === -1 && !foundInAttribute) {
+                    foundInAttribute = false;
+                    phoneNumbers.push(attributeValue.value)
+                }
+            })
+            if (phoneNumbers.length > 0) {
+                try {
+                    console.log(phoneNumbers, message);
+                    //await sendSMS(phoneNumbers,message);
+                } catch (e) {
+                    console.log('SMS Error:', e)
+                }
+            }
+            if(!sentSMS[ou.id]){
+                sentSMS[ou.id] = {};
+            }
+            if(message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1){
+                sentSMS[ou.id].done = true;
+            }
+        } else {
             console.log('No Data');
         }
     }
-    ouResults.organisationUnits.forEach((ou) => {
-        
-    })
-    if (ouResults.pager.page !== ouResults.pager.pageCount){
-        //await load(page + 1);
+    await saveSentSMS();
+    //process.exit(0);
+    if (ouResults.pager.page !== ouResults.pager.pageCount) {
+        await load(page + 1);
     }
 }
 start();
