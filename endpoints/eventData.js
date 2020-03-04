@@ -17,9 +17,22 @@ export const getEventData = (dataElement, data, program) => {
   const baseUrl = appConfig.url;
   const url = `${baseUrl}/api/events.json?program=${program}&filter=${dataElement}:eq:${data}`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  console.log('url', url);
   return r2.get(url, {
     headers: {
       Authorization
     }
+  }).json;
+};
+
+export const updateEventData = (data, id) => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/api/events/${id}`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  return r2.put(url, {
+    headers: {
+      Authorization
+    },
+    json: data
   }).json;
 };

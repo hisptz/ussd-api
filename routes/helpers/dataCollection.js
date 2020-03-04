@@ -1,6 +1,6 @@
 import { getSessionDataValue, updateSessionDataValues, addSessionDatavalues, updateUserSession, getCurrentSession } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
-import { postEventData } from '../../endpoints/eventData';
+import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
@@ -53,7 +53,7 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
   if (datatype === 'aggregate') {
     return sendAggregateData(sessionid);
   } else if (datatype === 'event') {
-    return sendEventData(sessionid, program, programStage, msisdn);
+    return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
   } else {
     return completeForm(sessionid, msisdn);
   }
@@ -219,7 +219,7 @@ export const completeForm = async (sessionid, phoneNumber) => {
   return response;
 };
 
-const sendEventData = async (sessionid, program, programStage, msisdn) => {
+const sendEventData = async (sessionid, program, programStage, msisdn, currentMenu) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
   const { dataValues } = sessionDatavalues;
@@ -265,13 +265,55 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
     });
   }
 
-  const response = await postEventData({
-    program,
-    programStage,
-    eventDate: getEventDate(),
-    orgUnit,
-    status: 'COMPLETED',
-    dataValues: dtArray
-  });
-  return response;
+  if (currentMenu.mode) {
+    if (currentMenu.mode == 'event_update') {
+      let referralId = _.find(dtArray, dt => {
+        return dt.dataElement == 'KlmXMXitsla';
+      }).value;
+
+      let hfrCode = _.find(dtArray, dt => {
+        return dt.dataElement == 'MfykP4DsjUW';
+      }).value;
+
+      let hfrDataValue = {
+        lastUpdated: getEventDate(),
+        created: getEventDate(),
+        dataElement: 'MfykP4DsjUW',
+        value: hfrCode,
+        providedElsewhere: false
+      };
+
+      let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
+
+      //console.log('current event data', currentEventData);
+
+      let eventUpdatedData = {};
+      eventUpdatedData['program'] = currentEventData.events[0].program;
+      eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
+      eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
+      eventUpdatedData['status'] = currentEventData.events[0].status;
+      eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
+      eventUpdatedData['event'] = currentEventData.events[0].event;
+      eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
+      eventUpdatedData['completedDate'] = getEventDate();
+      eventUpdatedData.dataValues.push(hfrDataValue);
+      //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
+      //console.log('hfrCode', hfrCode);
+
+      const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
+
+      return response;
+    }
+  } else {
+    const response = await postEventData({
+      program,
+      programStage,
+      eventDate: getEventDate(),
+      orgUnit,
+      status: 'COMPLETED',
+      dataValues: dtArray
+    });
+
+    return response;
+  }
 };

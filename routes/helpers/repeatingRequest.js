@@ -1,6 +1,6 @@
 import { getCurrentSession, updateUserSession, addUserSession, getSessionDataValue } from '../../db';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
-import { getOrganisationUnitByCode } from '../../endpoints/organisationUnit';
+import { getOrganisationUnitByCode, getOrganisationUnit } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
 import * as _ from 'lodash';
 import {
@@ -10,11 +10,13 @@ import {
   collectPeriodData,
   collectOrganisationUnitData,
   validatedData,
-  ruleNotPassed
+  ruleNotPassed,
+  getCurrentSessionDataValue
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
 import { getEventData } from '../../endpoints/eventData';
+import { getCode } from '../../endpoints/sqlViews';
 // Deals with curren menu.
 
 const periodTypes = {
@@ -97,15 +99,13 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       console.log('option1');
       response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
     } else {
-      // console.log('----------------i get here-------------------------------------------------------');
-      // console.log('currentMEnu', _currentMenu);
-      // console.log('previousMEnu', _previous_menu);
       if (_currentMenu.type === 'fetch') {
-        let referralDetails = await getEventData(_currentMenu.data_id, USSDRequest, _currentMenu.program);
+        //----
+        // start handling specific menu type for specific event fetch case
+        //
+        /*let referralDetails = await getEventData(_currentMenu.data_id, USSDRequest, _currentMenu.program);
         let referralDataValues = referralDetails['events'][0]['dataValues'];
         let referralFrom = referralDetails['events'][0].orgUnitName;
-
-        //await addSessionDatavalues(sessionid, { eventId: 123 });
 
         console.log('referral from', referralFrom);
         let message =
@@ -122,7 +122,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         response = { response_type: 2, text: message, options: returnOptions(menus[_currentMenu.next_menu]) };
         //console.log('event details ::-->> ', referralDetails);
 
-        returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+        returnNextMenu(sessionid, _currentMenu.next_menu, menus);*/
       } else if (_currentMenu.type === 'id_generator') {
         //_currentMenu.options = [{ response: USSDRequest, title: 'bnfjkebfyuweu', value: 'bnfjkebfyuweu' }];
         console.log('got into the id gen block');
@@ -282,6 +282,9 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
 // Deals with next menu;
 const returnNextMenu = async (sessionid, next_menu, menus, additional_message) => {
   let message;
+
+  console.log('next menu ------.....>>>>', next_menu);
+
   await updateUserSession(sessionid, {
     currentmenu: next_menu,
     retries: 0
@@ -290,8 +293,8 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
   //console.log('here', menu);
 
-  //console.log('menu', menu);
-  //console.log('menus', menus);
+  console.log('menu', menu);
+  console.log('menus', menus);
   const _previous_menu = menus[menu.previous_menu] || {};
   //console.log('menu.type:', menu.type);
   if (menu.type === 'options') {
@@ -348,9 +351,17 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       text: menu.title
     };
   } else if (menu.type === 'id_generator') {
-    let generatedId = makeLocalUid();
+    let session = await getCurrentSession(sessionid);
+    //console.log('ou', session.orgUnit);
+
+    let orgUnitDetails = await getOrganisationUnit(session.orgUnit);
+
+    let code = await getCode(orgUnitDetails.code);
+    //console.log('code----->>>>', code, session);
+
+    let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
     id_gen_menu = menus[menu.id];
-    id_gen_menu['options'] = [{ id: '123', response: '1', title: ' tuma id', value: generatedId }];
+    id_gen_menu['options'] = [{ id: '123', response: '1', title: ' tuma id', value: generatedId.toString() }];
     message = {
       response_type: 2,
       text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo<br/>' + generatedId,
@@ -358,11 +369,10 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     };
   } else if (menu.type == 'fetch') {
     //fetch event details
-
-    message = {
-      response_type: 2,
-      text: menu.title
-    };
+    // message = {
+    //   response_type: 2,
+    //   text: menu.title
+    // };
   }
   // checking if previous menu is not of type auth and add back menu
   if (_previous_menu && _previous_menu.type !== 'auth' && menu_types_with_back.includes(menu.type)) {
