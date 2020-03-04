@@ -5,6 +5,7 @@ import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
+import * as _ from 'lodash';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -47,7 +48,7 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
 
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
-  console.log('sessionDataValues', sessionDatavalues);
+  //console.log('sessionDataValues', sessionDatavalues);
   const { datatype, program, programStage } = sessionDatavalues;
   if (datatype === 'aggregate') {
     return sendAggregateData(sessionid);
@@ -179,7 +180,7 @@ const sendAggregateData = async sessionid => {
       return dt.dataElement ? true : false;
     });
 
-  console.log('data to post ::', dtArray);
+  //console.log('data to post ::', dtArray);
 
   const response = await postAggregateData({
     dataValues: dtArray
@@ -201,10 +202,18 @@ export const completeForm = async (sessionid, phoneNumber) => {
   //phoneNumbers.push();
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
   if (menu.submission_message) {
+    let dataValues = await getSessionDataValue(sessionid);
+
+    //console.log('dataValues', dataValues);
+    let referenceNumber = _.find(dataValues.dataValues, dataValue => {
+      return dataValue.dataElement == 'KlmXMXitsla';
+    }).value;
+
     let message = menu.submission_message;
     message = message.split('${period_year}').join(year);
     message = message.split('${sub_period}').join(period);
     message = message.split('${org_unit_code}').join(orgUnitDetails.code);
+    message = message.split('${ref_number}').join(referenceNumber);
     const result = await sendSMS(phoneNumbers, message);
   }
   return response;

@@ -1,7 +1,8 @@
-import { getCurrentSession, updateUserSession, addUserSession } from '../../db';
+import { getCurrentSession, updateUserSession, addUserSession, getSessionDataValue } from '../../db';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
+import * as _ from 'lodash';
 import {
   collectData,
   submitData,
@@ -47,8 +48,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     let currentmenu, datastore, retries;
     const session_details = await getCurrentSession(sessionid);
 
+    //console.log('session details :::>>>', session_details);
+
     if (!session_details) {
-      console.log('session details not there');
+      //console.log('session details not there');
 
       const dataStore = await getDataStoreFromDHIS2();
       const { settings, menus } = dataStore;
@@ -287,6 +290,8 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
   //console.log('here', menu);
 
+  //console.log('menu', menu);
+  //console.log('menus', menus);
   const _previous_menu = menus[menu.previous_menu] || {};
   //console.log('menu.type:', menu.type);
   if (menu.type === 'options') {
@@ -345,10 +350,10 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   } else if (menu.type === 'id_generator') {
     let generatedId = makeLocalUid();
     id_gen_menu = menus[menu.id];
-    id_gen_menu['options'] = [{ id: '123', response: '1', title: generatedId, value: generatedId }];
+    id_gen_menu['options'] = [{ id: '123', response: '1', title: ' tuma id', value: generatedId }];
     message = {
       response_type: 2,
-      text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo',
+      text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo<br/>' + generatedId,
       options: returnOptions(id_gen_menu)
     };
   } else if (menu.type == 'fetch') {
@@ -521,10 +526,20 @@ const getPeriodBytype = (period_type, value) => {
 const terminateWithMessage = async (sessionid, menu) => {
   // TODO: DO other things like deleting session. not to overcloud database.
 
+  let dataValues = await getSessionDataValue(sessionid);
+  let referenceNumber = _.find(dataValues.dataValues, dataValue => {
+    return dataValue.dataElement == 'KlmXMXitsla';
+  }).value;
+
+  let message = menu.title;
+  message = message.split('${ref_number}').join(referenceNumber);
+
+  console.log('here at last menu message');
+
   return {
     response_type: 1,
     //text: 'message like this'
-    text: menu.title
+    text: message
   };
 };
 
