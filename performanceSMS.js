@@ -127,6 +127,10 @@ async function start() {
         throw e;
     }
 }
+var typesSent = {
+    performance: 0,
+    reminders: 0
+}
 async function load(page) {
     console.log('Started Page:', page);
     const ouResults = await getOrganisationUnits(page);
@@ -244,6 +248,9 @@ async function load(page) {
             }
             if(message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1){
                 sentSMS[ou.id].done = true;
+                typesSent.performance++;
+            }else{
+                typesSent.reminders++;
             }
         } else {
             console.log('No Data');
@@ -253,6 +260,10 @@ async function load(page) {
     //process.exit(0);
     if (ouResults.pager.page !== ouResults.pager.pageCount) {
         await load(page + 1);
+    }else{
+        console.log('Done sending reminders and sms.');
+        console.table(typesSent);
     }
 }
-start();
+//start();
+sendSMS(["+255718026490"],"message")
