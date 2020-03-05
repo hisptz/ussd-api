@@ -1,10 +1,11 @@
 import { getSessionDataValue, updateSessionDataValues, addSessionDatavalues, updateUserSession, getCurrentSession } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
-import { postEventData } from '../../endpoints/eventData';
+import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
+import * as _ from 'lodash';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -47,12 +48,12 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
 
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
-  console.log('sessionDataValues', sessionDatavalues);
+  //console.log('sessionDataValues', sessionDatavalues);
   const { datatype, program, programStage } = sessionDatavalues;
   if (datatype === 'aggregate') {
     return sendAggregateData(sessionid);
   } else if (datatype === 'event') {
-    return sendEventData(sessionid, program, programStage, msisdn);
+    return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
   } else {
     return completeForm(sessionid, msisdn);
   }
@@ -179,7 +180,7 @@ const sendAggregateData = async sessionid => {
       return dt.dataElement ? true : false;
     });
 
-  console.log('data to post ::', dtArray);
+  //console.log('data to post ::', dtArray);
 
   const response = await postAggregateData({
     dataValues: dtArray
@@ -201,16 +202,24 @@ export const completeForm = async (sessionid, phoneNumber) => {
   //phoneNumbers.push();
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
   if (menu.submission_message) {
+    let dataValues = await getSessionDataValue(sessionid);
+
+    //console.log('dataValues', dataValues);
+    let referenceNumber = _.find(dataValues.dataValues, dataValue => {
+      return dataValue.dataElement == 'KlmXMXitsla';
+    }).value;
+
     let message = menu.submission_message;
     message = message.split('${period_year}').join(year);
     message = message.split('${sub_period}').join(period);
     message = message.split('${org_unit_code}').join(orgUnitDetails.code);
+    message = message.split('${ref_number}').join(referenceNumber);
     const result = await sendSMS(phoneNumbers, message);
   }
   return response;
 };
 
-const sendEventData = async (sessionid, program, programStage, msisdn) => {
+const sendEventData = async (sessionid, program, programStage, msisdn, currentMenu) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
   const { dataValues } = sessionDatavalues;
@@ -256,13 +265,55 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
     });
   }
 
-  const response = await postEventData({
-    program,
-    programStage,
-    eventDate: getEventDate(),
-    orgUnit,
-    status: 'COMPLETED',
-    dataValues: dtArray
-  });
-  return response;
+  if (currentMenu.mode) {
+    if (currentMenu.mode == 'event_update') {
+      let referralId = _.find(dtArray, dt => {
+        return dt.dataElement == 'KlmXMXitsla';
+      }).value;
+
+      let hfrCode = _.find(dtArray, dt => {
+        return dt.dataElement == 'MfykP4DsjUW';
+      }).value;
+
+      let hfrDataValue = {
+        lastUpdated: getEventDate(),
+        created: getEventDate(),
+        dataElement: 'MfykP4DsjUW',
+        value: hfrCode,
+        providedElsewhere: false
+      };
+
+      let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
+
+      //console.log('current event data', currentEventData);
+
+      let eventUpdatedData = {};
+      eventUpdatedData['program'] = currentEventData.events[0].program;
+      eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
+      eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
+      eventUpdatedData['status'] = currentEventData.events[0].status;
+      eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
+      eventUpdatedData['event'] = currentEventData.events[0].event;
+      eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
+      eventUpdatedData['completedDate'] = getEventDate();
+      eventUpdatedData.dataValues.push(hfrDataValue);
+      //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
+      //console.log('hfrCode', hfrCode);
+
+      const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
+
+      return response;
+    }
+  } else {
+    const response = await postEventData({
+      program,
+      programStage,
+      eventDate: getEventDate(),
+      orgUnit,
+      status: 'COMPLETED',
+      dataValues: dtArray
+    });
+
+    return response;
+  }
 };
