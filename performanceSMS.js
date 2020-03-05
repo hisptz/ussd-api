@@ -129,7 +129,9 @@ async function start() {
 }
 var typesSent = {
     performance: 0,
-    reminders: 0
+    reminders: 0,
+    noPhoneNumbers:0,
+    failed:0,
 }
 async function load(page) {
     console.log('Started Page:', page);
@@ -151,11 +153,9 @@ async function load(page) {
     }))
     const period = data.metaData.items[data.metaData.dimensions.pe[0]].name;
     await getSentSMS();
-    console.log('Period:', period);
     data.rows.forEach((row) => {
         ouMapping[row[2]].indicators[row[0]] = row[3];
     });
-    console.table(legend);
     for (let ou of ouResults.organisationUnits) {
         if(sentSMS[ou.id] && sentSMS[ou.id].done){
             continue;
@@ -222,8 +222,6 @@ async function load(page) {
                     value: ouMapping[ou.id].indicators[key]
                 })
             })
-            console.table(arr);
-            //console.log(ou.id,JSON.stringify(ouMapping[ou.id].indicators), message);
             let phoneNumbers = [];
             if (ou.phoneNumber && ou.phoneNumber !== '') {
                 phoneNumbers.push(ou.phoneNumber)
@@ -237,20 +235,22 @@ async function load(page) {
             })
             if (phoneNumbers.length > 0) {
                 try {
-                    console.log(phoneNumbers, message);
-                    //await sendSMS(phoneNumbers,message);
+                    await sendSMS(phoneNumbers,message);
+                    if(!sentSMS[ou.id]){
+                        sentSMS[ou.id] = {};
+                    }
+                    if(message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1){
+                        sentSMS[ou.id].done = true;
+                        typesSent.performance++;
+                    }else{
+                        typesSent.reminders++;
+                    }
                 } catch (e) {
+                    typesSent.failed++;
                     console.log('SMS Error:', e)
                 }
-            }
-            if(!sentSMS[ou.id]){
-                sentSMS[ou.id] = {};
-            }
-            if(message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1){
-                sentSMS[ou.id].done = true;
-                typesSent.performance++;
             }else{
-                typesSent.reminders++;
+                typesSent.noPhoneNumbers++;
             }
         } else {
             console.log('No Data');
