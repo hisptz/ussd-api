@@ -148,3 +148,143 @@ services:
         target: /home/app/
     deploy:
       replicas: 1
+  ussd-11:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3011
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-12:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3012
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-13:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3013
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-14:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3014
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-15:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3015
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-16:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3016
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-17:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3017
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-18:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3018
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-19:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3019
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
+  ussd-20:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3020
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+    deploy:
+      replicas: 1
