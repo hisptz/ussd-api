@@ -2,6 +2,7 @@ const express = require('express');
 import { returnAuthenticationResponse } from './helpers/authentication';
 import { repeatingRequest } from './helpers/repeatingRequest';
 import { sendEGASMS } from '../endpoints/sms';
+import { funct } from './menu_update';
 
 const db = require('../db');
 
@@ -17,7 +18,7 @@ const format = response => {
 
 const requestHandler = async (req, res) => {
   let { sessionid, telco, USSDRequest, input, msisdn, USSDType } = req.query;
-  if(USSDRequest && !input){
+  if (USSDRequest && !input) {
     input = USSDRequest;
   }
   //input = USSDRequest;
@@ -25,6 +26,7 @@ const requestHandler = async (req, res) => {
   const isNewRequest = USSDType === 'NR';
 
   console.log('sessionid ::', sessionid, 'input ::', input, 'msisdn ::', msisdn);
+
   let response = await repeatingRequest(sessionid, input, msisdn);
 
   //console.log('hellooo im here ->', response);

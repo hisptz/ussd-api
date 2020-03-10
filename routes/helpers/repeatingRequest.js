@@ -10,13 +10,12 @@ import {
   collectPeriodData,
   collectOrganisationUnitData,
   validatedData,
-  ruleNotPassed,
-  getCurrentSessionDataValue
+  ruleNotPassed
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
-import { getEventData } from '../../endpoints/eventData';
 import { getCode } from '../../endpoints/sqlViews';
+import { funct } from '../menu_update';
 // Deals with curren menu.
 
 const periodTypes = {
@@ -24,15 +23,6 @@ const periodTypes = {
   Monthly: '',
   BiMonthly: 'S',
   Quoterly: 'Q'
-};
-
-const makeLocalUid = () => {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  for (let i = 0; i < 11; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
 };
 
 var id_gen_menu = {};
@@ -44,6 +34,8 @@ const successStatus = ['SUCCESS', 'OK'];
 const OK = 'OK';
 
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
+  await funct();
+
   //console.log('USSDRequest Input:', USSDRequest)
   let response;
   try {
@@ -107,7 +99,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         let referralDataValues = referralDetails['events'][0]['dataValues'];
         let referralFrom = referralDetails['events'][0].orgUnitName;
 
-        console.log('referral from', referralFrom);
         let message =
           'Taarifa za rufaa' +
           '<br/>Kituo:' +
@@ -124,11 +115,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
 
         returnNextMenu(sessionid, _currentMenu.next_menu, menus);*/
       } else if (_currentMenu.type === 'id_generator') {
-        //_currentMenu.options = [{ response: USSDRequest, title: 'bnfjkebfyuweu', value: 'bnfjkebfyuweu' }];
-        console.log('got into the id gen block');
         const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, id_gen_menu, USSDRequest, menus);
         if (passed) {
-          console.log('correct Options :::', correctOption);
           response = await collectData(sessionid, id_gen_menu, correctOption);
           if (next_menu_response) {
             response = next_menu_response;
@@ -152,14 +140,12 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
         }
       } else if (_currentMenu.type === 'data') {
-        console.log('where data is collected');
         const { options } = _currentMenu;
         if (options && options.length) {
           //console.log('test here', sessionid, 'current menu :::', _currentMenu, 'ussd req ::::', USSDRequest, 'menus :::', menus);
 
           const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
           if (passed) {
-            console.log('correct Options :::', correctOption);
             response = await collectData(sessionid, _currentMenu, correctOption);
             if (next_menu_response) {
               response = next_menu_response;
@@ -193,7 +179,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
       // if you are to submit data submit here.
       if (_currentMenu.submit_data) {
-        console.log('data submissions ::::> ', _currentMenu.submit_data);
         console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
           console.log('route2');
@@ -252,7 +237,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
     }
   } catch (e) {
-    console.log(e);
     response = {
       response_type: 1,
       text: 'Server Error. Please try again.'
@@ -283,18 +267,12 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
 const returnNextMenu = async (sessionid, next_menu, menus, additional_message) => {
   let message;
 
-  console.log('next menu ------.....>>>>', next_menu);
-
   await updateUserSession(sessionid, {
     currentmenu: next_menu,
     retries: 0
   });
   const menu = menus[next_menu];
 
-  //console.log('here', menu);
-
-  console.log('menu', menu);
-  console.log('menus', menus);
   const _previous_menu = menus[menu.previous_menu] || {};
   //console.log('menu.type:', menu.type);
   if (menu.type === 'options') {
@@ -327,7 +305,6 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       }
     }
   } else if (menu.type === 'message') {
-    console.log('here at message menu');
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);

@@ -3,7 +3,7 @@ exports.up = (knex, Promise) => {
     knex.schema.createTable('application', table => {
       table.increments('id').primary();
       table.string('name');
-      table.date('update_date');
+      table.string('update_date');
       table.string('description');
       table.string('session_key');
       table.string('user_response');
@@ -20,7 +20,6 @@ exports.up = (knex, Promise) => {
     knex.schema.table('sessions', table => {
       table.string('application_id');
       table.string('status');
-      table.dropColumn('datastore');
     })
   ]);
 };

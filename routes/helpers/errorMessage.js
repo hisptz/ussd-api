@@ -1,5 +1,5 @@
 export const getSanitizedErrorMessage = async httpResponse => {
-  console.log('responce', httpResponse);
+  // console.log('responce', httpResponse);
 
   let sanitizedMessage = '';
 

@@ -44,7 +44,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 };
 
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, menus) => {
-  console.log('-------------------------*******----------------------------');
+  // console.log('-------------------------*******----------------------------');
 
   const sessionDatavalues = await getSessionDataValue(sessionid);
 

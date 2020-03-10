@@ -4,7 +4,7 @@ exports.up = function(knex, Promise) {
     table.string('application_id');
     table.string('title');
     table.string('type');
-    table.json('options');
+    table.text('options');
     table.string('previous_menu');
     table.string('data_id');
     table.string('next_menu');
@@ -16,7 +16,7 @@ exports.up = function(knex, Promise) {
     table.string('number_of_retries');
     table.string('submission_message');
     table.string('submit_data');
-    table.json('p_rules');
+    table.text('p_rules');
     table.string('period_type');
     table.string('maximum_value');
     table.string('use_for_year');
@@ -27,7 +27,7 @@ exports.up = function(knex, Promise) {
     table.string('category_combo');
     table.string('data_set');
     table.string('program');
-    table.string('program_stage:');
+    table.string('program_stage');
   });
 };
 
