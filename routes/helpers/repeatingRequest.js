@@ -1,5 +1,5 @@
-import { getCurrentSession, updateUserSession, addUserSession, getSessionDataValue } from '../../db';
-import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
+import { getCurrentSession, updateUserSession, addUserSession, getSessionDataValue, getApplicationThisDate } from '../../db';
+//import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode, getOrganisationUnit } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
 import * as _ from 'lodash';
@@ -15,7 +15,8 @@ import {
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
 import { getCode } from '../../endpoints/sqlViews';
-import { funct } from '../menu_update';
+import { getMenuMetaData } from '../../menu_update';
+import { appConfig } from '../../config/app.config';
 // Deals with curren menu.
 
 const periodTypes = {
@@ -34,7 +35,7 @@ const successStatus = ['SUCCESS', 'OK'];
 const OK = 'OK';
 
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
-  await funct();
+  //await funct();
 
   //console.log('USSDRequest Input:', USSDRequest)
   let response;
@@ -47,21 +48,30 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     if (!session_details) {
       //console.log('session details not there');
 
-      const dataStore = await getDataStoreFromDHIS2();
+      const dataStore_with_metadata = await getMenuMetaData(appConfig.dataStoreId);
+      //console.log(dataStore_with_metadata);
+      const dataStore = JSON.parse(dataStore_with_metadata.value);
       const { settings, menus } = dataStore;
       const starting_menu = menus[settings.starting_menu];
       const id = generateCode();
+
+      //get application id for the menu and date
+      const application_entry = await getApplicationThisDate(dataStore_with_metadata.lastUpdated, dataStore_with_metadata.key);
+      const application_id = application_entry.id;
+
+      console.log('app ID ::: ', application_id);
+
       const session_data = {
         id,
         sessionid,
         currentmenu: starting_menu.id,
-        retries: 0
+        retries: 0,
+        status: 'started',
+        application_id: application_id
       };
-      const insertResults = await addUserSession({
-        ...session_data,
-        datastore: JSON.stringify(dataStore)
-        //datastore: dataStore
-      });
+
+      //console.log('session_data', session_data);
+      await addUserSession(session_data);
       currentmenu = starting_menu.id;
       datastore = dataStore;
       retries = 0;
@@ -521,7 +531,7 @@ const terminateWithMessage = async (sessionid, menu) => {
   let message = menu.title;
   message = message.split('${ref_number}').join(referenceNumber);
 
-  console.log('here at last menu message');
+  //console.log('here at last menu message');
 
   return {
     response_type: 1,

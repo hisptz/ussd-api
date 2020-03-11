@@ -26,7 +26,7 @@ export const getMenuMetaData = async key => {
 };
 
 export const shouldUpdate = async (new_menu_date, menus_key) => {
-  let application_entry_later_date = await getApplicationThisDate(new_menu_date);
+  let application_entry_later_date = await getApplicationThisDate(new_menu_date, menus_key);
 
   return application_entry_later_date;
 };
@@ -36,10 +36,14 @@ export const updateMenuForKey = async key => {
   try {
     let metadata = await getMenuMetaData(key);
 
+    //console.log('received metadata', metadata);
+
     //check date on application table & compare with metadata update date to determine whether to update the menu
     let applicationMenu = await shouldUpdate(metadata.lastUpdated, metadata.key);
 
     if (applicationMenu === undefined) {
+      //console.log('update application menu', applicationMenu);
+
       let data = {};
       let menuData = JSON.parse(metadata.value);
 
@@ -57,10 +61,11 @@ export const updateMenuForKey = async key => {
       data['phone_number_key'] = menuData.settings.phone_number_key;
       data['no_user_message'] = menuData.settings.no_user_message;
       data['starting_menu'] = menuData.settings.starting_menu;
+      data['sync_servers'] = JSON.stringify(menuData.settings.sync_servers);
 
       await addApplicationEntry(data);
 
-      let application = await getApplicationThisDate(data.update_date);
+      let application = await getApplicationThisDate(data.update_date, metadata.key);
 
       //console.log('applicationid', applicationId);
 
@@ -107,8 +112,11 @@ export const updateMenuForKey = async key => {
 };
 
 export const getDataStoreKeys = async () => {
+  //console.log('i get called');
   let data;
   const url = `${baseUrl}/api/dataStore/ussd`;
+
+  //console.log('url', url);
 
   const response = await fetch(url, {
     headers: {
@@ -126,8 +134,10 @@ export const getDataStoreKeys = async () => {
 const updateMenusForAllKeys = async () => {
   const datastore_keys = await getDataStoreKeys();
 
+  //console.log(datastore_keys);
   let datastore_key;
   for (datastore_key of datastore_keys) {
+    //console.log('i get executed');
     await updateMenuForKey(datastore_key);
   }
 };

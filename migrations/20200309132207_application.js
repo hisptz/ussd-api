@@ -16,6 +16,7 @@ exports.up = (knex, Promise) => {
       table.string('phone_number_key');
       table.string('no_user_message');
       table.string('starting_menu');
+      table.text('sync_servers');
     }),
     knex.schema.table('sessions', table => {
       table.string('application_id');

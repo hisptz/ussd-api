@@ -10,6 +10,8 @@ export const getUser = (sessionid, testConn) => {
 };
 
 export const addUserSession = (data, testConn) => {
+  console.log('i get here');
+  console.log('session_data', data);
   const conn = testConn || connection;
   return conn('sessions').insert(data);
 };
@@ -59,10 +61,10 @@ export const addSessionDatavalues = (data, testConn) => {
   return conn('datavalues').insert(data);
 };
 
-export const getApplicationThisDate = (new_date, testConn) => {
+export const getApplicationThisDate = (new_date, key, testConn) => {
   const conn = testConn || connection;
   return conn('application')
-    .where('update_date', '=', new_date)
+    .where({ update_date: new_date, datastore_key: key })
     .first();
 };
 

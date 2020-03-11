@@ -2,7 +2,6 @@ const express = require('express');
 import { returnAuthenticationResponse } from './helpers/authentication';
 import { repeatingRequest } from './helpers/repeatingRequest';
 import { sendEGASMS } from '../endpoints/sms';
-import { funct } from './menu_update';
 
 const db = require('../db');
 
