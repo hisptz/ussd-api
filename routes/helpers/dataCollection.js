@@ -17,7 +17,7 @@ import { Session } from 'inspector';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  const { dataType, category_combo, data_element, program, program_stage } = _currentMenu;
+  const { data_type, category_combo, data_element, program, program_stage } = _currentMenu;
   const dataValue = [
     {
       dataElement: data_element,
@@ -29,7 +29,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     sessionid,
     programStage: program_stage,
     program,
-    datatype: dataType
+    datatype: data_type
   };
   if (sessionDatavalues) {
     let oldDataValues = sessionDatavalues.dataValues;
