@@ -75,6 +75,7 @@ export const updateMenuForKey = async key => {
       for (menuid of Object.keys(menuData['menus'])) {
         let menuDetails = {};
         //console.log('menuid', menuid);
+        menuDetails['menu_id'] = menuid;
         menuDetails['title'] = menuData.menus[menuid].title ? menuData.menus[menuid].title : '';
         menuDetails['type'] = menuData.menus[menuid].type ? menuData.menus[menuid].type : '';
         menuDetails['options'] = menuData.menus[menuid].options ? JSON.stringify(menuData.menus[menuid].options) : '';

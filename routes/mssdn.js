@@ -24,8 +24,6 @@ const requestHandler = async (req, res) => {
   //console.log('req.query:', req.query, input);
   const isNewRequest = USSDType === 'NR';
 
-  console.log('sessionid ::', sessionid, 'input ::', input, 'msisdn ::', msisdn);
-
   let response = await repeatingRequest(sessionid, input, msisdn);
 
   //console.log('hellooo im here ->', response);

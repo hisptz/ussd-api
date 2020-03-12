@@ -10,8 +10,6 @@ export const getUser = (sessionid, testConn) => {
 };
 
 export const addUserSession = (data, testConn) => {
-  console.log('i get here');
-  console.log('session_data', data);
   const conn = testConn || connection;
   return conn('sessions').insert(data);
 };
@@ -68,14 +66,27 @@ export const getApplicationThisDate = (new_date, key, testConn) => {
     .first();
 };
 
+export const getLatestApplicationEntryByKey = (key, testConn) => {
+  const conn = testConn || connection;
+  return conn('application')
+    .where('datastore_key', '=', key)
+    .orderBy('id', 'desc')
+    .first();
+};
+
 export const addApplicationEntry = (data, testConn) => {
   const conn = testConn || connection;
   return conn('application').insert(data);
 };
 
 export const addMenu = (data, testConn) => {
-  //console.log('data to push', data);
-
   const conn = testConn || connection;
   return conn('menu').insert(data);
+};
+
+export const getMenuJson = (menuid, appid, testConn) => {
+  const conn = testConn || connection;
+  return conn('menu')
+    .where({ menu_id: menuid, application_id: appid })
+    .first();
 };

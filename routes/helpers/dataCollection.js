@@ -1,4 +1,11 @@
-import { getSessionDataValue, updateSessionDataValues, addSessionDatavalues, updateUserSession, getCurrentSession } from '../../db';
+import {
+  getSessionDataValue,
+  updateSessionDataValues,
+  addSessionDatavalues,
+  updateUserSession,
+  getCurrentSession,
+  getMenuJson
+} from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
 import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
@@ -6,6 +13,7 @@ import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
+import { Session } from 'inspector';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -43,9 +51,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   });
 };
 
-export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, menus) => {
-  // console.log('-------------------------*******----------------------------');
-
+export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
   //console.log('sessionDataValues', sessionDatavalues);
@@ -87,21 +93,18 @@ export const ruleNotPassed = async (sessionid, menu, answer) => {
     return false;
   }
 };
-export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus) => {
+export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
   const session = await getCurrentSession(sessionid);
-  let menu = session.datastore;
-  try {
-    menu = JSON.parse(session.datastore);
-  } catch (e) {}
-  menu = menu.menus[session.currentmenu];
+  console.log('spot 2 ::: ', session.currentmenu, session.application_id);
+  let menu = await getMenuJson(session.currentmenu, session.application_id);
   const returnValue = {
     notSet: []
   };
-  if (menu.dataSet) {
-    const dataSet = await getDataSet(menu.dataSet);
-    const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
+  if (menu.data_set) {
+    const dataSet = await getDataSet(menu.data_set);
+    const dataValueSet = await getAggregateData(menu.data_set, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
     const ids = [];
     dataSet.dataSetElements.forEach(dataSetElement => {
       dataSetElement.categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo => {
@@ -192,12 +195,16 @@ export const completeForm = async (sessionid, phoneNumber) => {
   const session = await getCurrentSession(sessionid);
   const { dataValues, year, period } = sessionDatavalues;
   const { orgUnit } = session;
-  let menu = session.datastore;
-  try {
-    menu = JSON.parse(session.datastore);
-  } catch (e) {}
-  menu = menu.menus[session.currentmenu];
-  const response = await complete(menu.dataSet, year + '' + period, orgUnit);
+  //let menu = session.datastore;
+  // try {
+  //   menu = JSON.parse(session.datastore);
+  // } catch (e) {}
+  // menu = menu.menus[session.currentmenu];
+
+  console.log('spot 3', session.currentmenu, session.application_id);
+  let menu = await getMenuJson(session.currentmenu, session.application_id);
+
+  const response = await complete(menu.data_set, year + '' + period, orgUnit);
   const phoneNumbers = [phoneNumber];
   //phoneNumbers.push();
   const orgUnitDetails = await getOrganisationUnit(orgUnit);

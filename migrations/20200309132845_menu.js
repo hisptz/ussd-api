@@ -1,6 +1,7 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable('menu', table => {
-    table.increments('menu_id').primary();
+    table.increments('id').primary();
+    table.string('menu_id');
     table.string('application_id');
     table.string('title');
     table.string('type');
@@ -15,7 +16,7 @@ exports.up = function(knex, Promise) {
     table.string('retry_message');
     table.string('number_of_retries');
     table.string('submission_message');
-    table.string('submit_data');
+    table.boolean('submit_data');
     table.text('p_rules');
     table.string('period_type');
     table.string('maximum_value');
