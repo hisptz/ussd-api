@@ -4,7 +4,8 @@ import {
   addSessionDatavalues,
   updateUserSession,
   getCurrentSession,
-  getMenuJson
+  getMenuJson,
+  getLatestApplicationEntryByKey
 } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
 import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
@@ -13,7 +14,6 @@ import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
-import { Session } from 'inspector';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -231,11 +231,8 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   const sessions = await getCurrentSession(sessionid);
   const { dataValues } = sessionDatavalues;
   const { orgUnit } = sessions;
-  let datastore = sessions.datastore;
-  try {
-    datastore = JSON.parse(session.datastore);
-  } catch (e) {}
-  const { phone_number_mapping, auto_generated_field } = datastore.settings;
+  let application_info = await getLatestApplicationEntryByKey(sessions.application_id);
+  const { phone_number_mapping, auto_generated_field } = application_info;
   let dtValues = dataValues;
   try {
     dtValues = JSON.parse(dataValues);
