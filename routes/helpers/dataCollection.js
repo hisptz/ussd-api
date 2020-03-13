@@ -5,7 +5,7 @@ import {
   updateUserSession,
   getCurrentSession,
   getMenuJson,
-  getLatestApplicationEntryByKey
+  getApplicationById
 } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
 import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
@@ -54,8 +54,8 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
-  //console.log('sessionDataValues', sessionDatavalues);
   const { datatype, program, programStage } = sessionDatavalues;
+
   if (datatype === 'aggregate') {
     return sendAggregateData(sessionid);
   } else if (datatype === 'event') {
@@ -97,7 +97,6 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
   const session = await getCurrentSession(sessionid);
-  console.log('spot 2 ::: ', session.currentmenu, session.application_id);
   let menu = await getMenuJson(session.currentmenu, session.application_id);
   const returnValue = {
     notSet: []
@@ -183,11 +182,10 @@ const sendAggregateData = async sessionid => {
       return dt.dataElement ? true : false;
     });
 
-  //console.log('data to post ::', dtArray);
-
   const response = await postAggregateData({
     dataValues: dtArray
   });
+
   return response;
 };
 export const completeForm = async (sessionid, phoneNumber) => {
@@ -201,7 +199,6 @@ export const completeForm = async (sessionid, phoneNumber) => {
   // } catch (e) {}
   // menu = menu.menus[session.currentmenu];
 
-  console.log('spot 3', session.currentmenu, session.application_id);
   let menu = await getMenuJson(session.currentmenu, session.application_id);
 
   const response = await complete(menu.data_set, year + '' + period, orgUnit);
@@ -211,10 +208,13 @@ export const completeForm = async (sessionid, phoneNumber) => {
   if (menu.submission_message) {
     let dataValues = await getSessionDataValue(sessionid);
 
-    //console.log('dataValues', dataValues);
-    let referenceNumber = _.find(dataValues.dataValues, dataValue => {
-      return dataValue.dataElement == 'KlmXMXitsla';
-    }).value;
+    let referenceNumber;
+
+    if (dataValues.datatype === 'event') {
+      referenceNumber = _.find(dataValues.dataValues, dataValue => {
+        return dataValue.dataElement == 'KlmXMXitsla';
+      }).value;
+    }
 
     let message = menu.submission_message;
     message = message.split('${period_year}').join(year);
@@ -231,7 +231,9 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   const sessions = await getCurrentSession(sessionid);
   const { dataValues } = sessionDatavalues;
   const { orgUnit } = sessions;
-  let application_info = await getLatestApplicationEntryByKey(sessions.application_id);
+
+  let application_info = await getApplicationById(sessions.application_id);
+
   const { phone_number_mapping, auto_generated_field } = application_info;
   let dtValues = dataValues;
   try {
@@ -269,45 +271,41 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
     });
   }
 
-  if (currentMenu.mode) {
-    if (currentMenu.mode == 'event_update') {
-      let referralId = _.find(dtArray, dt => {
+  if (currentMenu.mode && currentMenu.mode == 'event_update') {
+    let referralId = parseInt(
+      _.find(dtArray, dt => {
         return dt.dataElement == 'KlmXMXitsla';
-      }).value;
+      }).value
+    );
 
-      let hfrCode = _.find(dtArray, dt => {
-        return dt.dataElement == 'MfykP4DsjUW';
-      }).value;
+    let hfrCode = _.find(dtArray, dt => {
+      return dt.dataElement == 'pcEvQLQzTsN';
+    }).value;
 
-      let hfrDataValue = {
-        lastUpdated: getEventDate(),
-        created: getEventDate(),
-        dataElement: 'MfykP4DsjUW',
-        value: hfrCode,
-        providedElsewhere: false
-      };
+    let hfrDataValue = {
+      lastUpdated: getEventDate(),
+      created: getEventDate(),
+      dataElement: 'pcEvQLQzTsN',
+      value: hfrCode,
+      providedElsewhere: false
+    };
 
-      let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
+    let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
 
-      //console.log('current event data', currentEventData);
+    let eventUpdatedData = {};
+    eventUpdatedData['program'] = currentEventData.events[0].program;
+    eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
+    eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
+    eventUpdatedData['status'] = currentEventData.events[0].status;
+    eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
+    eventUpdatedData['event'] = currentEventData.events[0].event;
+    eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
+    eventUpdatedData['completedDate'] = getEventDate();
+    eventUpdatedData.dataValues.push(hfrDataValue);
 
-      let eventUpdatedData = {};
-      eventUpdatedData['program'] = currentEventData.events[0].program;
-      eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
-      eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
-      eventUpdatedData['status'] = currentEventData.events[0].status;
-      eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
-      eventUpdatedData['event'] = currentEventData.events[0].event;
-      eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
-      eventUpdatedData['completedDate'] = getEventDate();
-      eventUpdatedData.dataValues.push(hfrDataValue);
-      //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
-      //console.log('hfrCode', hfrCode);
+    const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
 
-      const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
-
-      return response;
-    }
+    return response;
   } else {
     const response = await postEventData({
       program,

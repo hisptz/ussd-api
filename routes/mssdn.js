@@ -8,7 +8,6 @@ const db = require('../db');
 const router = express.Router();
 
 const format = response => {
-  //console.log('respose :::> ', response);
   return {
     ...response,
     header_type: response.response_type === 1 ? '3' : '' + response.response_type
@@ -21,17 +20,9 @@ const requestHandler = async (req, res) => {
     input = USSDRequest;
   }
   //input = USSDRequest;
-  //console.log('req.query:', req.query, input);
   const isNewRequest = USSDType === 'NR';
 
   let response = await repeatingRequest(sessionid, input, msisdn);
-
-  //console.log('hellooo im here ->', response);
-  /*if (isNewRequest) {
-    response = await returnAuthenticationResponse(msisdn, sessionid);
-  } else {
-    response = await repeatingRequest(sessionid, USSDRequest, msisdn);
-  }*/
 
   res.send(format(response));
 };

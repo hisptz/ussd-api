@@ -66,6 +66,13 @@ export const getApplicationThisDate = (new_date, key, testConn) => {
     .first();
 };
 
+export const getApplicationById = (id, testConn) => {
+  const conn = testConn || connection;
+  return conn('application')
+    .where('id', '=', id)
+    .first();
+};
+
 export const getLatestApplicationEntryByKey = (key, testConn) => {
   const conn = testConn || connection;
   return conn('application')
@@ -89,4 +96,9 @@ export const getMenuJson = (menuid, appid, testConn) => {
   return conn('menu')
     .where({ menu_id: menuid, application_id: appid })
     .first();
+};
+
+export const addSyncServer = (data, testConn) => {
+  const conn = testConn || connection;
+  return conn('sync_server').insert(data);
 };

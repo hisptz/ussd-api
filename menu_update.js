@@ -1,5 +1,5 @@
 import { appConfig, getAuthorizationString } from './config/app.config';
-import { getApplicationThisDate, addApplicationEntry, addMenu } from './db';
+import { getApplicationThisDate, addApplicationEntry, addMenu, addSyncServer } from './db';
 
 const fetch = require('make-fetch-happen').defaults({
   cacheManager: '../' // path where cache will be written (and read)
@@ -65,16 +65,31 @@ export const updateMenuForKey = async key => {
 
       await addApplicationEntry(data);
 
+      //get application data for future application_id use
       let application = await getApplicationThisDate(data.update_date, metadata.key);
 
-      //console.log('applicationid', applicationId);
+      //loop add sync servers
+      let sync_server;
 
-      //console.log('menus', menuData.menus);
+      for (sync_server of menuData.settings.sync_servers) {
+        let sync_server_data = {};
 
+        sync_server_data['url'] = sync_server.url;
+        sync_server_data['username'] = sync_server.username;
+        sync_server_data['password'] = sync_server.password;
+        sync_server_data['application_id'] = application.id;
+        //add individual sync serve
+
+        await addSyncServer(sync_server_data);
+
+        console.log('added server :::', sync_server.url);
+      }
+
+      // loop through menus and app them to table menus
       let menuid;
       for (menuid of Object.keys(menuData['menus'])) {
         let menuDetails = {};
-        //console.log('menuid', menuid);
+
         menuDetails['menu_id'] = menuid;
         menuDetails['title'] = menuData.menus[menuid].title ? menuData.menus[menuid].title : '';
         menuDetails['type'] = menuData.menus[menuid].type ? menuData.menus[menuid].type : '';
@@ -93,9 +108,9 @@ export const updateMenuForKey = async key => {
         menuDetails['submit_data'] = menuData.menus[menuid].submit_data ? menuData.menus[menuid].submit_data : false;
         menuDetails['p_rules'] = menuData.menus[menuid].pRules ? JSON.stringify(menuData.menus[menuid].pRules) : '';
         menuDetails['period_type'] = menuData.menus[menuid].period_type ? menuData.menus[menuid].period_type : '';
-        menuDetails['maximum_value'] = menuData.menus[menuid].maximum_value ? menuData.menus[menuid].maximum_value : '';
-        menuDetails['use_for_year'] = menuData.menus[menuid].use_for_year ? menuData.menus[menuid].use_for_year : '';
-        menuDetails['years_back'] = menuData.menus[menuid].years_back ? menuData.menus[menuid].years_back : false;
+        menuDetails['maximum_value'] = menuData.menus[menuid].maximum_value ? menuData.menus[menuid].maximum_value : null;
+        menuDetails['use_for_year'] = menuData.menus[menuid].use_for_year ? menuData.menus[menuid].use_for_year : false;
+        menuDetails['years_back'] = menuData.menus[menuid].years_back ? menuData.menus[menuid].years_back : '';
         menuDetails['field_value_type'] = menuData.menus[menuid].field_value_type ? menuData.menus[menuid].field_value_type : '';
         menuDetails['field_short_name'] = menuData.menus[menuid].field_short_name ? menuData.menus[menuid].field_short_name : '';
         menuDetails['data_element'] = menuData.menus[menuid].data_element ? menuData.menus[menuid].data_element : '';
@@ -103,8 +118,11 @@ export const updateMenuForKey = async key => {
         menuDetails['data_set'] = menuData.menus[menuid].dataSet ? menuData.menus[menuid].dataSet : '';
         menuDetails['program'] = menuData.menus[menuid].program ? menuData.menus[menuid].program : '';
         menuDetails['program_stage'] = menuData.menus[menuid].program_stage ? menuData.menus[menuid].program_stage : '';
+        menuDetails['mode'] = menuData.menus[menuid].mode ? menuData.menus[menuid].mode : null;
 
         await addMenu(menuDetails);
+
+        console.log('added menu with id :: ', menuid);
       }
     }
   } catch (e) {
@@ -113,11 +131,8 @@ export const updateMenuForKey = async key => {
 };
 
 export const getDataStoreKeys = async () => {
-  //console.log('i get called');
   let data;
   const url = `${baseUrl}/api/dataStore/ussd`;
-
-  //console.log('url', url);
 
   const response = await fetch(url, {
     headers: {
@@ -133,12 +148,12 @@ export const getDataStoreKeys = async () => {
 };
 
 const updateMenusForAllKeys = async () => {
+  console.log(' ************* STARTED MENU UPDATE SCRIPT *****************');
+
   const datastore_keys = await getDataStoreKeys();
 
-  //console.log(datastore_keys);
   let datastore_key;
   for (datastore_key of datastore_keys) {
-    //console.log('i get executed');
     await updateMenuForKey(datastore_key);
   }
 };

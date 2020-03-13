@@ -7,6 +7,7 @@
     "knex": "knex",
     "dev": "nodemon index --exec \"babel-node index --presets es2015,stage-0\"",
     "start": "babel-node index --presets es2015,stage-0",
+    "start:dev": "nodemon",
     "menu:update": "babel-node menu_update --presets es2015,stage-0",
     "start:performance:sms": "babel-node performanceSMS --presets es2015,stage-0",
     "test": "jest --watchAll"

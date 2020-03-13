@@ -120,6 +120,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
         }
         response = checkOptionsAnswer(sessionid, id_gen_menu, USSDRequest, application_id);
+        //reset id gen menu
+        id_gen_menu = {};
         response = await returnNextMenu(sessionid, _next_menu_json);
       } else if (_currentMenu.type === 'auth') {
         if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
@@ -175,9 +177,13 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         response = terminateWithMessage(sessionid, _currentMenu);
       }
 
+      //data to be submitted here
       if (_currentMenu.submit_data) {
         console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
+          console.log('updated session data', session_data);
+          await updateUserSession(sessionid, session_data);
+
           console.log('route2');
           if (USSDRequest <= dataSubmissionOptions.length) {
             console.log('route3');
@@ -196,6 +202,9 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                 // handling error message
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
                 if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
+                  //update session status
+                  let session_data = await getCurrentSession(sessionid);
+                  session_data = { ...session_data, status: 'finished' };
                   console.log('route7');
                   await completeForm(sessionid, msisdn);
                   response = await returnNextMenu(sessionid, _next_menu_json);
@@ -273,7 +282,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   const menu = next_menu_json;
 
   const _previous_menu = menu.previous_menu || '';
-  //console.log('menu.type:', menu.type);
+
   if (menu.type === 'options') {
     message = {
       response_type: 2,
@@ -311,7 +320,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
     const submitOptions = ['YES', 'NO'];
     //const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
-    console.log('menu', menu);
+
     message = {
       response_type: 2,
       text: menu.title,
@@ -331,12 +340,10 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     };
   } else if (menu.type === 'id_generator') {
     let session = await getCurrentSession(sessionid);
-    //console.log('ou', session.orgUnit);
 
     let orgUnitDetails = await getOrganisationUnit(session.orgUnit);
 
     let code = await getCode(orgUnitDetails.code);
-    //console.log('code----->>>>', code, session);
 
     let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
     id_gen_menu = menu;
@@ -365,12 +372,6 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     message.text += `\n${additional_message}`;
   }
 
-  // console.log('-------------------------');
-  // console.log(menu.id);
-  // console.log(menu.type);
-  // console.log('current', _currentMenu.type);
-  // console.log('-------------------------');
-
   return message;
 };
 
@@ -395,9 +396,9 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
   }
 
   const correctOption = options.filter(option => option.response === answer)[0];
-  console.log('correct option', correctOption);
+
   const { next_menu } = correctOption;
-  console.log('spot 1 :::', next_menu, app_id);
+
   let next_menu_json = await getMenuJson(next_menu, app_id);
 
   return await returnNextMenu(sessionid, next_menu_json);
@@ -449,6 +450,7 @@ const returnOptions = ({ options }) => {
 // check Period answer
 const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
   let response;
+
   const { period_type, maximum_value, use_for_year, years_back } = menu;
   response = await returnNextMenu(sessionid, _next_menu_json);
   //checking for period value and return appropriate menu in case of wrong selection
@@ -513,7 +515,6 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
   } else {
     response = await returnNextMenu(sessionid, _next_menu_json);
   }
-  //console.log('response check orgunit answer', response);
 
   return response;
 };
@@ -526,9 +527,16 @@ const terminateWithMessage = async (sessionid, menu) => {
   // TODO: DO other things like deleting session. not to overcloud database.
 
   let dataValues = await getSessionDataValue(sessionid);
-  let referenceNumber = _.find(dataValues.dataValues, dataValue => {
-    return dataValue.dataElement == 'KlmXMXitsla';
-  }).value;
+
+  //specific message for addo referral confimation menu
+  let referenceNumber;
+  if (dataValues.datatype === 'event') {
+    referenceNumber = _.find(dataValues.dataValues, dataValue => {
+      return dataValue.dataElement == 'KlmXMXitsla';
+    }).value;
+  }
+
+  //end of specific menu for referral confirmation menu
 
   let message = menu.title;
   message = message.split('${ref_number}').join(referenceNumber);

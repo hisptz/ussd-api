@@ -19,8 +19,8 @@ exports.up = function(knex, Promise) {
     table.boolean('submit_data');
     table.text('p_rules');
     table.string('period_type');
-    table.string('maximum_value');
-    table.string('use_for_year');
+    table.integer('maximum_value');
+    table.boolean('use_for_year');
     table.string('years_back');
     table.string('field_value_type');
     table.string('field_short_name');
@@ -29,6 +29,7 @@ exports.up = function(knex, Promise) {
     table.string('data_set');
     table.string('program');
     table.string('program_stage');
+    table.string('mode');
   });
 };
 
