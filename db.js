@@ -98,7 +98,36 @@ export const getMenuJson = (menuid, appid, testConn) => {
     .first();
 };
 
+export const getMenusByAppId = (appid, testConn) => {
+  const conn = testConn || connection;
+  return conn('menu').where('application_id', appid);
+};
+
 export const addSyncServer = (data, testConn) => {
   const conn = testConn || connection;
   return conn('sync_server').insert(data);
+};
+
+export const getSyncServerByAppId = (id, testConn) => {
+  const conn = testConn || connection;
+  return conn('sync_server')
+    .where('application_id', id)
+    .first();
+};
+
+export const getSyncServerById = (server_id, testConn) => {
+  const conn = testConn || connection;
+  return conn('sync_server')
+    .where('id', server_id)
+    .first();
+};
+
+export const addSync = (data, testConn) => {
+  const conn = testConn || connection;
+  return conn('sync').insert(data);
+};
+
+export const getUnsynced = testConn => {
+  const conn = testConn || connection;
+  return conn('sync').where('synced', false);
 };

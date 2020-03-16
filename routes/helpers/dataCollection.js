@@ -5,7 +5,9 @@ import {
   updateUserSession,
   getCurrentSession,
   getMenuJson,
-  getApplicationById
+  getApplicationById,
+  addSync,
+  getSyncServerByAppId
 } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
 import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
@@ -271,7 +273,14 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
     });
   }
 
+  //specific for referrals confirmation menu, need to update a specific event
+  //TODO: remove the ids to make it more generic
   if (currentMenu.mode && currentMenu.mode == 'event_update') {
+    //add a sync entry
+    // TODO :: Save sync info, send later
+    //await addSync({ syncserver_id: '', session_id: '', synced: false, retries: 0 })
+
+    //process and send request
     let referralId = parseInt(
       _.find(dtArray, dt => {
         return dt.dataElement == 'KlmXMXitsla';
@@ -307,6 +316,14 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
     return response;
   } else {
+    //add a sync entry
+    // TODO :: Change logic to save sync info & send later
+    console.log('application id', currentMenu.application_id);
+    let sync_server = await getSyncServerByAppId(currentMenu.application_id);
+    console.log('sync server', sync_server);
+    await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
+
+    //process and send request
     const response = await postEventData({
       program,
       programStage,

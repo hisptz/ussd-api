@@ -181,8 +181,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       if (_currentMenu.submit_data) {
         console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
-          console.log('updated session data', session_data);
-          await updateUserSession(sessionid, session_data);
+          //console.log('updated session data', session_data);
+          //await updateUserSession(sessionid, session_data);
 
           console.log('route2');
           if (USSDRequest <= dataSubmissionOptions.length) {
@@ -198,6 +198,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                   text: message
                 };
               } else {
+                //TODO :: change logic here to not send data but add to list of syncs
                 console.log('route6');
                 // handling error message
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
@@ -315,9 +316,8 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   } else if (menu.type === 'message') {
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
-    const datastore = await getDataStoreFromDHIS2();
-    let menus = datastore.menus;
-    const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
+    const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menu.application_id);
+    console.log('confirm menu :: ', connfirmationSummary);
     const submitOptions = ['YES', 'NO'];
     //const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
 
