@@ -3,6 +3,8 @@ exports.up = function(knex, Promise) {
     table.increments('sms_id').primary();
     table.string('text');
     table.string('status');
+    table.json('phone_numbers');
+    table.string('session_id');
   });
 };
 

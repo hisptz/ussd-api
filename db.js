@@ -1,3 +1,5 @@
+import { type } from 'os';
+
 const environment = process.env.NODE_ENV || 'development';
 const config = require('./knexfile')[environment];
 const connection = require('knex')(config);
@@ -110,9 +112,7 @@ export const addSyncServer = (data, testConn) => {
 
 export const getSyncServerByAppId = (id, testConn) => {
   const conn = testConn || connection;
-  return conn('sync_server')
-    .where('application_id', id)
-    .first();
+  return conn('sync_server').where('application_id', id);
 };
 
 export const getSyncServerById = (server_id, testConn) => {
@@ -127,7 +127,36 @@ export const addSync = (data, testConn) => {
   return conn('sync').insert(data);
 };
 
+export const updateSync = (data, id, testConn) => {
+  const conn = testConn || connection;
+  return conn('sync')
+    .where('id', id)
+    .update(data);
+};
+
 export const getUnsynced = testConn => {
   const conn = testConn || connection;
   return conn('sync').where('synced', false);
+};
+
+export const getUnsyncedBySession = (sessionid, testConn) => {
+  const conn = testConn || connection;
+  return conn('sync').where({ synced: false, session_id: sessionid });
+};
+
+export const addSms = (data, testConn) => {
+  const conn = testConn || connection;
+  return conn('sms').insert(data);
+};
+
+export const getUnsentSms = testConn => {
+  const conn = testConn || connection;
+  return conn('sms').where('status', 'QUEUED');
+};
+
+export const updateSms = (data, id, testConn) => {
+  const conn = testConn || connection;
+  return conn('sms')
+    .where('sms_id', id)
+    .update(data);
 };

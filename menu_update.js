@@ -156,6 +156,9 @@ const updateMenusForAllKeys = async () => {
   for (datastore_key of datastore_keys) {
     await updateMenuForKey(datastore_key);
   }
+  setTimeout(() => {
+    updateMenusForAllKeys();
+  }, appConfig.application_update_interval);
 };
 
 //Script's starting point

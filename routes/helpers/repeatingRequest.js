@@ -17,7 +17,8 @@ import {
   collectPeriodData,
   collectOrganisationUnitData,
   validatedData,
-  ruleNotPassed
+  ruleNotPassed,
+  addMessage
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
@@ -173,7 +174,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       } else if (_currentMenu.type === 'ou') {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
       } else if (_currentMenu.type === 'message') {
-        //console.log('do i get here?');
+        console.log('do i get here?', sessionid, _currentMenu);
         response = terminateWithMessage(sessionid, _currentMenu);
       }
 
@@ -199,25 +200,24 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                 };
               } else {
                 //TODO :: change logic here to not send data but add to list of syncs
-                console.log('route6');
-                // handling error message
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
-                if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
-                  //update session status
-                  let session_data = await getCurrentSession(sessionid);
-                  session_data = { ...session_data, status: 'finished' };
-                  console.log('route7');
-                  await completeForm(sessionid, msisdn);
-                  response = await returnNextMenu(sessionid, _next_menu_json);
-                } else {
-                  console.log('route8');
-                  //terminate with proper error messages
-                  const error_message = await getSanitizedErrorMessage(requestResponse);
-                  response = {
-                    response_type: 1,
-                    text: error_message
-                  };
-                }
+                console.log('response from submit ::: ', requestResponse);
+                response = await returnNextMenu(sessionid, _next_menu_json);
+
+                // if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
+                //   //update session status
+                //   let session_data = await getCurrentSession(sessionid);
+                //   session_data = { ...session_data, status: 'finished' };
+                //   await completeForm(sessionid, msisdn);
+                //   response = await returnNextMenu(sessionid, _next_menu_json);
+                // } else {
+                //   //terminate with proper error messages
+                //   const error_message = await getSanitizedErrorMessage(requestResponse);
+                //   response = {
+                //     response_type: 1,
+                //     text: error_message
+                //   };
+                // }
               }
             } else {
               console.log('route9');
@@ -317,7 +317,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menu.application_id);
-    console.log('confirm menu :: ', connfirmationSummary);
+    //console.log('confirm menu :: ', connfirmationSummary);
     const submitOptions = ['YES', 'NO'];
     //const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
 
@@ -524,14 +524,15 @@ const getPeriodBytype = (period_type, value) => {
 };
 
 const terminateWithMessage = async (sessionid, menu) => {
+  console.log('sessionid', sessionid, 'menu', menu);
   // TODO: DO other things like deleting session. not to overcloud database.
 
-  let dataValues = await getSessionDataValue(sessionid);
+  let data = await getSessionDataValue(sessionid);
 
   //specific message for addo referral confimation menu
   let referenceNumber;
-  if (dataValues.datatype === 'event') {
-    referenceNumber = _.find(dataValues.dataValues, dataValue => {
+  if (data.datatype === 'event') {
+    referenceNumber = _.find(data.dataValues.dataValues, dataValue => {
       return dataValue.dataElement == 'KlmXMXitsla';
     }).value;
   }

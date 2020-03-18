@@ -7,7 +7,8 @@ import {
   getMenuJson,
   getApplicationById,
   addSync,
-  getSyncServerByAppId
+  getSyncServerByAppId,
+  addSms
 } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
 import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
@@ -18,6 +19,7 @@ import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './perio
 import * as _ from 'lodash';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
+  console.log('current menu on data collect ::: ', _currentMenu);
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const { data_type, category_combo, data_element, program, program_stage } = _currentMenu;
   const dataValue = [
@@ -39,6 +41,11 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
       oldDataValues = JSON.parse(oldDataValues);
     } catch (e) {}
     const dataValues = [...oldDataValues, ...dataValue];
+
+    if (!sessionDatavalues.data_set || sessionDatavalues.data_set == '') {
+      await updateSessionDataValues(sessionDatavalues.sessionid, { data_set: _currentMenu.data_set });
+    }
+
     return updateSessionDataValues(sessionid, {
       ...data,
       dataValues: JSON.stringify(dataValues)
@@ -54,16 +61,17 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 };
 
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) => {
+  console.log('current menu :: ', _currentMenu);
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
   const { datatype, program, programStage } = sessionDatavalues;
 
   if (datatype === 'aggregate') {
-    return sendAggregateData(sessionid);
+    return sendAggregateData(sessionid, msisdn);
   } else if (datatype === 'event') {
     return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
   } else {
-    return completeForm(sessionid, msisdn);
+    return completeForm(sessionid);
   }
 };
 export const ruleNotPassed = async (sessionid, menu, answer) => {
@@ -162,7 +170,7 @@ export const getCurrentSessionDataValue = async sessionid => {
   };
 };
 
-const sendAggregateData = async sessionid => {
+const sendAggregateData = async (sessionid, msisdn) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
   const { dataValues, year, period } = sessionDatavalues;
@@ -184,9 +192,26 @@ const sendAggregateData = async sessionid => {
       return dt.dataElement ? true : false;
     });
 
-  const response = await postAggregateData({
-    dataValues: dtArray
+  const sync_servers = await getSyncServerByAppId(sessions.application_id);
+
+  let sync_server;
+  for (sync_server of sync_servers) {
+    await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
+  }
+
+  await addMessage(sessionid, msisdn);
+
+  const response = await updateSessionDataValues(sessionid, {
+    year: year,
+    period: period,
+    sessionid: sessionid,
+    datatype: 'aggregate',
+    dataValues: JSON.stringify(dtArray)
   });
+
+  // const response = await postAggregateData({
+  //   dataValues: dtArray
+  // });
 
   return response;
 };
@@ -204,8 +229,42 @@ export const completeForm = async (sessionid, phoneNumber) => {
   let menu = await getMenuJson(session.currentmenu, session.application_id);
 
   const response = await complete(menu.data_set, year + '' + period, orgUnit);
-  const phoneNumbers = [phoneNumber];
+  //const phoneNumbers = [phoneNumber];
   //phoneNumbers.push();
+  //const orgUnitDetails = await getOrganisationUnit(orgUnit);
+  //if (menu.submission_message) {
+  //  let dataValues = await getSessionDataValue(sessionid);
+
+  //  let referenceNumber;
+
+  //  if (dataValues.datatype === 'event') {
+  //    referenceNumber = _.find(dataValues.dataValues, dataValue => {
+  //      return dataValue.dataElement == 'KlmXMXitsla';
+  //    }).value;
+  //  }
+
+  //  let message = menu.submission_message;
+  //  message = message.split('${period_year}').join(year);
+  //  message = message.split('${sub_period}').join(period);
+  //  message = message.split('${org_unit_code}').join(orgUnitDetails.code);
+  //  message = message.split('${ref_number}').join(referenceNumber);
+  //  const result = await sendSMS(phoneNumbers, message);
+  //}
+  return response;
+};
+
+export const addMessage = async (sessionid, phoneNumber) => {
+  //console.log('got to the add message :::', sessionid, phoneNumber);
+  const sessionDatavalues = await getSessionDataValue(sessionid);
+  const session = await getCurrentSession(sessionid);
+  const { year, period } = sessionDatavalues;
+  const { orgUnit } = session;
+
+  let menu = await getMenuJson(session.currentmenu, session.application_id);
+
+  let phoneNumbers = [];
+  phoneNumbers.push(phoneNumber);
+
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
   if (menu.submission_message) {
     let dataValues = await getSessionDataValue(sessionid);
@@ -223,9 +282,19 @@ export const completeForm = async (sessionid, phoneNumber) => {
     message = message.split('${sub_period}').join(period);
     message = message.split('${org_unit_code}').join(orgUnitDetails.code);
     message = message.split('${ref_number}').join(referenceNumber);
-    const result = await sendSMS(phoneNumbers, message);
+
+    //.log('message ::: ', message, 'phone number ::: ', phoneNumbers);
+
+    let data = {
+      status: 'QUEUED',
+      text: message,
+      phone_numbers: JSON.stringify(phoneNumbers),
+      session_id: sessionid
+    };
+    await addSms(data);
+
+    //const result = await sendSMS(phoneNumbers, message);
   }
-  return response;
 };
 
 const sendEventData = async (sessionid, program, programStage, msisdn, currentMenu) => {
@@ -301,6 +370,8 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
     let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
 
+    //console.log('event data :::', currentEventData);
+
     let eventUpdatedData = {};
     eventUpdatedData['program'] = currentEventData.events[0].program;
     eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
@@ -312,27 +383,66 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
     eventUpdatedData['completedDate'] = getEventDate();
     eventUpdatedData.dataValues.push(hfrDataValue);
 
-    const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
+    const response = await updateSessionDataValues(sessionid, {
+      sessionid: sessionid,
+      program: eventUpdatedData.program,
+      datatype: 'event',
+      programStage: eventUpdatedData.programStage,
+      dataValues: eventUpdatedData,
+      event: currentEventData.events[0].event
+    });
 
+    const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
+
+    let sync_server;
+    for (sync_server of sync_servers) {
+      await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
+    }
+
+    await addMessage(sessionid, msisdn);
+
+    //const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
     return response;
   } else {
     //add a sync entry
     // TODO :: Change logic to save sync info & send later
-    console.log('application id', currentMenu.application_id);
-    let sync_server = await getSyncServerByAppId(currentMenu.application_id);
-    console.log('sync server', sync_server);
-    await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
+    const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
 
-    //process and send request
-    const response = await postEventData({
+    let sync_server;
+    for (sync_server of sync_servers) {
+      await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
+    }
+
+    await addMessage(sessionid, msisdn);
+
+    const eventDataToPost = {
       program,
       programStage,
       eventDate: getEventDate(),
       orgUnit,
       status: 'COMPLETED',
       dataValues: dtArray
+    };
+
+    const response = await updateSessionDataValues(sessionid, {
+      sessionid: sessionid,
+      datatype: 'event',
+      program,
+      programStage,
+      dataValues: JSON.stringify(eventDataToPost)
     });
 
+    //process and send request
+    // const response = await postEventData({
+    //   program,
+    //   programStage,
+    //   eventDate: getEventDate(),
+    //   orgUnit,
+    //   status: 'COMPLETED',
+    //   dataValues: dtArray
+    // });
+
+    //console.log('response from post Event Data :: ', response);
     return response;
   }
 };

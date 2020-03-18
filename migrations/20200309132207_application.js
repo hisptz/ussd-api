@@ -23,6 +23,9 @@ exports.up = (knex, Promise) => {
     knex.schema.table('sessions', table => {
       table.string('application_id');
       table.string('status');
+    }),
+    knex.schema.table('datavalues', table => {
+      table.string('data_set');
     })
   ]);
 };
