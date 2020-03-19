@@ -115,6 +115,14 @@ async function start() {
                 legend[leg.id] = leg;
             })
         })
+        if (argv.noSMS) {
+
+        } else {
+            if(argv.performance){
+                await sendSMS(["0718026490"], "Sending performance sms to ADDO");
+            }
+            
+        }
         await load(1);
     } catch (e) {
         await sendSMS(["0718026490"], "Network error fetching legends:" + e.code);
@@ -284,6 +292,14 @@ async function load(page) {
     if (ouResults.pager.page !== ouResults.pager.pageCount) {
         await load(page + 1);
     } else {
+        if (argv.noSMS) {
+
+        } else {
+            if(argv.performance){
+                await sendSMS(["0718026490"], "Done Sending Performance sms. Summary:" + JSON.stringify(typesSent));
+            }
+            
+        }
         console.log('Done sending reminders and sms.');
         console.log(typesSent);
     }
