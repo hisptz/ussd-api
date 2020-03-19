@@ -16,6 +16,8 @@ import { complete } from './endpoints/dataSet';
 
 const http_status = ['OK', 'SUCCESS'];
 const startSync = async () => {
+  console.log('************************ SYNC & FEEDBACK STARTED ********************');
+
   while (true) {
     //process data syncs
     await sync();
@@ -28,7 +30,6 @@ const startSync = async () => {
 const sync = async () => {
   //get all unsynced entries
   const unsyncedEntries = await getUnsynced();
-  console.log('all entries ::: ', unsyncedEntries);
   //loop through the unsynced entries
   let unsyncedEntry;
 
@@ -57,6 +58,8 @@ const sync = async () => {
             },
             unsyncedEntry.id
           );
+
+          console.log('synced entry :::', unsyncedEntry.id);
         } else {
           await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
         }
@@ -81,6 +84,8 @@ const sync = async () => {
             },
             unsyncedEntry.id
           );
+
+          console.log('synced entry :::', unsyncedEntry.id);
         } else {
           await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
         }
@@ -112,7 +117,7 @@ const sync = async () => {
         console.log('form complete response :: ', complete_form);
         //update sync boolean to true
 
-        if (complete_form && complete_form.status && complete_form.includes(response.status)) {
+        if (complete_form && complete_form.status && http_status.includes(complete_form.status)) {
           await updateSync(
             {
               syncserver_id: unsyncedEntry.syncserver_id,
@@ -122,6 +127,8 @@ const sync = async () => {
             },
             unsyncedEntry.id
           );
+
+          console.log('synced entry :::', unsyncedEntry.id);
         } else {
         }
       } else {
@@ -140,18 +147,18 @@ const feedback = async () => {
   for (sms of unsent_sms) {
     //check if all syncs for the sessionid are synced
     const unsynced_for_this_session = await getUnsyncedBySession(sms.session_id);
-    console.log('unsynced entries ::: ', unsynced_for_this_session.length);
+    //console.log('unsynced entries ::: ', unsynced_for_this_session.length);
 
     if (unsynced_for_this_session.length == 0) {
       let response;
       try {
         response = await sendSMS(sms.phone_numbers, sms.text);
-        console.log('sms send response', response);
       } catch (e) {}
 
       if (response && response.statusMessage && response.statusMessage == 'Success') {
         //update the sms entry
 
+        console.log('sms sent response ::::', response);
         await updateSms({ status: 'SENT' }, sms.sms_id);
       }
     }

@@ -4,9 +4,9 @@ const crypto = require('crypto');
 import { appConfig, getAuthorizationString } from '../config/app.config';
 
 export const sendSMS = (phoneNumbers, message) => {
-  const baseUrl = appConfig.url;
-  const url = `${baseUrl}/api/sms/outbound`;
-  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  //const baseUrl = appConfig.url;
+  //const url = `${baseUrl}/api/sms/outbound`;
+  //const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
   /*return r2.post(url, {
         headers: {
             Authorization
@@ -24,6 +24,9 @@ export const sendEGASMS = (phoneNumbers, message) => {
   const url = `http://msdg.ega.go.tz/msdg/public/quick_sms`;
   let datetime = getDate();
   let data = { recipients: phoneNumbers.join(','), message: message, datetime: datetime, mobile_service_id: 106, sender_id: '15200' };
+
+  console.log('data to send sms ::: ', data);
+
   let sendData = JSON.stringify(data);
   let hash = crypto
     .createHmac('sha256', appConfig.smsAPIKey)

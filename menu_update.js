@@ -122,7 +122,7 @@ export const updateMenuForKey = async key => {
 
         await addMenu(menuDetails);
 
-        console.log('added menu with id :: ', menuid);
+        //console.log('added menu with id :: ', menuid);
       }
     }
   } catch (e) {
