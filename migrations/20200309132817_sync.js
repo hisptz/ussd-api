@@ -5,6 +5,7 @@ exports.up = function(knex, Promise) {
     table.string('session_id');
     table.boolean('synced');
     table.integer('retries');
+    table.boolean('notified');
   });
 };
 

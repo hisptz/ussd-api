@@ -14,7 +14,6 @@ export const getDataSet = id => {
 };
 
 export const complete = (dataSet, period, orgUnit) => {
-  //console.log('i get here');
   const baseUrl = appConfig.url;
   const url = `${baseUrl}/api/completeDataSetRegistrations`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);

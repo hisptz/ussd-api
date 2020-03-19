@@ -25,8 +25,6 @@ export const sendEGASMS = (phoneNumbers, message) => {
   let datetime = getDate();
   let data = { recipients: phoneNumbers.join(','), message: message, datetime: datetime, mobile_service_id: 106, sender_id: '15200' };
 
-  console.log('data to send sms ::: ', data);
-
   let sendData = JSON.stringify(data);
   let hash = crypto
     .createHmac('sha256', appConfig.smsAPIKey)

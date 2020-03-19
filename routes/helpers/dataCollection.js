@@ -19,7 +19,6 @@ import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './perio
 import * as _ from 'lodash';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
-  console.log('current menu on data collect ::: ', _currentMenu);
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const { data_type, category_combo, data_element, program, program_stage } = _currentMenu;
   const dataValue = [
@@ -61,7 +60,6 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 };
 
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) => {
-  console.log('current menu :: ', _currentMenu);
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
   const { datatype, program, programStage } = sessionDatavalues;
@@ -254,7 +252,6 @@ export const completeForm = async (sessionid, phoneNumber) => {
 };
 
 export const addMessage = async (sessionid, phoneNumber) => {
-  //console.log('got to the add message :::', sessionid, phoneNumber);
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const session = await getCurrentSession(sessionid);
   const { year, period } = sessionDatavalues;
@@ -370,8 +367,6 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
     let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
 
-    //console.log('event data :::', currentEventData);
-
     let eventUpdatedData = {};
     eventUpdatedData['program'] = currentEventData.events[0].program;
     eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
@@ -432,17 +427,6 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       dataValues: JSON.stringify(eventDataToPost)
     });
 
-    //process and send request
-    // const response = await postEventData({
-    //   program,
-    //   programStage,
-    //   eventDate: getEventDate(),
-    //   orgUnit,
-    //   status: 'COMPLETED',
-    //   dataValues: dtArray
-    // });
-
-    //console.log('response from post Event Data :: ', response);
     return response;
   }
 };

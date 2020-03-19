@@ -37,6 +37,9 @@ exports.down = (knex, Promise) => {
     knex.schema.table('sessions', table => {
       table.dropColumn('application_id');
       table.dropColumn('status');
+    }),
+    knex.schema.table('datavalues', table => {
+      table.dropColumn('data_set');
     })
   ]);
 };

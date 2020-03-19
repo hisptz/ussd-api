@@ -5,6 +5,7 @@ exports.up = function(knex, Promise) {
     table.string('url');
     table.string('username');
     table.string('password');
+    table.string('admin_email');
   });
 };
 

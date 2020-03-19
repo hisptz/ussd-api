@@ -6,9 +6,6 @@ export const postEventData = (data, server) => {
   const url = `${baseUrl}/api/events`;
   const Authorization = getAuthorizationString(server.username, server.password);
 
-  //console.log('authorization ::: ', Authorization);
-  //console.log('url', url);
-
   return r2.post(url, {
     headers: {
       Authorization

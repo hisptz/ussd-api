@@ -48,8 +48,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const session_details = await getCurrentSession(sessionid);
 
     if (!session_details) {
-      //console.log('session details not there');
-
       const application_data = await getLatestApplicationEntryByKey(appConfig.dataStoreId);
       application_id = application_data.id;
       const starting_menu = await getMenuJson(application_data.starting_menu, application_id);
@@ -74,7 +72,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
 
       return response;
     } else {
-      //console.log('session details EXIST');
       currentmenu = session_details.currentmenu;
       application_id = session_details.application_id;
       retries = session_details.retries;
@@ -96,11 +93,9 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
 
     // checking for previous menu is not auth and checking if user need previous menu
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
-      //console.log('option1');
       //response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
       response = await returnNextMenu(sessionid, _next_menu_json);
     } else {
-      //console.log('this');
       if (_currentMenu.type === 'fetch') {
       } else if (_currentMenu.type === 'id_generator') {
         const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(
@@ -167,32 +162,22 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           }
         }
       } else if (_currentMenu.type === 'options') {
-        //console.log('i got here');
         response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
       } else if (_currentMenu.type === 'period') {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, _next_menu_json);
       } else if (_currentMenu.type === 'ou') {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
       } else if (_currentMenu.type === 'message') {
-        console.log('do i get here?', sessionid, _currentMenu);
         response = terminateWithMessage(sessionid, _currentMenu);
       }
 
       //data to be submitted here
       if (_currentMenu.submit_data) {
-        console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
-          //console.log('updated session data', session_data);
-          //await updateUserSession(sessionid, session_data);
-
-          console.log('route2');
           if (USSDRequest <= dataSubmissionOptions.length) {
-            console.log('route3');
             if (dataSubmissionOptions[USSDRequest - 1]) {
-              console.log('route4');
               const validation = await validatedData(sessionid, _currentMenu);
               if (validation.notSet.length > 0) {
-                console.log('route5');
                 const message = 'The following data is not entered:' + validation.notSet.join(',');
                 response = {
                   response_type: 1,
@@ -201,38 +186,20 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
               } else {
                 //TODO :: change logic here to not send data but add to list of syncs
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
-                console.log('response from submit ::: ', requestResponse);
-                response = await returnNextMenu(sessionid, _next_menu_json);
 
-                // if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
-                //   //update session status
-                //   let session_data = await getCurrentSession(sessionid);
-                //   session_data = { ...session_data, status: 'finished' };
-                //   await completeForm(sessionid, msisdn);
-                //   response = await returnNextMenu(sessionid, _next_menu_json);
-                // } else {
-                //   //terminate with proper error messages
-                //   const error_message = await getSanitizedErrorMessage(requestResponse);
-                //   response = {
-                //     response_type: 1,
-                //     text: error_message
-                //   };
-                // }
+                response = await returnNextMenu(sessionid, _next_menu_json);
               }
             } else {
-              console.log('route9');
               response = {
                 response_type: 1,
                 text: 'Terminating the session'
               };
             }
           } else {
-            console.log('route10');
             const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
             response = await returnNextMenu(sessionid, _currentMenu, retry_message);
           }
         } else {
-          console.log('route11');
           const { httpStatus } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
           if (httpStatus !== OK) {
             response = {
@@ -244,8 +211,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
     }
   } catch (e) {
-    console.log('error', e);
-
     response = {
       response_type: 1,
       text: 'Server Error. Please try again.'
@@ -524,7 +489,6 @@ const getPeriodBytype = (period_type, value) => {
 };
 
 const terminateWithMessage = async (sessionid, menu) => {
-  console.log('sessionid', sessionid, 'menu', menu);
   // TODO: DO other things like deleting session. not to overcloud database.
 
   let data = await getSessionDataValue(sessionid);

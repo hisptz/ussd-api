@@ -36,14 +36,10 @@ export const updateMenuForKey = async key => {
   try {
     let metadata = await getMenuMetaData(key);
 
-    //console.log('received metadata', metadata);
-
     //check date on application table & compare with metadata update date to determine whether to update the menu
     let applicationMenu = await shouldUpdate(metadata.lastUpdated, metadata.key);
 
     if (applicationMenu === undefined) {
-      //console.log('update application menu', applicationMenu);
-
       let data = {};
       let menuData = JSON.parse(metadata.value);
 
@@ -78,6 +74,7 @@ export const updateMenuForKey = async key => {
         sync_server_data['username'] = sync_server.username;
         sync_server_data['password'] = sync_server.password;
         sync_server_data['application_id'] = application.id;
+        sync_server_data['admin_email'] = sync_server.email;
         //add individual sync serve
 
         await addSyncServer(sync_server_data);
@@ -121,13 +118,9 @@ export const updateMenuForKey = async key => {
         menuDetails['mode'] = menuData.menus[menuid].mode ? menuData.menus[menuid].mode : null;
 
         await addMenu(menuDetails);
-
-        //console.log('added menu with id :: ', menuid);
       }
     }
-  } catch (e) {
-    //console.log('this error :::', e);
-  }
+  } catch (e) {}
 };
 
 export const getDataStoreKeys = async () => {

@@ -38,6 +38,7 @@
     "make-fetch-happen": "^3.0.0",
     "morgan": "^1.8.0",
     "node-fetch": "^2.1.2",
+    "nodemailer": "^6.4.5",
     "pg": "^7.18.2",
     "r2": "^2.0.0"
   },
