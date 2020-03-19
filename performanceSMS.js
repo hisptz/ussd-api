@@ -244,20 +244,26 @@ async function load(page) {
             })
             if (phoneNumbers.length > 0) {
                 try {
+                
                     if (argv.noSMS) {
                         console.log(phoneNumbers, message);
                     } else {
-                        await sendSMS(phoneNumbers, message);
+                        if (!sentSMS[ou.id]) {
+                            sentSMS[ou.id] = {};
+                        }
+                        if(argv.performance && message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1){
+                            await sendSMS(phoneNumbers, message);
+                            sentSMS[ou.id].done = true;
+                            typesSent.performance++;
+                        }
+                        
+                        if(argv.reminder && message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') > -1){
+                            await sendSMS(phoneNumbers, message);
+                            typesSent.reminders++;
+                        }
                     }
-                    if (!sentSMS[ou.id]) {
-                        sentSMS[ou.id] = {};
-                    }
-                    if (message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1) {
-                        sentSMS[ou.id].done = true;
-                        typesSent.performance++;
-                    } else {
-                        typesSent.reminders++;
-                    }
+                    
+                    
                 } catch (e) {
                     typesSent.failed++;
                     console.log('SMS Error:', e)
