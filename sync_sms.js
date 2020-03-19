@@ -149,7 +149,7 @@ const sync = async () => {
           from: appConfig.mail.auth.user,
           to: serverDetails.admin_email,
           subject: 'Sync failed',
-          text: 'That was easy!'
+          text: 'Could not sync data for session : ' + unsyncedEntry.session_id + ' to server: ' + serverDetails.url + '<br/>'
         };
 
         const transporter = nodemailer.createTransport(appConfig.mail);
@@ -163,10 +163,6 @@ const sync = async () => {
 
         if (mail_response) {
           //email sent
-          await updateSync({ ...unsyncedEntry, notified: true }, unsyncedEntry.id);
-        } else {
-          //email not sent
-          // TODO :: notified should be false but consider adding number of retries
           await updateSync({ ...unsyncedEntry, notified: true }, unsyncedEntry.id);
         }
       }
