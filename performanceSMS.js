@@ -16,6 +16,7 @@ const indicators = [
     //"lReUCP20Cz2"
 ]
 const configurations = require('./sms-config').configurations;
+const argv = require('yargs').argv
 const baseUrl = appConfig.url
 
 const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
@@ -29,7 +30,11 @@ function getLegend() {
     }).json;
 }
 function getOrganisationUnits(page = 1) {
-    const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&order=name:asc&filter=organisationUnitGroups.id:eq:QWHGAtRYcr0&filter=organisationUnitGroups.id:eq:v2yuaIqu4tZ&rootJunction=OR&fields=id,name,code,phoneNumber,attributeValues`;
+    var filter = "&filter=organisationUnitGroups.id:eq:QWHGAtRYcr0&filter=organisationUnitGroups.id:eq:v2yuaIqu4tZ&rootJunction=OR";
+    if (argv.orgUnit) {
+        filter = "&filter=code:eq:" + argv.orgUnit
+    }
+    const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&order=name:asc${filter}&fields=id,name,code,phoneNumber,attributeValues`;
     //const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&filter=id:eq:EjxCAxGdiZ8&fields=id,name,phoneNumber,attributeValues`;
     console.log('Org Unit:', url);
     return r2.get(url, {
@@ -53,7 +58,6 @@ function getPeriod() {
 }
 function getAnalytics(ou) {
     const url = `${baseUrl}/api/analytics?dimension=dx:${indicators.join(';')}&dimension=pe:${getPeriod()}&dimension=ou:${ou.join(';')}&displayProperty=NAME&hierarchyMeta=true`;
-    console.log('Url:', url)
     return r2.get(url, {
         headers: {
             Authorization
@@ -61,23 +65,14 @@ function getAnalytics(ou) {
     }).json;
 }
 var sentSMS;
-async function getSentSMS() {
+function getSentSMS() {
     const url = `${baseUrl}/api/dataStore/performance_sms_sent/${getPeriod()}`;
-    try {
-        let results = await r2.get(url, {
-            headers: {
-                Authorization
-            }
-        }).json;
-        if(results.httpStatusCode === 404){
-            sentSMS = {};
-        }else{
-            sentSMS = {...results};
+    console.log('Url:', url, r2);
+    return r2.get(url, {
+        headers: {
+            Authorization
         }
-    } catch (e) {
-        console.error(e.code);
-        throw e;
-    }
+    }).json;
 }
 async function saveSentSMS() {
     const url = `${baseUrl}/api/dataStore/performance_sms_sent/${getPeriod()}`;
@@ -88,7 +83,7 @@ async function saveSentSMS() {
             },
             json: sentSMS
         }).json;
-        if(results.httpStatusCode === 404){
+        if (results.httpStatusCode === 404) {
             try {
                 results = await r2.post(url, {
                     headers: {
@@ -120,9 +115,17 @@ async function start() {
                 legend[leg.id] = leg;
             })
         })
+        if (argv.noSMS) {
+
+        } else {
+            if(argv.performance){
+                await sendSMS(["0718026490"], "Sending performance sms to ADDO");
+            }
+            
+        }
         await load(1);
     } catch (e) {
-        await sendSMS(["0718026490"], "Network error fetching legends.");
+        await sendSMS(["0718026490"], "Network error fetching legends:" + e.code);
         console.error(e.code);
         throw e;
     }
@@ -130,18 +133,20 @@ async function start() {
 var typesSent = {
     performance: 0,
     reminders: 0,
-    noPhoneNumbers:0,
-    failed:0,
+    noPhoneNumbers: 0,
+    failed: 0,
 }
 async function load(page) {
     console.log('Started Page:', page);
     const ouResults = await getOrganisationUnits(page);
+    console.log('Here1');
     //ouResults.organisationUnits = ouResults.organisationUnits.filter((ou) => ou.id === "PLLbHn8QAbN")
     const ouMapping = {};
     const initialIndicatorValues = {};
     indicators.forEach((indicator) => {
         initialIndicatorValues[indicator] = 'blank';
     })
+    console.log('Here2');
     const data = await getAnalytics(ouResults.organisationUnits.map((ou) => {
         ouMapping[ou.id] = {
             details: ou,
@@ -151,13 +156,25 @@ async function load(page) {
         }
         return ou.id;
     }))
+    console.log('Here3');
     const period = data.metaData.items[data.metaData.dimensions.pe[0]].name;
-    await getSentSMS();
+    console.log('Here3:');
+    if (!sentSMS) {
+        let results = await getSentSMS();
+        if (results) {
+            if (results.httpStatusCode === 404) {
+                sentSMS = {};
+            } else {
+                sentSMS = { ...results };
+            }
+        }
+    }
+    console.log('Here4');
     data.rows.forEach((row) => {
         ouMapping[row[2]].indicators[row[0]] = row[3];
     });
     for (let ou of ouResults.organisationUnits) {
-        if(sentSMS[ou.id] && sentSMS[ou.id].done){
+        if (sentSMS[ou.id] && sentSMS[ou.id].done) {
             continue;
         }
         let message = '';
@@ -223,47 +240,71 @@ async function load(page) {
                 })
             })
             let phoneNumbers = [];
-            if (ou.phoneNumber && ou.phoneNumber !== '') {
+            if (ou.phoneNumber && ou.phoneNumber.length >= 10) {
                 phoneNumbers.push(ou.phoneNumber)
             }
             let foundInAttribute = false;
             ou.attributeValues.forEach((attributeValue) => {
-                if (attributeValue.attribute.id === "NgmZX27k7gf" && attributeValue.value !== "" && phoneNumbers.indexOf(attributeValue.value) === -1 && !foundInAttribute) {
+                if (attributeValue.attribute.id === "NgmZX27k7gf" && attributeValue.value.length >= 10 && phoneNumbers.indexOf(attributeValue.value) === -1 && !foundInAttribute) {
                     foundInAttribute = false;
                     phoneNumbers.push(attributeValue.value)
                 }
             })
             if (phoneNumbers.length > 0) {
                 try {
-                    await sendSMS(phoneNumbers,message);
-                    if(!sentSMS[ou.id]){
-                        sentSMS[ou.id] = {};
+                
+                    if (argv.noSMS) {
+                        console.log(phoneNumbers, message);
+                    } else {
+                        if (!sentSMS[ou.id]) {
+                            sentSMS[ou.id] = {};
+                        }
+                        if(argv.performance && message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1){
+                            await sendSMS(phoneNumbers, message);
+                            sentSMS[ou.id].done = true;
+                            typesSent.performance++;
+                        }
+                        
+                        if(argv.reminder && message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') > -1){
+                            await sendSMS(phoneNumbers, message);
+                            typesSent.reminders++;
+                        }
                     }
-                    if(message.indexOf('Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya') === -1){
-                        sentSMS[ou.id].done = true;
-                        typesSent.performance++;
-                    }else{
-                        typesSent.reminders++;
-                    }
+                    
+                    
                 } catch (e) {
                     typesSent.failed++;
                     console.log('SMS Error:', e)
                 }
-            }else{
+            } else {
                 typesSent.noPhoneNumbers++;
             }
         } else {
-            console.log('No Data');
+            console.log('No Data:', ou.id, ouMapping[ou.id].indicators);
         }
     }
-    await saveSentSMS();
-    //process.exit(0);
+    console.log('Here5');
+    if (argv.noSMS) {
+
+    } else {
+        await saveSentSMS();
+    }
     if (ouResults.pager.page !== ouResults.pager.pageCount) {
         await load(page + 1);
-    }else{
+    } else {
+        if (argv.noSMS) {
+
+        } else {
+            if(argv.performance){
+                await sendSMS(["0718026490"], "Done Sending Performance sms. Summary:" + JSON.stringify(typesSent));
+            }
+            
+        }
         console.log('Done sending reminders and sms.');
-        console.table(typesSent);
+        console.log(typesSent);
     }
 }
+
+console.log(argv);
 start();
 //sendSMS(["0713311946","0757847423"],"Amani DLDM 0407131, unakumbushwa kutuma taarifa mwezi February 2020. Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya. Asante.")
