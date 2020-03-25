@@ -93,6 +93,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const menus = datastore.menus;
     const _currentMenu = menus[currentmenu];
 
+    console.log(_currentMenu);
+
     // checking for previous menu is not auth and checking if user need previous menu
     const _previous_menu = menus[_currentMenu.previous_menu] || {};
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
@@ -128,7 +130,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         console.log('got into the id gen block');
         const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, id_gen_menu, USSDRequest, menus);
         if (passed) {
-          console.log('correct Options :::', correctOption);
+          //console.log('correct Options :::', correctOption);
           response = await collectData(sessionid, id_gen_menu, correctOption);
           if (next_menu_response) {
             response = next_menu_response;
@@ -152,14 +154,14 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
         }
       } else if (_currentMenu.type === 'data') {
-        console.log('where data is collected');
+        //console.log('where data is collected');
         const { options } = _currentMenu;
         if (options && options.length) {
           //console.log('test here', sessionid, 'current menu :::', _currentMenu, 'ussd req ::::', USSDRequest, 'menus :::', menus);
 
           const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
           if (passed) {
-            console.log('correct Options :::', correctOption);
+            //console.log('correct Options :::', correctOption);
             response = await collectData(sessionid, _currentMenu, correctOption);
             if (next_menu_response) {
               response = next_menu_response;
@@ -193,7 +195,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
       // if you are to submit data submit here.
       if (_currentMenu.submit_data) {
-        console.log('data submissions ::::> ', _currentMenu.submit_data);
+        //console.log('data submissions ::::> ', _currentMenu.submit_data);
         console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
           console.log('route2');
@@ -283,7 +285,7 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
 const returnNextMenu = async (sessionid, next_menu, menus, additional_message) => {
   let message;
 
-  console.log('next menu ------.....>>>>', next_menu);
+  //console.log('next menu ------.....>>>>', next_menu);
 
   await updateUserSession(sessionid, {
     currentmenu: next_menu,
@@ -293,8 +295,8 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
   //console.log('here', menu);
 
-  console.log('menu', menu);
-  console.log('menus', menus);
+  //console.log('menu', menu);
+  //console.log('menus', menus);
   const _previous_menu = menus[menu.previous_menu] || {};
   //console.log('menu.type:', menu.type);
   if (menu.type === 'options') {
@@ -327,7 +329,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       }
     }
   } else if (menu.type === 'message') {
-    console.log('here at message menu');
+    //console.log('here at message menu');
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
@@ -539,12 +541,14 @@ const terminateWithMessage = async (sessionid, menu) => {
   let dataValues = await getSessionDataValue(sessionid);
   let referenceNumber = _.find(dataValues.dataValues, dataValue => {
     return dataValue.dataElement == 'KlmXMXitsla';
-  }).value;
+  });
 
   let message = menu.title;
-  message = message.split('${ref_number}').join(referenceNumber);
+  if (referenceNumber) {
+    message = message.split('${ref_number}').join(referenceNumber.value);
+  }
 
-  console.log('here at last menu message');
+  //console.log('here at last menu message');
 
   return {
     response_type: 1,

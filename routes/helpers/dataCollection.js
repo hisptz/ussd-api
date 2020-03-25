@@ -207,13 +207,17 @@ export const completeForm = async (sessionid, phoneNumber) => {
     //console.log('dataValues', dataValues);
     let referenceNumber = _.find(dataValues.dataValues, dataValue => {
       return dataValue.dataElement == 'KlmXMXitsla';
-    }).value;
+    });
 
     let message = menu.submission_message;
     message = message.split('${period_year}').join(year);
     message = message.split('${sub_period}').join(period);
     message = message.split('${org_unit_code}').join(orgUnitDetails.code);
-    message = message.split('${ref_number}').join(referenceNumber);
+
+    if (referenceNumber) {
+      message = message.split('${ref_number}').join(referenceNumber.value);
+    }
+
     const result = await sendSMS(phoneNumbers, message);
   }
   return response;
