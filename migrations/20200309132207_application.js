@@ -17,6 +17,8 @@ exports.up = (knex, Promise) => {
       table.string('no_user_message');
       table.string('starting_menu');
       table.text('sync_servers');
+      table.string('auth_based_on');
+      table.json('session_timeout_determinant');
       table.text('phone_number_mapping');
       table.text('auto_generated_field');
     }),

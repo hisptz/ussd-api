@@ -2,6 +2,7 @@ const express = require('express');
 import { returnAuthenticationResponse } from './helpers/authentication';
 import { repeatingRequest } from './helpers/repeatingRequest';
 import { sendEGASMS } from '../endpoints/sms';
+import { getCurrentSession, getApplicationById } from '../db';
 
 const db = require('../db');
 
@@ -19,6 +20,13 @@ const requestHandler = async (req, res) => {
   if (USSDRequest && !input) {
     input = USSDRequest;
   }
+
+  //get application entry and check session determinant
+  let session = await getCurrentSession(sessionid);
+  let applicationEntry = getApplicationById(session.application_id);
+
+  //mediator -> get session by phone number
+
   //input = USSDRequest;
   const isNewRequest = USSDType === 'NR';
 

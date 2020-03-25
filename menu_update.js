@@ -118,6 +118,8 @@ export const updateMenuForKey = async key => {
         menuDetails['mode'] = menuData.menus[menuid].mode ? menuData.menus[menuid].mode : null;
 
         await addMenu(menuDetails);
+
+        console.log('added menu ::', menuid);
       }
     }
   } catch (e) {}
@@ -144,6 +146,8 @@ const updateMenusForAllKeys = async () => {
   console.log(' ************* STARTED MENU UPDATE SCRIPT *****************');
 
   const datastore_keys = await getDataStoreKeys();
+
+  //console.log(datastore_keys);
 
   let datastore_key;
   for (datastore_key of datastore_keys) {
