@@ -24,7 +24,9 @@ exports.up = (knex, Promise) => {
     }),
     knex.schema.table('sessions', table => {
       table.string('application_id');
-      table.string('status');
+      table.string('msisdn');
+      table.boolean('done');
+      table.datetime('started');
     }),
     knex.schema.table('datavalues', table => {
       table.string('data_set');
@@ -38,7 +40,9 @@ exports.down = (knex, Promise) => {
 
     knex.schema.table('sessions', table => {
       table.dropColumn('application_id');
-      table.dropColumn('status');
+      table.dropColumn('done');
+      table.dropColumn('started');
+      table.dropColumn('msisdn');
     }),
     knex.schema.table('datavalues', table => {
       table.dropColumn('data_set');

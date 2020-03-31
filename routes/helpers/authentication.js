@@ -1,26 +1,15 @@
-import {
-  getUserFromDHIS2
-} from '../../endpoints/users';
-import {
-  getDataStoreFromDHIS2
-} from '../../endpoints/dataStore';
-import {
-  addUserSession
-} from '../../db';
-const {
-  generateCode
-} = require('dhis2-uid');
+import { getUserFromDHIS2 } from '../../endpoints/users';
+import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
+import { addUserSession } from '../../db';
+const { generateCode } = require('dhis2-uid');
 
-export const returnAuthenticationResponse = async (mssdin, sessionid) => {
+export const returnAuthenticationResponse = async (mssdin, sessionid, appid) => {
   let response;
-  const {
-    users
-  } = await getUserFromDHIS2(mssdin);
+  const { users } = await getUserFromDHIS2(mssdin);
+
+  //console.log('users ::: > ', users);
   const dataStore = await getDataStoreFromDHIS2();
-  const {
-    settings,
-    menus
-  } = dataStore;
+  const { settings, menus } = dataStore;
   response = {
     response_type: 1,
     text: settings.no_user_message
@@ -46,12 +35,15 @@ export const returnAuthenticationResponse = async (mssdin, sessionid) => {
         sessionid,
         orgUnit: orgUnits[0].id,
         currentmenu: starting_menu.id,
-        retries: 0
+        retries: 0,
+        msisdn: mssdin,
+        started: new Date(),
+        done: false
       };
       await addUserSession({
         ...session_data,
         //datastore: JSON.stringify(dataStore)
-        datastore: dataStore
+        application_id: appid
       });
     }
   }

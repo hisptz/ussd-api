@@ -65,10 +65,13 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) =
   const { datatype, program, programStage } = sessionDatavalues;
 
   if (datatype === 'aggregate') {
+    await updateUserSession(sessionid, { done: true });
     return sendAggregateData(sessionid, msisdn);
   } else if (datatype === 'event') {
+    await updateUserSession(sessionid, { done: true });
     return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
   } else {
+    await updateUserSession(sessionid, { done: true });
     return completeForm(sessionid);
   }
 };
@@ -415,7 +418,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       programStage,
       eventDate: getEventDate(),
       orgUnit,
-      status: 'COMPLETED',
+      status: '',
       dataValues: dtArray
     };
 

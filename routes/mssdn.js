@@ -2,7 +2,8 @@ const express = require('express');
 import { returnAuthenticationResponse } from './helpers/authentication';
 import { repeatingRequest } from './helpers/repeatingRequest';
 import { sendEGASMS } from '../endpoints/sms';
-import { getCurrentSession, getApplicationById } from '../db';
+import { getCurrentSession, getApplicationById, getCurrentSessionByPhoneNumber, getLatestApplicationEntryByKey } from '../db';
+import { appConfig } from '../config/app.config';
 
 const db = require('../db');
 
@@ -23,16 +24,46 @@ const requestHandler = async (req, res) => {
 
   //get application entry and check session determinant
   let session = await getCurrentSession(sessionid);
-  let applicationEntry = getApplicationById(session.application_id);
+  let applicationEntry;
+
+  if (!session) {
+    applicationEntry = await getLatestApplicationEntryByKey(appConfig.dataStoreId);
+    if (applicationEntry.session_timeout_determinant.type == 'MEDIATOR') {
+      console.log('mediator');
+      //get session by phone#
+      session = await getCurrentSessionByPhoneNumber(msisdn, applicationEntry.session_timeout_determinant.timeout);
+    } else if (applicationEntry.session_timeout_determinant.type == 'NETWORKPROVIDER') {
+      //get session by session id
+      //let response = await repeatingRequest(sessionid, input, msisdn);
+      //res.send(format(response));
+    }
+    if (!session) {
+      //create session
+      console.log('no session entry');
+      let response = await returnAuthenticationResponse(msisdn, sessionid, applicationEntry.id);
+      console.log('auth response ::: ', response);
+      res.send(format(response));
+    } else {
+      console.log('there is a session entry');
+      let response = await repeatingRequest(sessionid, input, msisdn);
+      res.send(format(response));
+    }
+  } else {
+    let response = await repeatingRequest(sessionid, input, msisdn);
+    res.send(format(response));
+  }
 
   //mediator -> get session by phone number
 
   //input = USSDRequest;
+  /*
   const isNewRequest = USSDType === 'NR';
 
   let response = await repeatingRequest(sessionid, input, msisdn);
 
   res.send(format(response));
+
+  */
 };
 
 router.get('/', requestHandler);

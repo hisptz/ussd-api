@@ -56,6 +56,10 @@ export const updateMenuForKey = async key => {
       data['timed_out'] = menuData.settings['request_type'].timed_out;
       data['phone_number_key'] = menuData.settings.phone_number_key;
       data['no_user_message'] = menuData.settings.no_user_message;
+      data['auth_based_on'] = menuData.settings.auth_based_on ? menuData.settings.auth_based_on : '';
+      data['session_timeout_determinant'] = menuData.settings.session_timeout_determinant
+        ? JSON.stringify(menuData.settings.session_timeout_determinant)
+        : '{}';
       data['starting_menu'] = menuData.settings.starting_menu;
       data['sync_servers'] = JSON.stringify(menuData.settings.sync_servers);
 

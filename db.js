@@ -16,6 +16,15 @@ export const addUserSession = (data, testConn) => {
   return conn('sessions').insert(data);
 };
 
+export const getCurrentSessionByPhoneNumber = (msisdn, sessionTimeout, testConn) => {
+  const conn = testConn || connection;
+  return conn('sessions')
+    .where('msisdn', msisdn)
+    .andWhere('done', false)
+    .andWhere(conn.raw("started + (? * interval '1 minute') > now()", sessionTimeout))
+    .first();
+};
+
 export const addSessionDatastore = (data, testConn) => {
   const conn = testConn || connection;
   return conn('datastores').insert(data);

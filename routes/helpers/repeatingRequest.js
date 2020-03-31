@@ -57,8 +57,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         sessionid,
         currentmenu: starting_menu.menu_id,
         retries: 0,
-        status: 'started',
-        application_id: application_id
+        done: false,
+        started: new Date(),
+        application_id: application_id,
+        msisdn: msisdn
       };
 
       await addUserSession(session_data);
