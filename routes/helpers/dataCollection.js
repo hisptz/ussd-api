@@ -20,11 +20,12 @@ import * as _ from 'lodash';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  const { data_type, category_combo, data_element, program, program_stage } = _currentMenu;
+  const { data_type, category_combo, data_element, program, program_stage, tracked_entity_type, tracked_entity_attribute } = _currentMenu;
   const dataValue = [
     {
       dataElement: data_element,
       categoryOptionCombo: category_combo,
+      trackedEntityAttribute: tracked_entity_attribute,
       value: USSDRequest
     }
   ];
@@ -32,6 +33,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     sessionid,
     programStage: program_stage,
     program,
+    trackedEntityType: tracked_entity_type,
     datatype: data_type
   };
   if (sessionDatavalues) {
@@ -70,6 +72,9 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) =
   } else if (datatype === 'event') {
     await updateUserSession(sessionid, { done: true });
     return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
+  } else if (datatype === 'tracker') {
+    //await updateUserSession(sessionid, { done: true });
+    //return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
   } else {
     await updateUserSession(sessionid, { done: true });
     return completeForm(sessionid);

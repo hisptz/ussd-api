@@ -30,6 +30,7 @@ exports.up = (knex, Promise) => {
     }),
     knex.schema.table('datavalues', table => {
       table.string('data_set');
+      table.string('trackedEntityType');
     })
   ]);
 };
@@ -46,6 +47,7 @@ exports.down = (knex, Promise) => {
     }),
     knex.schema.table('datavalues', table => {
       table.dropColumn('data_set');
+      table.dropColumn('trackedEntityType');
     })
   ]);
 };
