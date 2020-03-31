@@ -64,7 +64,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
-  const { datatype, program, programStage } = sessionDatavalues;
+  const { datatype, program, programStage, tracked_entity_type } = sessionDatavalues;
 
   if (datatype === 'aggregate') {
     await updateUserSession(sessionid, { done: true });
@@ -73,8 +73,8 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) =
     await updateUserSession(sessionid, { done: true });
     return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
   } else if (datatype === 'tracker') {
-    //await updateUserSession(sessionid, { done: true });
-    //return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
+    await updateUserSession(sessionid, { done: true });
+    return sendTrackerData(sessionid, tracked_entity_type, msisdn, _currentMenu);
   } else {
     await updateUserSession(sessionid, { done: true });
     return completeForm(sessionid);
@@ -433,6 +433,151 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       program,
       programStage,
       dataValues: JSON.stringify(eventDataToPost)
+    });
+
+    return response;
+  }
+};
+
+const sendTrackerData = async (sessionid, trackedEntityType, msisdn, currentMenu) => {
+  const sessionDatavalues = await getSessionDataValue(sessionid);
+  const sessions = await getCurrentSession(sessionid);
+  const { dataValues } = sessionDatavalues;
+  const { orgUnit } = sessions;
+
+  let application_info = await getApplicationById(sessions.application_id);
+
+  const { phone_number_mapping, auto_generated_field } = application_info;
+  let dtValues = dataValues;
+  try {
+    dtValues = JSON.parse(dataValues);
+  } catch (e) {}
+  let dtArray = dtValues.map(({ trackedEntityAttribute, value }) => ({
+    attribute: trackedEntityAttribute,
+    value
+  }));
+  // adding phone number if exist on mapping
+  if (phone_number_mapping && phone_number_mapping[program]) {
+    const mappings = phone_number_mapping[program];
+    mappings.map(mapping => {
+      const { program_stage, data_element } = mapping;
+      if (program_stage && programStage === program_stage && data_element) {
+        dtArray.push({
+          dataElement: data_element,
+          value: msisdn
+        });
+      }
+    });
+  }
+  // adding  auto generated fields if exist on mapping
+  if (auto_generated_field && auto_generated_field[program]) {
+    const mappings = auto_generated_field[program];
+    mappings.map(mapping => {
+      const { program_stage, data_element } = mapping;
+      const value = `${getCurrentWeekNumber()}-${getRandomCharacters(12)}`;
+      if (program_stage && programStage === program_stage && data_element) {
+        dtArray.push({
+          dataElement: data_element,
+          value
+        });
+      }
+    });
+  }
+
+  //specific for referrals confirmation menu, need to update a specific event
+  //TODO: remove the ids to make it more generic
+  if (currentMenu.mode && currentMenu.mode == 'event_update') {
+    //add a sync entry
+    // TODO :: Save sync info, send later
+    //await addSync({ syncserver_id: '', session_id: '', synced: false, retries: 0 })
+
+    //process and send request
+    let referralId = parseInt(
+      _.find(dtArray, dt => {
+        return dt.dataElement == 'KlmXMXitsla';
+      }).value
+    );
+
+    let hfrCode = _.find(dtArray, dt => {
+      return dt.dataElement == 'pcEvQLQzTsN';
+    }).value;
+
+    let hfrDataValue = {
+      lastUpdated: getEventDate(),
+      created: getEventDate(),
+      dataElement: 'pcEvQLQzTsN',
+      value: hfrCode,
+      providedElsewhere: false
+    };
+
+    let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
+
+    let eventUpdatedData = {};
+    eventUpdatedData['program'] = currentEventData.events[0].program;
+    eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
+    eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
+    eventUpdatedData['status'] = currentEventData.events[0].status;
+    eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
+    eventUpdatedData['event'] = currentEventData.events[0].event;
+    eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
+    eventUpdatedData['completedDate'] = getEventDate();
+    eventUpdatedData.dataValues.push(hfrDataValue);
+
+    
+
+    const response = await updateSessionDataValues(sessionid, {
+      sessionid: sessionid,
+      program: eventUpdatedData.program,
+      datatype: 'event',
+      programStage: eventUpdatedData.programStage,
+      dataValues: eventUpdatedData,
+      event: currentEventData.events[0].event
+    });
+
+    const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
+
+    let sync_server;
+    for (sync_server of sync_servers) {
+      await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
+    }
+
+    await addMessage(sessionid, msisdn);
+
+    //const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
+    return response;
+  } else {
+    //add a sync entry
+    // TODO :: Change logic to save sync info & send later
+    const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
+
+    let sync_server;
+    for (sync_server of sync_servers) {
+      await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
+    }
+
+    await addMessage(sessionid, msisdn);
+
+    let trackerUpdateData = {
+      trackedEntityType,
+      orgUnit,
+      "enrollments": [
+        {
+          "trackedEntityInstance": "hIZl71oQb8U",
+          program,
+          "status": "ACTIVE",
+          orgUnit,
+          "enrollmentDate": getEventDate(),
+          "incidentDate": getEventDate()
+        }
+      ],
+      "attributes": dtArray
+    }
+
+    const response = await updateSessionDataValues(sessionid, {
+      sessionid: sessionid,
+      datatype: 'tracker',
+      trackedEntityType: tracked_entity_type,
+      dataValues: JSON.stringify(trackerUpdateData)
     });
 
     return response;

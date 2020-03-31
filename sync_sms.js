@@ -143,6 +143,58 @@ const sync = async () => {
           } else {
             await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
           }
+        } else if (dataValues.datatype === 'tracker') {
+          if (dataValues.event) {
+            //update the event
+            let response;
+            try {
+              response = await updateEventData(dataValues.dataValues, dataValues.event, serverDetails);
+            } catch (error) {
+              console.log(error);
+            }
+            if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
+              //update sync boolean to true
+              await updateSync(
+                {
+                  syncserver_id: unsyncedEntry.syncserver_id,
+                  session_id: unsyncedEntry.session_id,
+                  synced: true,
+                  retries: unsyncedEntry.retries + 1
+                },
+                unsyncedEntry.id
+              );
+
+              console.log('synced entry :::', unsyncedEntry.id);
+            } else {
+              await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
+            }
+          } else {
+            //send event data
+            let response;
+
+            try {
+              response = await postEventData(dataValues.dataValues, serverDetails);
+              console.log('response ::: ', response);
+            } catch (e) {
+              console.log('error', e);
+            }
+            if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
+              //update sync boolean to true
+              await updateSync(
+                {
+                  syncserver_id: unsyncedEntry.syncserver_id,
+                  session_id: unsyncedEntry.session_id,
+                  synced: true,
+                  retries: unsyncedEntry.retries + 1
+                },
+                unsyncedEntry.id
+              );
+
+              console.log('synced entry :::', unsyncedEntry.id);
+            } else {
+              await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
+            }
+          }
         } else {
         }
       } else {
