@@ -18,6 +18,8 @@ import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
 
+const { generateCode } = require('dhis2-uid');
+
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const { data_type, category_combo, data_element, program, program_stage, tracked_entity_type, tracked_entity_attribute } = _currentMenu;
@@ -64,8 +66,9 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
-  const { datatype, program, programStage, tracked_entity_type } = sessionDatavalues;
+  const { datatype, program, programStage, trackedEntityType } = sessionDatavalues;
 
+  //console.log('data_type ::: ', datatype);
   if (datatype === 'aggregate') {
     await updateUserSession(sessionid, { done: true });
     return sendAggregateData(sessionid, msisdn);
@@ -73,8 +76,7 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) =
     await updateUserSession(sessionid, { done: true });
     return sendEventData(sessionid, program, programStage, msisdn, _currentMenu);
   } else if (datatype === 'tracker') {
-    await updateUserSession(sessionid, { done: true });
-    return sendTrackerData(sessionid, tracked_entity_type, msisdn, _currentMenu);
+    return sendTrackerData(sessionid, program, trackedEntityType, msisdn, _currentMenu);
   } else {
     await updateUserSession(sessionid, { done: true });
     return completeForm(sessionid);
@@ -439,25 +441,31 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   }
 };
 
-const sendTrackerData = async (sessionid, trackedEntityType, msisdn, currentMenu) => {
+const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, currentMenu) => {
+  //console.log('i get into send tracker data');
   const sessionDatavalues = await getSessionDataValue(sessionid);
+  //console.log('s d values :::', sessionDatavalues);
   const sessions = await getCurrentSession(sessionid);
+
+  //console.log('curr session ::', sessions);
   const { dataValues } = sessionDatavalues;
   const { orgUnit } = sessions;
 
   let application_info = await getApplicationById(sessions.application_id);
+  //console.log('app info :::', application_info);
 
   const { phone_number_mapping, auto_generated_field } = application_info;
   let dtValues = dataValues;
   try {
     dtValues = JSON.parse(dataValues);
   } catch (e) {}
+
   let dtArray = dtValues.map(({ trackedEntityAttribute, value }) => ({
     attribute: trackedEntityAttribute,
     value
   }));
   // adding phone number if exist on mapping
-  if (phone_number_mapping && phone_number_mapping[program]) {
+  /*if (phone_number_mapping && phone_number_mapping[program]) {
     const mappings = phone_number_mapping[program];
     mappings.map(mapping => {
       const { program_stage, data_element } = mapping;
@@ -482,104 +490,58 @@ const sendTrackerData = async (sessionid, trackedEntityType, msisdn, currentMenu
         });
       }
     });
+  }*/
+
+  const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
+  //console.log('sync servers ::', sync_servers);
+
+  let sync_server;
+  for (sync_server of sync_servers) {
+    await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
   }
 
-  //specific for referrals confirmation menu, need to update a specific event
-  //TODO: remove the ids to make it more generic
-  if (currentMenu.mode && currentMenu.mode == 'event_update') {
-    //add a sync entry
-    // TODO :: Save sync info, send later
-    //await addSync({ syncserver_id: '', session_id: '', synced: false, retries: 0 })
+  //console.log('after adding syncs');
 
-    //process and send request
-    let referralId = parseInt(
-      _.find(dtArray, dt => {
-        return dt.dataElement == 'KlmXMXitsla';
-      }).value
-    );
+  await addMessage(sessionid, msisdn);
 
-    let hfrCode = _.find(dtArray, dt => {
-      return dt.dataElement == 'pcEvQLQzTsN';
-    }).value;
+  //console.log('after adding message');
 
-    let hfrDataValue = {
-      lastUpdated: getEventDate(),
-      created: getEventDate(),
-      dataElement: 'pcEvQLQzTsN',
-      value: hfrCode,
-      providedElsewhere: false
-    };
-
-    let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
-
-    let eventUpdatedData = {};
-    eventUpdatedData['program'] = currentEventData.events[0].program;
-    eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
-    eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
-    eventUpdatedData['status'] = currentEventData.events[0].status;
-    eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
-    eventUpdatedData['event'] = currentEventData.events[0].event;
-    eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
-    eventUpdatedData['completedDate'] = getEventDate();
-    eventUpdatedData.dataValues.push(hfrDataValue);
-
-    
-
-    const response = await updateSessionDataValues(sessionid, {
-      sessionid: sessionid,
-      program: eventUpdatedData.program,
-      datatype: 'event',
-      programStage: eventUpdatedData.programStage,
-      dataValues: eventUpdatedData,
-      event: currentEventData.events[0].event
-    });
-
-    const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
-
-    let sync_server;
-    for (sync_server of sync_servers) {
-      await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
-    }
-
-    await addMessage(sessionid, msisdn);
-
-    //const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
-    return response;
-  } else {
-    //add a sync entry
-    // TODO :: Change logic to save sync info & send later
-    const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
-
-    let sync_server;
-    for (sync_server of sync_servers) {
-      await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
-    }
-
-    await addMessage(sessionid, msisdn);
-
+  try {
+    const trackedEntityInstance = await generateCode();
+    console.log('id ::: >', trackedEntityInstance);
     let trackerUpdateData = {
+      trackedEntityInstance: trackedEntityInstance,
       trackedEntityType,
       orgUnit,
-      "enrollments": [
+      enrollments: [
         {
-          "trackedEntityInstance": "hIZl71oQb8U",
+          trackedEntityInstance: trackedEntityInstance,
           program,
-          "status": "ACTIVE",
+          status: 'ACTIVE',
           orgUnit,
-          "enrollmentDate": getEventDate(),
-          "incidentDate": getEventDate()
+          enrollmentDate: getEventDate(),
+          incidentDate: getEventDate()
         }
       ],
-      "attributes": dtArray
-    }
+      attributes: dtArray
+    };
+
+    console.log(' i get here ::', trackerUpdateData);
 
     const response = await updateSessionDataValues(sessionid, {
       sessionid: sessionid,
       datatype: 'tracker',
-      trackedEntityType: tracked_entity_type,
+      trackedEntityType: trackedEntityType,
       dataValues: JSON.stringify(trackerUpdateData)
     });
 
+    await updateUserSession(sessionid, { done: true });
+
+    //console.log('responce from send tracker :: ', response);
+
     return response;
+  } catch (e) {
+    console.error(e);
+    throw e;
   }
 };

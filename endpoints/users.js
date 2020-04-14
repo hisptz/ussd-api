@@ -6,7 +6,7 @@ export const getUserFromDHIS2 = async phoneNumber => {
 
   const url = `${baseUrl}/api/users.json?phoneNumber=${phoneNumber}&paging=false&fields=id,displayName,organisationUnits`;
 
-  console.log('url  :: ', url);
+  //console.log('url  :: ', url);
 
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
@@ -16,7 +16,7 @@ export const getUserFromDHIS2 = async phoneNumber => {
     }
   });
 
-  console.log('auth response ::', response);
+  //console.log('auth response ::', response);
 
   const data = await response.json();
   return data;

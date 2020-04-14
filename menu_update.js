@@ -120,6 +120,10 @@ export const updateMenuForKey = async key => {
         menuDetails['program'] = menuData.menus[menuid].program ? menuData.menus[menuid].program : '';
         menuDetails['program_stage'] = menuData.menus[menuid].program_stage ? menuData.menus[menuid].program_stage : '';
         menuDetails['mode'] = menuData.menus[menuid].mode ? menuData.menus[menuid].mode : null;
+        menuDetails['tracked_entity_type'] = menuData.menus[menuid].tracked_entity_type ? menuData.menus[menuid].tracked_entity_type : null;
+        menuDetails['tracked_entity_attribute'] = menuData.menus[menuid].tracked_entity_attribute
+          ? menuData.menus[menuid].tracked_entity_attribute
+          : null;
 
         await addMenu(menuDetails);
 

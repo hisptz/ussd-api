@@ -10,6 +10,7 @@ import {
   getMenuJson
 } from './db';
 import { updateEventData, postEventData } from './endpoints/eventData';
+import { postTrackerData } from './endpoints/trackerData';
 import { postAggregateData } from './endpoints/dataValueSets';
 import { sendSMS } from './endpoints/sms';
 import { complete } from './endpoints/dataSet';
@@ -144,56 +145,30 @@ const sync = async () => {
             await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
           }
         } else if (dataValues.datatype === 'tracker') {
-          if (dataValues.event) {
-            //update the event
-            let response;
-            try {
-              response = await updateEventData(dataValues.dataValues, dataValues.event, serverDetails);
-            } catch (error) {
-              console.log(error);
-            }
-            if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
-              //update sync boolean to true
-              await updateSync(
-                {
-                  syncserver_id: unsyncedEntry.syncserver_id,
-                  session_id: unsyncedEntry.session_id,
-                  synced: true,
-                  retries: unsyncedEntry.retries + 1
-                },
-                unsyncedEntry.id
-              );
+          //post the event
+          let response;
+          try {
+            response = await postTrackerData(dataValues.dataValues, serverDetails);
+          } catch (error) {
+            console.log(error);
+          }
 
-              console.log('synced entry :::', unsyncedEntry.id);
-            } else {
-              await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
-            }
+          console.log('responce form post tracker :::', response);
+          if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
+            //update sync boolean to true
+            await updateSync(
+              {
+                syncserver_id: unsyncedEntry.syncserver_id,
+                session_id: unsyncedEntry.session_id,
+                synced: true,
+                retries: unsyncedEntry.retries + 1
+              },
+              unsyncedEntry.id
+            );
+
+            console.log('synced entry :::', unsyncedEntry.id);
           } else {
-            //send event data
-            let response;
-
-            try {
-              response = await postEventData(dataValues.dataValues, serverDetails);
-              console.log('response ::: ', response);
-            } catch (e) {
-              console.log('error', e);
-            }
-            if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
-              //update sync boolean to true
-              await updateSync(
-                {
-                  syncserver_id: unsyncedEntry.syncserver_id,
-                  session_id: unsyncedEntry.session_id,
-                  synced: true,
-                  retries: unsyncedEntry.retries + 1
-                },
-                unsyncedEntry.id
-              );
-
-              console.log('synced entry :::', unsyncedEntry.id);
-            } else {
-              await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
-            }
+            await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
           }
         } else {
         }

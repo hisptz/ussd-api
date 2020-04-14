@@ -7,7 +7,7 @@ export const returnAuthenticationResponse = async (mssdin, sessionid, appid) => 
   let response;
   const { users } = await getUserFromDHIS2(mssdin);
 
-  console.log('users ::: ', users);
+  //console.log('users ::: ', users);
 
   //console.log('users ::: > ', users);
   const dataStore = await getDataStoreFromDHIS2();

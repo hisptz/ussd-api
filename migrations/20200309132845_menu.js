@@ -30,6 +30,8 @@ exports.up = function(knex, Promise) {
     table.string('program');
     table.string('program_stage');
     table.string('mode');
+    table.string('tracked_entity_type');
+    table.string('tracked_entity_attribute');
   });
 };
 
