@@ -6,4 +6,4 @@ WORKDIR /home/app
 COPY package.json /home/app
 COPY . /home/app
 CMD npm run start_all
-EXPOSE 3000
+EXPOSE 3021
