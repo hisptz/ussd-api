@@ -93,7 +93,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const menus = datastore.menus;
     const _currentMenu = menus[currentmenu];
 
-    console.log(_currentMenu);
+    //console.log(_currentMenu);
 
     // checking for previous menu is not auth and checking if user need previous menu
     const _previous_menu = menus[_currentMenu.previous_menu] || {};
@@ -358,8 +358,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
     let orgUnitDetails = await getOrganisationUnit(session.orgUnit);
 
-    let code = await getCode(orgUnitDetails.code);
-    //console.log('code----->>>>', code, session);
+    const code = await getCode(orgUnitDetails.code);
 
     let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
     id_gen_menu = menus[menu.id];

@@ -271,14 +271,18 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
   if (currentMenu.mode) {
     if (currentMenu.mode == 'event_update') {
+      console.log('1 ::: > ', dtArray);
       let referralId = _.find(dtArray, dt => {
         return dt.dataElement == 'KlmXMXitsla';
       }).value;
 
+      console.log('referal', referralId);
+
       let hfrCode = _.find(dtArray, dt => {
-        return dt.dataElement == 'MfykP4DsjUW';
+        return dt.dataElement == 'pcEvQLQzTsN';
       }).value;
 
+      console.log('hfr ::: > ', hfrCode);
       let hfrDataValue = {
         lastUpdated: getEventDate(),
         created: getEventDate(),
@@ -304,18 +308,40 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
       //console.log('hfrCode', hfrCode);
 
+      let number = _.find(eventUpdatedData.dataValues, dt => {
+        return dt.dataElement == 'zaujKG9gZFs';
+      })
+        ? _.find(eventUpdatedData.dataValues, dt => {
+            return dt.dataElement == 'zaujKG9gZFs';
+          }).value
+        : '';
+
+      console.log('number :: ', number);
+
       const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
+
+      console.log('updated values', eventUpdatedData.dataValues);
+      console.log('response', response);
+
+      if (response && response.httpStatusCode == 200 && response.httpStatus == 'OK' && number != '') {
+        sendSMS(
+          [number],
+          `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye (Aina ya kituo) ya/cha (Jina la kituo) Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
+        );
+      }
 
       return response;
     }
   } else {
+    //added dataelement 'zaujKG9gZFs' for storing phonenumber for future sms when confirming referall, should be handled different in feature-sync branch
+
     const response = await postEventData({
       program,
       programStage,
       eventDate: getEventDate(),
       orgUnit,
       status: 'COMPLETED',
-      dataValues: dtArray
+      dataValues: [...dtArray, { dataElement: 'zaujKG9gZFs', value: msisdn }]
     });
 
     return response;

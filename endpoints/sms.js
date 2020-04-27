@@ -20,7 +20,7 @@ export const sendSMS = (phoneNumbers, message) => {
 };
 
 export const sendEGASMS = (phoneNumbers, message) => {
-  console.log('Sending sms');
+  //console.log('Sending sms');
   console.log('phone numbers :::', phoneNumbers, 'message :::', message);
   const url = `http://msdg.ega.go.tz/msdg/public/quick_sms`;
   let datetime = getDate();
