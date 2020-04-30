@@ -1,4 +1,4 @@
-import { appConfig, getAuthorizationString } from './config/app.config';
+//import { appConfig, getAuthorizationString } from './config/app.config';
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -23,6 +23,6 @@ server.use(function(req, res, next) {
 
 // Routes
 
-server.use('/' + appConfig.dataStoreId, mssdnRoutes);
+server.use('/' + 'afya', mssdnRoutes);
 
 module.exports = server;
