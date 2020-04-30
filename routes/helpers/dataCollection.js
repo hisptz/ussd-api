@@ -279,7 +279,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       console.log('referal', referralId);
 
       let hfrCode = _.find(dtArray, dt => {
-        return dt.dataElement == 'pcEvQLQzTsN';
+        return dt.dataElement == 'MfykP4DsjUW';
       }).value;
 
       console.log('hfr ::: > ', hfrCode);
@@ -309,10 +309,10 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       //console.log('hfrCode', hfrCode);
 
       let number = _.find(eventUpdatedData.dataValues, dt => {
-        return dt.dataElement == 'zaujKG9gZFs';
+        return dt.dataElement == 'lDcAemv4pVO';
       })
         ? _.find(eventUpdatedData.dataValues, dt => {
-            return dt.dataElement == 'zaujKG9gZFs';
+            return dt.dataElement == 'lDcAemv4pVO';
           }).value
         : '';
 
@@ -341,7 +341,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       eventDate: getEventDate(),
       orgUnit,
       status: 'COMPLETED',
-      dataValues: [...dtArray, { dataElement: 'zaujKG9gZFs', value: msisdn }]
+      dataValues: [...dtArray, { dataElement: 'lDcAemv4pVO', value: msisdn }]
     });
 
     return response;
