@@ -213,6 +213,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
     }
   } catch (e) {
+    console.log('error :: ', e);
     response = {
       response_type: 1,
       text: 'Server Error. Please try again.'
@@ -308,11 +309,11 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   } else if (menu.type === 'id_generator') {
     let session = await getCurrentSession(sessionid);
 
-    let orgUnitDetails = await getOrganisationUnit(session.orgUnit);
+    // let orgUnitDetails = await getOrganisationUnit(session.orgUnit);
 
-    let code = await getCode(orgUnitDetails.code);
+    // let code = await generateCode()
 
-    let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
+    let generatedId = await generateCode();
     id_gen_menu = menu;
     id_gen_menu['options'] = [
       { id: '123', response: '1', title: ' tuma id', value: generatedId.toString(), next_menu: id_gen_menu.next_menu }
@@ -497,9 +498,15 @@ const terminateWithMessage = async (sessionid, menu) => {
 
   //specific message for addo referral confimation menu
   let referenceNumber;
+  console.log('data on repeating req', data);
   if (data.datatype === 'event') {
     referenceNumber = _.find(data.dataValues.dataValues, dataValue => {
       return dataValue.dataElement == 'KlmXMXitsla';
+    }).value;
+  } else if (data.datatype === 'tracker') {
+    console.log('data on repeating req', data.dataValues.attributes);
+    referenceNumber = _.find(data.dataValues.attributes, dataValue => {
+      return dataValue.attribute == 'DBBpxkM88w5';
     }).value;
   }
 

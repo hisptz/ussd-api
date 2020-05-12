@@ -279,9 +279,16 @@ export const addMessage = async (sessionid, phoneNumber) => {
 
     let referenceNumber;
 
+    console.log('data values type', dataValues.datatype);
+
     if (dataValues.datatype === 'event') {
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
         return dataValue.dataElement == 'KlmXMXitsla';
+      }).value;
+    } else if (dataValues.datatype === 'tracker') {
+      console.log('data values for message', dataValues.dataValues);
+      referenceNumber = _.find(dataValues.dataValues, dataValue => {
+        return dataValue.trackedEntityAttribute == 'DBBpxkM88w5';
       }).value;
     }
 
@@ -516,20 +523,20 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
     //trackedEntityInstance: trackedEntityInstance,
     let trackerUpdateData = {
       trackedEntityType,
-      orgUnit,
+      orgUnit: 'm0frOspS7JY',
       attributes: _.filter(dtArray, attribute => {
         return attribute.stage == '' ? true : false;
       }).map(({ attribute, value }) => ({ attribute, value })),
       enrollments: [
         {
           program,
-          orgUnit,
+          orgUnit: 'm0frOspS7JY',
           enrollmentDate: getEventDate(),
           incidentDate: getEventDate(),
           events: [
             {
               program,
-              orgUnit,
+              orgUnit: 'm0frOspS7JY',
               eventDate: getEventDate(),
               status: 'COMPLETED',
               storedBy: 'admin',
