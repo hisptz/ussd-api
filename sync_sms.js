@@ -153,7 +153,11 @@ const sync = async () => {
             console.log(error);
           }
 
-          console.log('responce form post tracker :::', response);
+          console.log('response :::', response);
+          //console.log('summary :::', response.response.importSummaries);
+          //console.log('count :::', response.response.importSummaries[0].importCount);
+          //console.log('conflicts :::', response.response['importSummaries'][0]['conflicts']);
+
           if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
             //update sync boolean to true
             await updateSync(

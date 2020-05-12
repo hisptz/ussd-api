@@ -28,6 +28,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
       dataElement: data_element,
       categoryOptionCombo: category_combo,
       trackedEntityAttribute: tracked_entity_attribute,
+      programStage: program_stage,
       value: USSDRequest
     }
   ];
@@ -444,6 +445,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, currentMenu) => {
   //console.log('i get into send tracker data');
   const sessionDatavalues = await getSessionDataValue(sessionid);
+  console.log('data values from db', sessionDatavalues);
   //console.log('s d values :::', sessionDatavalues);
   const sessions = await getCurrentSession(sessionid);
 
@@ -460,8 +462,9 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
     dtValues = JSON.parse(dataValues);
   } catch (e) {}
 
-  let dtArray = dtValues.map(({ trackedEntityAttribute, value }) => ({
+  let dtArray = dtValues.map(({ trackedEntityAttribute, value, programStage }) => ({
     attribute: trackedEntityAttribute,
+    stage: programStage,
     value
   }));
   // adding phone number if exist on mapping
@@ -509,21 +512,35 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
   try {
     const trackedEntityInstance = await generateCode();
     console.log('id ::: >', trackedEntityInstance);
+
+    //trackedEntityInstance: trackedEntityInstance,
     let trackerUpdateData = {
-      trackedEntityInstance: trackedEntityInstance,
       trackedEntityType,
       orgUnit,
+      attributes: _.filter(dtArray, attribute => {
+        return attribute.stage == '' ? true : false;
+      }).map(({ attribute, value }) => ({ attribute, value })),
       enrollments: [
         {
-          trackedEntityInstance: trackedEntityInstance,
           program,
-          status: 'ACTIVE',
           orgUnit,
           enrollmentDate: getEventDate(),
-          incidentDate: getEventDate()
+          incidentDate: getEventDate(),
+          events: [
+            {
+              program,
+              orgUnit,
+              eventDate: getEventDate(),
+              status: 'COMPLETED',
+              storedBy: 'admin',
+              programStage: dataValues.programStage,
+              dataValues: _.filter(dtArray, attribute => {
+                return attribute.stage != '' ? true : false;
+              }).map(({ attribute, value }) => ({ dataElement: attribute, value }))
+            }
+          ]
         }
-      ],
-      attributes: dtArray
+      ]
     };
 
     console.log(' i get here ::', trackerUpdateData);
