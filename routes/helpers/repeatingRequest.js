@@ -7,7 +7,7 @@ import {
   getLatestApplicationEntryByKey
 } from '../../db';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
-import { getOrganisationUnitByCode, getOrganisationUnit } from '../../endpoints/organisationUnit';
+import { getOrganisationUnitByCode, getOrganisationUnitByLevel } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
 import * as _ from 'lodash';
 import {
@@ -169,7 +169,9 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, _next_menu_json);
       } else if (_currentMenu.type === 'ou') {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
-      } else if (_currentMenu.type === 'message') {
+      } else if (_currentMenu.type === 'ou_options') {
+        response = await checkOrgUnitAnswerOptions(sessionid, _currentMenu, application_id, USSDRequest);
+      }else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
       }
 
@@ -251,8 +253,8 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   const menu = next_menu_json;
 
   const _previous_menu = menu.previous_menu || '';
-
-  if (menu.type === 'options') {
+  console.log('Menu Type:', menu.type);
+  if (menu.type === 'options' || menu.type === 'ou_options') {
     message = {
       response_type: 2,
       text: menu.title,
@@ -485,6 +487,14 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
   }
 
   return response;
+};
+
+const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer) => {
+  var options = JSON.parse(menu.options).filter((option)=>option.response==answer);
+  await collectOrganisationUnitData(sessionid, {
+    orgUnit:options[0].value
+  });
+  return await returnNextMenu(sessionid, await getMenuJson(options[0].next_menu, application_id));
 };
 
 const getPeriodBytype = (period_type, value) => {

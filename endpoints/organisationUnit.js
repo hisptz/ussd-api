@@ -24,3 +24,19 @@ export const getOrganisationUnitByCode = code => {
   //console.log('results:', results);
   return results.json;
 };
+export const getOrganisationUnitByLevel = (parent) => {
+  const baseUrl = appConfig.url;
+  let filter = `filter=parent.id:eq:${parent}`;
+  if(!parent){
+    filter = `filter=parent.level:eq:1`;
+  }
+  const url = `${baseUrl}/api/organisationUnits.json?${filter}`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  const results = r2.get(url, {
+    headers: {
+      Authorization
+    }
+  });
+  //console.log('results:', results);
+  return results.json;
+};

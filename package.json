@@ -12,6 +12,7 @@
     "menu:update": "babel-node menu_update --presets es2015,stage-0",
     "sync:feedback": "babel-node sync_sms --presets es2015,stage-0",
     "start:performance:sms": "babel-node performanceSMS --presets es2015,stage-0",
+    "gen:menu": "babel-node generate_ou --presets es2015,stage-0",
     "test": "jest --watchAll"
   },
   "repository": {

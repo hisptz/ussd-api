@@ -3,7 +3,7 @@ version: '3.2'
 services:
   nginx:
     network_mode: host
-    build:
+    build: 
       context: .
       dockerfile: Dockerfile-nginx
     image: nginx/idsr:1.0.0
@@ -12,15 +12,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3001
+        - PORT=3001
     volumes:
       - type: bind
         source: ./
@@ -31,15 +26,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3002
+        - PORT=3002
     volumes:
       - type: bind
         source: ./
@@ -50,15 +40,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3003
+        - PORT=3003
     volumes:
       - type: bind
         source: ./
@@ -69,15 +54,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3004
+        - PORT=3004
     volumes:
       - type: bind
         source: ./
@@ -88,15 +68,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3005
+        - PORT=3005
     volumes:
       - type: bind
         source: ./
@@ -107,15 +82,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3006
+        - PORT=3006
     volumes:
       - type: bind
         source: ./
@@ -126,15 +96,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3007
+        - PORT=3007
     volumes:
       - type: bind
         source: ./
@@ -145,15 +110,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3008
+        - PORT=3008
     volumes:
       - type: bind
         source: ./
@@ -164,15 +124,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3009
+        - PORT=3009
     volumes:
       - type: bind
         source: ./
@@ -183,15 +138,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3010
+        - PORT=3010
     volumes:
       - type: bind
         source: ./
@@ -202,15 +152,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3011
+        - PORT=3011
     volumes:
       - type: bind
         source: ./
@@ -221,15 +166,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3012
+        - PORT=3012
     volumes:
       - type: bind
         source: ./
@@ -240,15 +180,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3013
+        - PORT=3013
     volumes:
       - type: bind
         source: ./
@@ -259,15 +194,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3014
+        - PORT=3014
     volumes:
       - type: bind
         source: ./
@@ -278,15 +208,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3015
+        - PORT=3015
     volumes:
       - type: bind
         source: ./
@@ -297,15 +222,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3016
+        - PORT=3016
     volumes:
       - type: bind
         source: ./
@@ -316,15 +236,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3017
+        - PORT=3017
     volumes:
       - type: bind
         source: ./
@@ -335,15 +250,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3018
+        - PORT=3018
     volumes:
       - type: bind
         source: ./
@@ -354,15 +264,10 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3019
+        - PORT=3019
     volumes:
       - type: bind
         source: ./
@@ -373,25 +278,21 @@ services:
     network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: ['entrypoint.sh', 'database:5432', '--', 'npm', 'start']
-    depends_on:
-      - database
-    links:
-      - database
+    command: npm start
     restart: always
     environment:
-      - DB_HOST=database
-      - PORT=3020
+        - PORT=3020
     volumes:
       - type: bind
         source: ./
         target: /home/app/
     deploy:
       replicas: 1
-  database:
-    image: postgres:10.12
-    restart: always
-    ports:
-      - '5432:5432'
-    volumes:
-      - .:/data
+#   database:
+#     image: postgres:10.12
+#     restart: always
+#     volumes:
+#       - postdata
+# volumes:
+#   postdata:
+#     driver: local
