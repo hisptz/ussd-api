@@ -1,0 +1,260 @@
+version: '3.2'
+
+services:
+  nginx:
+    build: 
+      context: .
+      dockerfile: Dockerfile-nginx-test
+    image: nginx/idsr:1.0.0
+    ports:
+      - 3000:3000
+    restart: always
+  ussd-menu-updater:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm run menu:update
+    restart: always
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-syncing:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm run sync:feedback
+    restart: always
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-1:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-2:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-3:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-4:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-5:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-6:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-7:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-8:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-9:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-10:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-11:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-12:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-13:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-14:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-15:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-16:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-17:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-18:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-19:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-20:
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm start
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  database:
+    image: postgres:10.12
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
+    driver: local
