@@ -360,7 +360,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
     const code = await getCode(orgUnitDetails.code);
 
-    let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
+    let generatedId = parseInt(orgUnitDetails.code + '' + code.listGrid.rows[0][0]);
     id_gen_menu = menus[menu.id];
     id_gen_menu['options'] = [{ id: '123', response: '1', title: ' tuma id', value: generatedId.toString() }];
     message = {

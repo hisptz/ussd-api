@@ -291,8 +291,9 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         providedElsewhere: false
       };
 
-      let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
+      let currentEventData = await getEventData('KlmXMXitsla', referralId.toString(), currentMenu.program);
 
+      console.log(currentEventData);
       //console.log('current event data', currentEventData);
 
       let eventUpdatedData = {};
@@ -326,9 +327,11 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       if (response && response.httpStatusCode == 200 && response.httpStatus == 'OK' && number != '') {
         sendSMS(
           [number],
-          `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye (Aina ya kituo) ya/cha (Jina la kituo) Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
+          `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye kituo chenye Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
         );
       }
+
+      //original message: `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye (Aina ya kituo) ya/cha (Jina la kituo) Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
 
       return response;
     }
