@@ -8,6 +8,26 @@ services:
       dockerfile: Dockerfile-nginx
     image: nginx/idsr:1.0.0
     restart: always
+  ussd-menu-updater:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm run menu:update
+    restart: always
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  ussd-syncing:
+    network_mode: host
+    image: node:10.18.1-alpine3.11
+    working_dir: /home/app
+    command: npm run sync:feedback
+    restart: always
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
   ussd-1:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -20,8 +40,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-2:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -34,8 +52,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-3:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -48,8 +64,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-4:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -62,8 +76,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-5:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -76,8 +88,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-6:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -90,8 +100,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-7:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -104,8 +112,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-8:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -118,8 +124,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-9:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -132,8 +136,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-10:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -146,8 +148,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-11:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -160,8 +160,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-12:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -174,8 +172,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-13:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -188,8 +184,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-14:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -202,8 +196,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-15:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -216,8 +208,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-16:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -230,8 +220,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-17:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -244,8 +232,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-18:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -258,8 +244,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-19:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -272,8 +256,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
   ussd-20:
     network_mode: host
     image: node:10.18.1-alpine3.11
@@ -286,8 +268,6 @@ services:
       - type: bind
         source: ./
         target: /home/app/
-    deploy:
-      replicas: 1
 #   database:
 #     image: postgres:10.12
 #     restart: always
