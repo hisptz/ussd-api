@@ -46,6 +46,7 @@ export const sendEGASMS = (phoneNumbers, message) => {
 const getDate = () => {
   let date = new Date();
   let day = date.getDate();
+  date.setHours(date.getHours() + 1);
   if (day < 10) {
     day = '0' + day;
   }

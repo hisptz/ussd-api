@@ -265,5 +265,7 @@ async function load(page) {
         console.table(typesSent);
     }
 }
-start();
-//sendSMS(["0713311946","0757847423"],"Amani DLDM 0407131, unakumbushwa kutuma taarifa mwezi February 2020. Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya. Asante.")
+//start();
+sendSMS(["0718026490"],"The Text").then(function(results){
+    console.log(results);
+})
