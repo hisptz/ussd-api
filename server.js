@@ -43,7 +43,10 @@ server.use('/sms', async (req, res) => {
     return;
   }
 
-  res.send(await sendSMS(phoneNumbers.split(','),text));
+  res.send({
+    ...await sendSMS(phoneNumbers.split(','),text),
+    date:(new Date()).toISOString()
+  });
 });
 
 module.exports = server;
