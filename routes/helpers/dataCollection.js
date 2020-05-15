@@ -22,7 +22,11 @@ const { generateCode } = require('dhis2-uid');
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
+
   const { data_type, category_combo, data_element, program, program_stage, tracked_entity_type, tracked_entity_attribute } = _currentMenu;
+
+  console.log('program stage on datat collection :: ', program_stage);
+
   const dataValue = [
     {
       dataElement: data_element,
@@ -32,7 +36,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
       value: USSDRequest
     }
   ];
-  const data = {
+  let data = {
     sessionid,
     programStage: program_stage,
     program,
@@ -49,6 +53,12 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     if (!sessionDatavalues.data_set || sessionDatavalues.data_set == '') {
       await updateSessionDataValues(sessionDatavalues.sessionid, { data_set: _currentMenu.data_set });
     }
+
+    if (!sessionDatavalues.programStage || sessionDatavalues.programStage == '') {
+      await updateSessionDataValues(sessionDatavalues.sessionid, { programStage: program_stage });
+    }
+
+    data.programStage = program_stage == '' ? sessionDatavalues['programStage'] : program_stage;
 
     return updateSessionDataValues(sessionid, {
       ...data,
@@ -522,6 +532,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
 
     //trackedEntityInstance: trackedEntityInstance,
     let trackerUpdateData = {
+      trackedEntityInstance: trackedEntityInstance,
       trackedEntityType,
       orgUnit: orgUnit,
       attributes: _.filter(dtArray, attribute => {
@@ -529,6 +540,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
       }).map(({ attribute, value }) => ({ attribute, value })),
       enrollments: [
         {
+          trackedEntityInstance: trackedEntityInstance,
           program,
           orgUnit: orgUnit,
           enrollmentDate: getEventDate(),
@@ -539,7 +551,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
               orgUnit: orgUnit,
               eventDate: getEventDate(),
               status: 'COMPLETED',
-              programStage: dataValues.programStage,
+              programStage: sessionDatavalues.programStage,
               dataValues: _.filter(dtArray, attribute => {
                 return attribute.stage != '' ? true : false;
               }).map(({ attribute, value }) => ({ dataElement: attribute, value }))
@@ -550,6 +562,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
     };
 
     console.log(' i get here ::', trackerUpdateData);
+    console.log(' i get here ::', trackerUpdateData['enrollments'][0]['events']);
 
     const response = await updateSessionDataValues(sessionid, {
       sessionid: sessionid,

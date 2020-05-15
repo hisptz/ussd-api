@@ -146,7 +146,6 @@ export const getDataStoreKeys = async () => {
   });
   // parsing
 
-  console.log(url, ' :: ', response);
   data = await response.json();
 
   return data;
