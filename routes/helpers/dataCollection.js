@@ -523,23 +523,22 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
     //trackedEntityInstance: trackedEntityInstance,
     let trackerUpdateData = {
       trackedEntityType,
-      orgUnit: 'm0frOspS7JY',
+      orgUnit: orgUnit,
       attributes: _.filter(dtArray, attribute => {
         return attribute.stage == '' ? true : false;
       }).map(({ attribute, value }) => ({ attribute, value })),
       enrollments: [
         {
           program,
-          orgUnit: 'm0frOspS7JY',
+          orgUnit: orgUnit,
           enrollmentDate: getEventDate(),
           incidentDate: getEventDate(),
           events: [
             {
               program,
-              orgUnit: 'm0frOspS7JY',
+              orgUnit: orgUnit,
               eventDate: getEventDate(),
               status: 'COMPLETED',
-              storedBy: 'admin',
               programStage: dataValues.programStage,
               dataValues: _.filter(dtArray, attribute => {
                 return attribute.stage != '' ? true : false;
