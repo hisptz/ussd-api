@@ -45,8 +45,11 @@ export const sendEGASMS = (phoneNumbers, message) => {
 
 const getDate = () => {
   let date = new Date();
+  //var aestTime = new Date().toLocaleString("en-US", {timeZone: "Africa/Nairobi"});
+  //var date = (new Date(aestTime));
+  //date.setHours(date.getHours() + 3);
+  date.setHours(15);
   let day = date.getDate();
-  date.setHours(date.getHours() + 1);
   if (day < 10) {
     day = '0' + day;
   }
@@ -54,5 +57,7 @@ const getDate = () => {
   if (month < 10) {
     month = '0' + month;
   }
+  
+  console.log('AEST time: '+ date.toISOString())
   return date.getFullYear() + '-' + month + '-' + day + ' ' + date.toString().substr(16, 8);
 };
