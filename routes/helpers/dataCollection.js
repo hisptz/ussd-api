@@ -526,6 +526,10 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
 
   //console.log('after adding message');
 
+  if (currentMenu.mode && currentMenu.mode == 'tracker_event_update') {
+  } else {
+  }
+
   try {
     const trackedEntityInstance = await generateCode();
     console.log('id ::: >', trackedEntityInstance);
