@@ -33,3 +33,10 @@ export const getTrackedEntityInstance = code => {
     }
   }).json;
 };
+
+export const teiAddEvents = () => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/api...`;
+
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+};

@@ -171,7 +171,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
       } else if (_currentMenu.type === 'ou_options') {
         response = await checkOrgUnitAnswerOptions(sessionid, _currentMenu, application_id, USSDRequest);
-      }else if (_currentMenu.type === 'message') {
+      } else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
       }
 
@@ -490,9 +490,9 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
 };
 
 const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer) => {
-  var options = JSON.parse(menu.options).filter((option)=>option.response==answer);
+  var options = JSON.parse(menu.options).filter(option => option.response == answer);
   await collectOrganisationUnitData(sessionid, {
-    orgUnit:options[0].value
+    orgUnit: options[0].value
   });
   return await returnNextMenu(sessionid, await getMenuJson(options[0].next_menu, application_id));
 };
@@ -517,7 +517,11 @@ const terminateWithMessage = async (sessionid, menu) => {
     console.log('data on repeating req', data.dataValues.attributes);
     referenceNumber = _.find(data.dataValues.attributes, dataValue => {
       return dataValue.attribute == 'DBBpxkM88w5';
-    }).value;
+    })
+      ? _.find(data.dataValues.attributes, dataValue => {
+          return dataValue.attribute == 'DBBpxkM88w5';
+        }).value
+      : '';
   }
 
   //end of specific menu for referral confirmation menu

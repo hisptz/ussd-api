@@ -147,16 +147,28 @@ const sync = async () => {
         } else if (dataValues.datatype === 'tracker') {
           //post the event
           let response;
-          try {
-            response = await postTrackerData(dataValues.dataValues, serverDetails);
-          } catch (error) {
-            console.log(error);
+
+          if (dataValues.tracker_event_add) {
+            console.log('adding events to tei');
+
+            try {
+              response = await postEventData(dataValues.dataValues, serverDetails);
+            } catch (error) {
+              console.log(error);
+            }
+          } else {
+            console.log('new tei');
+            try {
+              response = await postTrackerData(dataValues.dataValues, serverDetails);
+            } catch (error) {
+              console.log(error);
+            }
           }
 
-          console.log('response :::', response);
-          console.log('summary :::', response.response.importSummaries);
-          console.log('count :::', response.response.importSummaries[0].importCount);
-          console.log('conflicts :::', response.response['importSummaries'][0]['conflicts']);
+          // console.log('response :::', response);
+          // console.log('summary :::', response.response.importSummaries);
+          // console.log('count :::', response.response.importSummaries[0].importCount);
+          // console.log('conflicts :::', response.response['importSummaries'][0]['conflicts']);
 
           if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
             //update sync boolean to true
