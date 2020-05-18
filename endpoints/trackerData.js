@@ -23,7 +23,7 @@ export const postTrackerData = (data, server) => {
 
 export const getTrackedEntityInstance = code => {
   const baseUrl = appConfig.url;
-  const url = `${baseUrl}/api/trackedEntityInstances.json?filter=DBBpxkM88w5:eq:${code}&ou=m0frOspS7JY&ouMode=DESCENDANTS`;
+  const url = `${baseUrl}/api/trackedEntityInstances.json?filter=iaNdifmweXr:eq:${code}&ou=m0frOspS7JY&ouMode=DESCENDANTS`;
 
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 

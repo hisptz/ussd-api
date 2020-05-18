@@ -299,7 +299,7 @@ export const addMessage = async (sessionid, phoneNumber) => {
     } else if (dataValues.datatype === 'tracker') {
       console.log('data values for message', dataValues.dataValues);
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
-        return dataValue.trackedEntityAttribute == 'DBBpxkM88w5';
+        return dataValue.trackedEntityAttribute == 'iaNdifmweXr';
       }).value;
     }
 
@@ -530,7 +530,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
   if (currentMenu.mode && currentMenu.mode == 'tracker_event_add') {
     try {
       let code = _.find(dtArray, dt => {
-        return dt.attribute == 'DBBpxkM88w5';
+        return dt.attribute == 'iaNdifmweXr';
       }).value;
       console.log('CODE :::>>>', code);
 
