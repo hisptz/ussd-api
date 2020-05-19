@@ -5,6 +5,7 @@ exports.up = function(knex, Promise) {
     table.string('status');
     table.json('phone_numbers');
     table.string('session_id');
+    table.integer('retries');
   });
 };
 

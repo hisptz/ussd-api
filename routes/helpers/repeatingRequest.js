@@ -9,6 +9,7 @@ import {
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode, getOrganisationUnitByLevel } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
+import { generateCovidCode } from '../../endpoints/covidCode';
 import * as _ from 'lodash';
 import {
   collectData,
@@ -171,7 +172,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
       } else if (_currentMenu.type === 'ou_options') {
         response = await checkOrgUnitAnswerOptions(sessionid, _currentMenu, application_id, USSDRequest);
-      }else if (_currentMenu.type === 'message') {
+      } else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
       }
 
@@ -315,14 +316,14 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
 
     // let code = await generateCode()
 
-    let generatedId = await generateCode();
+    let generatedId = await generateCovidCode();
     id_gen_menu = menu;
     id_gen_menu['options'] = [
-      { id: '123', response: '1', title: ' tuma id', value: generatedId.toString(), next_menu: id_gen_menu.next_menu }
+      { id: '123', response: '1', title: ' tuma namba', value: generatedId.value, next_menu: id_gen_menu.next_menu }
     ];
     message = {
       response_type: 2,
-      text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo<br/>' + generatedId,
+      text: 'Bonyeza moja kutunza Numba ya Utambulisho kwenye mfumo<br/>' + generatedId.value,
       options: returnOptions(id_gen_menu)
     };
   } else if (menu.type == 'fetch') {
@@ -490,9 +491,9 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
 };
 
 const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer) => {
-  var options = JSON.parse(menu.options).filter((option)=>option.response==answer);
+  var options = JSON.parse(menu.options).filter(option => option.response == answer);
   await collectOrganisationUnitData(sessionid, {
-    orgUnit:options[0].value
+    orgUnit: options[0].value
   });
   return await returnNextMenu(sessionid, await getMenuJson(options[0].next_menu, application_id));
 };
@@ -516,8 +517,12 @@ const terminateWithMessage = async (sessionid, menu) => {
   } else if (data.datatype === 'tracker') {
     console.log('data on repeating req', data.dataValues.attributes);
     referenceNumber = _.find(data.dataValues.attributes, dataValue => {
-      return dataValue.attribute == 'DBBpxkM88w5';
-    }).value;
+      return dataValue.attribute == 'iaNdifmweXr';
+    })
+      ? _.find(data.dataValues.attributes, dataValue => {
+          return dataValue.attribute == 'iaNdifmweXr';
+        }).value
+      : '';
   }
 
   //end of specific menu for referral confirmation menu

@@ -10,8 +10,9 @@ import {
   getSyncServerByAppId,
   addSms
 } from '../../db';
-import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
-import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
+import { getTrackedEntityInstance } from '../../endpoints/trackerData';
+import { getAggregateData } from '../../endpoints/dataValueSets';
+import { getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
@@ -22,7 +23,11 @@ const { generateCode } = require('dhis2-uid');
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
+
   const { data_type, category_combo, data_element, program, program_stage, tracked_entity_type, tracked_entity_attribute } = _currentMenu;
+
+  console.log('program stage on datat collection :: ', program_stage);
+
   const dataValue = [
     {
       dataElement: data_element,
@@ -32,7 +37,7 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
       value: USSDRequest
     }
   ];
-  const data = {
+  let data = {
     sessionid,
     programStage: program_stage,
     program,
@@ -49,6 +54,12 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     if (!sessionDatavalues.data_set || sessionDatavalues.data_set == '') {
       await updateSessionDataValues(sessionDatavalues.sessionid, { data_set: _currentMenu.data_set });
     }
+
+    if (!sessionDatavalues.programStage || sessionDatavalues.programStage == '') {
+      await updateSessionDataValues(sessionDatavalues.sessionid, { programStage: program_stage });
+    }
+
+    data.programStage = program_stage == '' ? sessionDatavalues['programStage'] : program_stage;
 
     return updateSessionDataValues(sessionid, {
       ...data,
@@ -288,7 +299,7 @@ export const addMessage = async (sessionid, phoneNumber) => {
     } else if (dataValues.datatype === 'tracker') {
       console.log('data values for message', dataValues.dataValues);
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
-        return dataValue.trackedEntityAttribute == 'DBBpxkM88w5';
+        return dataValue.trackedEntityAttribute == 'iaNdifmweXr';
       }).value;
     }
 
@@ -516,56 +527,130 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
 
   //console.log('after adding message');
 
-  try {
-    const trackedEntityInstance = await generateCode();
-    console.log('id ::: >', trackedEntityInstance);
+  if (currentMenu.mode && currentMenu.mode == 'tracker_event_add') {
+    try {
+      let code = _.find(dtArray, dt => {
+        return dt.attribute == 'iaNdifmweXr';
+      }).value;
+      console.log('CODE :::>>>', code);
 
-    //trackedEntityInstance: trackedEntityInstance,
-    let trackerUpdateData = {
-      trackedEntityType,
-      orgUnit: 'm0frOspS7JY',
-      attributes: _.filter(dtArray, attribute => {
-        return attribute.stage == '' ? true : false;
-      }).map(({ attribute, value }) => ({ attribute, value })),
-      enrollments: [
-        {
-          program,
-          orgUnit: 'm0frOspS7JY',
-          enrollmentDate: getEventDate(),
-          incidentDate: getEventDate(),
-          events: [
-            {
-              program,
-              orgUnit: 'm0frOspS7JY',
-              eventDate: getEventDate(),
-              status: 'COMPLETED',
-              storedBy: 'admin',
-              programStage: dataValues.programStage,
-              dataValues: _.filter(dtArray, attribute => {
-                return attribute.stage != '' ? true : false;
-              }).map(({ attribute, value }) => ({ dataElement: attribute, value }))
-            }
-          ]
-        }
-      ]
-    };
+      const existingTEInstance = await getTrackedEntityInstance(code);
+      console.log('TEI :::>>>', existingTEInstance);
 
-    console.log(' i get here ::', trackerUpdateData);
+      //trackedEntityInstance: trackedEntityInstance,
+      // let trackerUpdatedData = {
+      //   trackedEntityInstance: existingTEInstance['trackedEntityInstances'][0][trackedEntityInstance],
+      //   trackedEntityType,
+      //   orgUnit: orgUnit,
+      //   attributes: _.filter(dtArray, attribute => {
+      //     return attribute.stage == '' ? true : false;
+      //   }).map(({ attribute, value }) => ({ attribute, value })),
+      //   enrollments: [
+      //     {
+      //       trackedEntityInstance: trackedEntityInstance,
+      //       program,
+      //       orgUnit: orgUnit,
+      //       enrollmentDate: getEventDate(),
+      //       incidentDate: getEventDate(),
+      //       events: [
+      //         {
+      //           program,
+      //           orgUnit: orgUnit,
+      //           eventDate: getEventDate(),
+      //           status: 'COMPLETED',
+      //           programStage: sessionDatavalues.programStage,
+      //           dataValues: _.filter(dtArray, attribute => {
+      //             return attribute.stage != '' ? true : false;
+      //           }).map(({ attribute, value }) => ({ dataElement: attribute, value }))
+      //         }
+      //       ]
+      //     }
+      //   ]
+      // };
 
-    const response = await updateSessionDataValues(sessionid, {
-      sessionid: sessionid,
-      datatype: 'tracker',
-      trackedEntityType: trackedEntityType,
-      dataValues: JSON.stringify(trackerUpdateData)
-    });
+      let eventData = {
+        trackedEntityInstance: existingTEInstance['trackedEntityInstances'][0]['trackedEntityInstance'],
+        program,
+        orgUnit: existingTEInstance['trackedEntityInstances'][0]['orgUnit'],
+        eventDate: getEventDate(),
+        status: 'COMPLETED',
+        programStage: sessionDatavalues.programStage,
+        dataValues: _.filter(dtArray, attribute => {
+          return attribute.stage != '' ? true : false;
+        }).map(({ attribute, value }) => ({ dataElement: attribute, value }))
+      };
 
-    await updateUserSession(sessionid, { done: true });
+      const response = await updateSessionDataValues(sessionid, {
+        sessionid: sessionid,
+        datatype: 'tracker',
+        trackedEntityType: trackedEntityType,
+        tracker_event_add: true,
+        dataValues: JSON.stringify(eventData)
+      });
 
-    //console.log('responce from send tracker :: ', response);
+      await updateUserSession(sessionid, { done: true });
 
-    return response;
-  } catch (e) {
-    console.error(e);
-    throw e;
+      // //console.log('responce from send tracker :: ', response);
+
+      return response;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  } else {
+    try {
+      const trackedEntityInstance = await generateCode();
+      console.log('id ::: >', trackedEntityInstance);
+
+      //trackedEntityInstance: trackedEntityInstance,
+      let trackerUpdateData = {
+        trackedEntityInstance: trackedEntityInstance,
+        trackedEntityType,
+        orgUnit: orgUnit,
+        attributes: _.filter(dtArray, attribute => {
+          return attribute.stage == '' ? true : false;
+        }).map(({ attribute, value }) => ({ attribute, value })),
+        enrollments: [
+          {
+            trackedEntityInstance: trackedEntityInstance,
+            program,
+            orgUnit: orgUnit,
+            enrollmentDate: getEventDate(),
+            incidentDate: getEventDate(),
+            events: [
+              {
+                program,
+                orgUnit: orgUnit,
+                eventDate: getEventDate(),
+                status: 'COMPLETED',
+                programStage: sessionDatavalues.programStage,
+                dataValues: _.filter(dtArray, attribute => {
+                  return attribute.stage != '' ? true : false;
+                }).map(({ attribute, value }) => ({ dataElement: attribute, value }))
+              }
+            ]
+          }
+        ]
+      };
+
+      console.log(' i get here ::', trackerUpdateData);
+      console.log(' i get here ::', trackerUpdateData['enrollments'][0]['events']);
+      console.log(' i get here ::', trackerUpdateData['enrollments'][0]['events'][0]['dataValues']);
+      const response = await updateSessionDataValues(sessionid, {
+        sessionid: sessionid,
+        datatype: 'tracker',
+        trackedEntityType: trackedEntityType,
+        dataValues: JSON.stringify(trackerUpdateData)
+      });
+
+      await updateUserSession(sessionid, { done: true });
+
+      //console.log('responce from send tracker :: ', response);
+
+      return response;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
   }
 };

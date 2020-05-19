@@ -20,7 +20,7 @@ export const sendSMS = (phoneNumbers, message) => {
 };
 
 export const sendEGASMS = (phoneNumbers, message) => {
-  console.log('Sending sms');
+  //console.log('Sending sms');
   const url = `http://msdg.ega.go.tz/msdg/public/quick_sms`;
   let datetime = getDate();
   let data = { recipients: phoneNumbers.join(','), message: message, datetime: datetime, mobile_service_id: 106, sender_id: '15200' };
@@ -57,7 +57,7 @@ const getDate = () => {
   if (month < 10) {
     month = '0' + month;
   }
-  
-  console.log('AEST time: '+ date.toISOString())
+
+  //console.log('AEST time: ' + date.toISOString());
   return date.getFullYear() + '-' + month + '-' + day + ' ' + date.toString().substr(16, 8);
 };
