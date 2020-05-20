@@ -254,7 +254,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   const menu = next_menu_json;
 
   const _previous_menu = menu.previous_menu || '';
-  console.log('Menu Type:', menu.type);
+  //console.log('Menu Type:', menu.type);
   if (menu.type === 'options' || menu.type === 'ou_options') {
     message = {
       response_type: 2,
@@ -509,13 +509,13 @@ const terminateWithMessage = async (sessionid, menu) => {
 
   //specific message for addo referral confimation menu
   let referenceNumber;
-  console.log('data on repeating req', data);
+  //console.log('data on repeating req', data);
   if (data.datatype === 'event') {
     referenceNumber = _.find(data.dataValues.dataValues, dataValue => {
       return dataValue.dataElement == 'KlmXMXitsla';
     }).value;
   } else if (data.datatype === 'tracker') {
-    console.log('data on repeating req', data.dataValues.attributes);
+    //console.log('data on repeating req', data.dataValues.attributes);
     referenceNumber = _.find(data.dataValues.attributes, dataValue => {
       return dataValue.attribute == 'iaNdifmweXr';
     })

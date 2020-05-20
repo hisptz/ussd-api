@@ -220,19 +220,26 @@ const sync = async () => {
 
 const feedback = async () => {
   const unsent_sms = await getUnsentSms();
+  //console.log('unsent sms :: ', unsent_sms);
 
   let sms;
 
   for (sms of unsent_sms) {
+    console.log('sms data ::: ', sms);
     //check if all syncs for the sessionid are synced
     const unsynced_for_this_session = await getUnsyncedBySession(sms.session_id);
     //console.log('unsynced entries ::: ', unsynced_for_this_session.length);
+    console.log('unsynced :: ', unsynced_for_this_session);
 
     if (unsynced_for_this_session.length == 0) {
+      console.log('i get here');
       let response;
       try {
         response = await sendSMS(sms.phone_numbers, sms.text);
-      } catch (e) {}
+        console.log('send sms response ::', response);
+      } catch (e) {
+        console.log('error :: ', e);
+      }
 
       if (response && response.statusMessage && response.statusMessage == 'Success') {
         //update the sms entry

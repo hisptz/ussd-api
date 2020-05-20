@@ -156,8 +156,6 @@ const updateMenusForAllKeys = async () => {
 
   const datastore_keys = await getDataStoreKeys();
 
-  console.log(datastore_keys);
-
   let datastore_key;
   for (datastore_key of datastore_keys) {
     await updateMenuForKey(datastore_key);
