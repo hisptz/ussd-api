@@ -21,11 +21,12 @@ export const sendSMS = (phoneNumbers, message) => {
 
 export const sendEGASMS = (phoneNumbers, message) => {
   //console.log('Sending sms');
-  const url = `http://msdg.ega.go.tz/msdg/public/quick_sms`;
+  const url = `http://msdg.ega.go.tz/msdg/public/covid_push`;
   let datetime = getDate();
-  let data = { recipients: phoneNumbers.join(','), message: message, datetime: datetime, mobile_service_id: 106, sender_id: '15200' };
+  let data = { recipients: phoneNumbers.join(','), message: message, datetime: datetime, mobile_service_id: 106, sender_id: '199' };
 
   let sendData = JSON.stringify(data);
+  console.log('data to send :: ', sendData);
   let hash = crypto
     .createHmac('sha256', appConfig.smsAPIKey)
     .update(sendData)
@@ -33,7 +34,7 @@ export const sendEGASMS = (phoneNumbers, message) => {
   return r2.post(url, {
     headers: {
       'X-Auth-Request-Hash': Buffer.from(hash).toString('base64'),
-      'X-Auth-Request-Id': 'rsilumbe@gmail.com',
+      'X-Auth-Request-Id': 'walter.ndesanjo@afya.go.tz',
       'X-Auth-Request-Type': 'api'
     },
     json: {

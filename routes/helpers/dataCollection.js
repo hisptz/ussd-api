@@ -26,8 +26,6 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 
   const { data_type, category_combo, data_element, program, program_stage, tracked_entity_type, tracked_entity_attribute } = _currentMenu;
 
-  console.log('program stage on datat collection :: ', program_stage);
-
   const dataValue = [
     {
       dataElement: data_element,
@@ -290,14 +288,11 @@ export const addMessage = async (sessionid, phoneNumber) => {
 
     let referenceNumber;
 
-    console.log('data values type', dataValues.datatype);
-
     if (dataValues.datatype === 'event') {
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
         return dataValue.dataElement == 'KlmXMXitsla';
       }).value;
     } else if (dataValues.datatype === 'tracker') {
-      console.log('data values for message', dataValues.dataValues);
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
         return dataValue.trackedEntityAttribute == 'iaNdifmweXr';
       }).value;
@@ -463,7 +458,6 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, currentMenu) => {
   //console.log('i get into send tracker data');
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  console.log('data values from db', sessionDatavalues);
   //console.log('s d values :::', sessionDatavalues);
   const sessions = await getCurrentSession(sessionid);
 
@@ -532,10 +526,8 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
       let code = _.find(dtArray, dt => {
         return dt.attribute == 'iaNdifmweXr';
       }).value;
-      console.log('CODE :::>>>', code);
 
       const existingTEInstance = await getTrackedEntityInstance(code);
-      console.log('TEI :::>>>', existingTEInstance);
 
       //trackedEntityInstance: trackedEntityInstance,
       // let trackerUpdatedData = {
@@ -600,7 +592,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
   } else {
     try {
       const trackedEntityInstance = await generateCode();
-      console.log('id ::: >', trackedEntityInstance);
+      //console.log('id ::: >', trackedEntityInstance);
 
       //trackedEntityInstance: trackedEntityInstance,
       let trackerUpdateData = {
@@ -633,9 +625,9 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
         ]
       };
 
-      console.log(' i get here ::', trackerUpdateData);
-      console.log(' i get here ::', trackerUpdateData['enrollments'][0]['events']);
-      console.log(' i get here ::', trackerUpdateData['enrollments'][0]['events'][0]['dataValues']);
+      // console.log(' i get here ::', trackerUpdateData);
+      // console.log(' i get here ::', trackerUpdateData['enrollments'][0]['events']);
+      // console.log(' i get here ::', trackerUpdateData['enrollments'][0]['events'][0]['dataValues']);
       const response = await updateSessionDataValues(sessionid, {
         sessionid: sessionid,
         datatype: 'tracker',
