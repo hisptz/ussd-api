@@ -216,7 +216,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
     }
   } catch (e) {
-    console.log('error :: ', e);
+    //console.log('error :: ', e);
     response = {
       response_type: 1,
       text: 'Server Error. Please try again.'
