@@ -83,7 +83,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const _currentMenu = await getMenuJson(currentmenu, application_id);
 
     // checking for previous menu is not auth and checking if user need previous menu
-    let _previous_menu = {};
+    let _previous_menu = null;
     let _next_menu_json = {};
 
     if (_currentMenu.previous_menu !== '') {
@@ -97,7 +97,11 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     // checking for previous menu is not auth and checking if user need previous menu
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
       //response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
-      response = await returnNextMenu(sessionid, _next_menu_json);
+      if (previous_menu) {
+        response = await returnNextMenu(sessionid, _previous_menu);
+      } else {
+        esponse = await returnNextMenu(sessionid, _next_menu_json);
+      }
     } else {
       if (_currentMenu.type === 'fetch') {
       } else if (_currentMenu.type === 'id_generator') {
@@ -151,14 +155,15 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             }
           } else {
             // Return menu for data collector with options
-            const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
-            response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
+            const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
+            response = await returnNextMenu(sessionid, _currentMenu, retry_message);
           }
         } else {
+          //come back to check here
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
-            const retry_message = _currentMenu.retry_message || 'You did not enter numerical value, try again';
-            response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
+            const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
+            response = await returnNextMenu(sessionid, _currentMenu, retry_message);
           } else {
             response = await collectData(sessionid, _currentMenu, USSDRequest);
             response = await returnNextMenu(sessionid, _next_menu_json);
@@ -336,7 +341,8 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   // checking if previous menu is not of type auth and add back menu
 
   if (_previous_menu && _previous_menu.type !== 'auth' && menu_types_with_back.includes(menu.type)) {
-    message.text += `\n# Rudi`;
+    //message.text += `\n# Rudi`;
+    message.text += ``;
   }
 
   if (additional_message) {
