@@ -165,22 +165,13 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           }
         }
       } else if (_currentMenu.type === 'options') {
-        if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
-          response = {
-            response_type: 1,
-            text: _currentMenu.fail_message
-          };
-        } else {
-          console.log('retries :: ', retries);
-
-          response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id, retries);
-        }
+        response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id, retries);
       } else if (_currentMenu.type === 'period') {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, _next_menu_json);
       } else if (_currentMenu.type === 'ou') {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
       } else if (_currentMenu.type === 'ou_options') {
-        response = await checkOrgUnitAnswerOptions(sessionid, _currentMenu, application_id, USSDRequest);
+        response = await checkOrgUnitAnswerOptions(sessionid, _currentMenu, application_id, USSDRequest, retries);
       } else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
       }
@@ -225,7 +216,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
     }
   } catch (e) {
-    //console.log('error :: ', e);
+    console.log('error :: ', e);
     response = {
       response_type: 1,
       text: 'Server Error. Please try again.'
@@ -366,15 +357,22 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
         retries: Number(retries) + 1
       });
 
-      return {
-        response_type: 2,
-        text: menu.title + '\n' + (menu.retry_message || 'You did not enter the correct choice,try again'),
-        options: returnOptions({ options: options })
-      };
+      if (menu.number_of_retries && retries >= menu.number_of_retries) {
+        return {
+          response_type: 1,
+          text: menu.fail_message
+        };
+      } else {
+        return {
+          response_type: 2,
+          text: menu.title + '\n' + (menu.retry_message || 'Jibu lako sio sahihi, jaribu tena'),
+          options: returnOptions({ options: options })
+        };
+      }
     } else {
       return {
         response_type: 1,
-        text: `${menu.fail_message || 'You did not enter the correct choice'}`
+        text: `${menu.fail_message || 'Jibu lako sio sahihi'}`
       };
     }
   }
@@ -426,6 +424,8 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) =
 // };
 const returnOptions = ({ options }) => {
   let returnOptions = {};
+
+  console.log('options at for each', options);
   options.forEach(option => {
     if (typeof option.response === 'boolean') {
       returnOptions[option.response ? '1' : '2'] = option.title;
@@ -507,12 +507,33 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
   return response;
 };
 
-const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer) => {
+const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer, retries) => {
   var options = JSON.parse(menu.options).filter(option => option.response == answer);
-  await collectOrganisationUnitData(sessionid, {
-    orgUnit: options[0].value
-  });
-  return await returnNextMenu(sessionid, await getMenuJson(options[0].next_menu, application_id));
+  console.log('returned options', options);
+
+  if (options.length == 0) {
+    await updateUserSession(sessionid, {
+      retries: Number(retries) + 1
+    });
+
+    if (menu.number_of_retries && retries >= menu.number_of_retries) {
+      return {
+        response_type: 1,
+        text: menu.fail_message || 'Umekosea mara 3, tafadhali anza upya'
+      };
+    } else {
+      return {
+        response_type: 2,
+        text: menu.title + '\n' + (menu.retry_message || 'Jibu lako sio sahihi, jaribu tena'),
+        options: returnOptions({ options: JSON.parse(menu.options) })
+      };
+    }
+  } else {
+    await collectOrganisationUnitData(sessionid, {
+      orgUnit: options[0].value
+    });
+    return await returnNextMenu(sessionid, await getMenuJson(options[0].next_menu, application_id));
+  }
 };
 
 const getPeriodBytype = (period_type, value) => {
