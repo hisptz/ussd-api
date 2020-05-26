@@ -118,7 +118,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
           response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
         }
-        response = checkOptionsAnswer(sessionid, id_gen_menu, USSDRequest, application_id);
+        response = checkOptionsAnswer(sessionid, id_gen_menu, USSDRequest, application_id, retries);
         //reset id gen menu
         id_gen_menu = {};
         response = await returnNextMenu(sessionid, _next_menu_json);
@@ -165,7 +165,16 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           }
         }
       } else if (_currentMenu.type === 'options') {
-        response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
+        if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
+          response = {
+            response_type: 1,
+            text: _currentMenu.fail_message
+          };
+        } else {
+          console.log('retries :: ', retries);
+
+          response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id, retries);
+        }
       } else if (_currentMenu.type === 'period') {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, _next_menu_json);
       } else if (_currentMenu.type === 'ou') {
@@ -347,12 +356,16 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
 };
 
 // Option Answers.
-const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
+const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
   const responses = options.map(option => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
     if (menu.type === 'options' && menu.options) {
+      await updateUserSession(sessionid, {
+        retries: Number(retries) + 1
+      });
+
       return {
         response_type: 2,
         text: menu.title + '\n' + (menu.retry_message || 'You did not enter the correct choice,try again'),
@@ -371,6 +384,10 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
   const { next_menu } = correctOption;
 
   let next_menu_json = await getMenuJson(next_menu, app_id);
+
+  await updateUserSession(sessionid, {
+    retries: 0
+  });
 
   return await returnNextMenu(sessionid, next_menu_json);
 };
