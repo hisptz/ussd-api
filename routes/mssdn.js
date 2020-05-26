@@ -9,11 +9,13 @@ const db = require('../db');
 
 const router = express.Router();
 
-const format = response => {
-  return {
+const format = (sessionid, response) => {
+  let response_to_format = {
     ...response,
     header_type: response.response_type === 1 ? '3' : '' + response.response_type
   };
+
+  return `C;${sessionid};${JSON.stringify(response_to_format)}`;
 };
 
 const requestHandler = async (req, res) => {
@@ -41,16 +43,18 @@ const requestHandler = async (req, res) => {
       //create session
       console.log('no session entry');
       let response = await returnAuthenticationResponse(msisdn, sessionid, applicationEntry.id);
-      console.log('auth response ::: ', response);
-      res.send(format(response));
+      //console.log('auth response ::: ', response);
+      res.send(format(sessionid, response));
     } else {
       console.log('there is a session entry');
       let response = await repeatingRequest(sessionid, input, msisdn);
-      res.send(format(response));
+      console.log(format(sessionid, response));
+      res.send(format(sessionid, response));
     }
   } else {
     let response = await repeatingRequest(sessionid, input, msisdn);
-    res.send(format(response));
+    console.log(format(sessionid, response));
+    res.send(format(sessionid, response));
   }
 
   //mediator -> get session by phone number
