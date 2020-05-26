@@ -2,17 +2,35 @@ const express = require('express');
 import { returnAuthenticationResponse } from './helpers/authentication';
 import { repeatingRequest } from './helpers/repeatingRequest';
 import { sendEGASMS } from '../endpoints/sms';
+import * as _ from 'lodash';
 
 const db = require('../db');
 
 const router = express.Router();
 
-const format = response => {
+const format = (sessionid, response) => {
   //console.log('respose :::> ', response);
-  return {
-    ...response,
-    header_type: response.response_type === 1 ? '3' : '' + response.response_type
-  };
+  // return {
+  //   ...response,
+  //   header_type: response.response_type === 1 ? '3' : '' + response.response_type
+  // };
+
+  //different format
+
+  console.log(response);
+  let options = response.options;
+  var optionString = '';
+  let index = 0;
+  _.each(options, option => {
+    index++;
+    optionString += index + '. ' + option + '\n';
+  });
+  let resToSend = response.text + '\n' + optionString;
+
+  //console.log(resToSend);
+
+  console.log(`C;${sessionid};${resToSend}`);
+  return `P;${sessionid};${resToSend}`;
 };
 
 const requestHandler = async (req, res) => {
@@ -34,7 +52,7 @@ const requestHandler = async (req, res) => {
     response = await repeatingRequest(sessionid, USSDRequest, msisdn);
   }*/
 
-  res.send(format(response));
+  res.send(format(sessionid, response));
 };
 
 router.get('/', requestHandler);
