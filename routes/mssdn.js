@@ -17,7 +17,6 @@ const format = (sessionid, response) => {
 
   //different format
 
-  console.log(response);
   let options = response.options;
   var optionString = '';
   let index = 0;
@@ -27,9 +26,6 @@ const format = (sessionid, response) => {
   });
   let resToSend = response.text + '\n' + optionString;
 
-  //console.log(resToSend);
-
-  console.log(`C;${sessionid};${resToSend}`);
   return `P;${sessionid};${resToSend}`;
 };
 
@@ -42,7 +38,7 @@ const requestHandler = async (req, res) => {
   //console.log('req.query:', req.query, input);
   const isNewRequest = USSDType === 'NR';
 
-  console.log('sessionid ::', sessionid, 'input ::', input, 'msisdn ::', msisdn);
+  //console.log('sessionid ::', sessionid, 'input ::', input, 'msisdn ::', msisdn);
   let response = await repeatingRequest(sessionid, input, msisdn);
 
   //console.log('hellooo im here ->', response);

@@ -6,6 +6,7 @@ import {
   getMenuJson,
   getLatestApplicationEntryByKey
 } from '../../db';
+import { getTrackedEntityInstance, getContactTrackedEntityInstance } from '../../endpoints/trackerData';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode, getOrganisationUnitByLevel } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
@@ -159,11 +160,30 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             response = await returnNextMenu(sessionid, _currentMenu, retry_message);
           }
         } else {
-          //come back to check here
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
             const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
             response = await returnNextMenu(sessionid, _currentMenu, retry_message);
+          } else if (_currentMenu.data_id == 'iaNdifmweXr') {
+            //TOFIX: hardcoded for validation of namba ya utambulisho.
+
+            //get tei from selfcheck program
+            let tei = await getTrackedEntityInstance(USSDRequest);
+            if (tei['trackedEntityInstances'].length == 0) {
+              tei = await getContactTrackedEntityInstance(USSDRequest);
+
+              if (tei['trackedEntityInstances'].length == 0) {
+                response = returnNextMenu(sessionid, _currentMenu, 'Namba ya utambulisho uliyoingiza haipo, jaribu tena');
+              } else {
+                //go to contacts menu
+              }
+            } else {
+              //proceed as usual
+              response = await collectData(sessionid, _currentMenu, USSDRequest);
+              response = await returnNextMenu(sessionid, _next_menu_json);
+            }
+
+            //get tei from contacts
           } else {
             response = await collectData(sessionid, _currentMenu, USSDRequest);
             response = await returnNextMenu(sessionid, _next_menu_json);
@@ -431,7 +451,6 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) =
 const returnOptions = ({ options }) => {
   let returnOptions = {};
 
-  console.log('options at for each', options);
   options.forEach(option => {
     if (typeof option.response === 'boolean') {
       returnOptions[option.response ? '1' : '2'] = option.title;
@@ -515,7 +534,6 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
 
 const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer, retries) => {
   var options = JSON.parse(menu.options).filter(option => option.response == answer);
-  console.log('returned options', options);
 
   if (options.length == 0) {
     await updateUserSession(sessionid, {

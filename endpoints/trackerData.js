@@ -34,6 +34,19 @@ export const getTrackedEntityInstance = code => {
   }).json;
 };
 
+export const getContactTrackedEntityInstance = code => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/api/trackedEntityInstances.json?filter=HAZ7VQ730yn:eq:${code}&ou=m0frOspS7JY&ouMode=DESCENDANTS`;
+
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.get(url, {
+    headers: {
+      Authorization
+    }
+  }).json;
+};
+
 export const teiAddEvents = () => {
   const baseUrl = appConfig.url;
   const url = `${baseUrl}/api...`;
