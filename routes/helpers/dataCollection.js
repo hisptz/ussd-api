@@ -289,21 +289,30 @@ export const completeForm = async (sessionid, phoneNumber) => {
 };
 
 export const addMessage = async (sessionid, phoneNumber) => {
+  console.log('do i get here');
   const sessionDatavalues = await getSessionDataValue(sessionid);
+  console.log(1);
   const session = await getCurrentSession(sessionid);
+  console.log(2);
   const { year, period } = sessionDatavalues;
   const { orgUnit } = session;
 
   let menu = await getMenuJson(session.currentmenu, session.application_id);
-
+  console.log('pay attention to this ::', menu);
+  console.log(3);
   let phoneNumbers = [];
   phoneNumbers.push(phoneNumber);
 
   const orgUnitDetails = await getOrganisationUnit(orgUnit);
+  console.log(4);
   if (menu.submission_message) {
+    console.log(5);
     let dataValues = await getSessionDataValue(sessionid);
 
+    console.log(6);
     let referenceNumber;
+
+    console.log('datavalues', dataValues);
 
     if (dataValues.datatype === 'event') {
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
@@ -323,7 +332,7 @@ export const addMessage = async (sessionid, phoneNumber) => {
     message = message.split('${org_unit_code}').join(orgUnitDetails.code);
     message = message.split('${ref_number}').join(referenceNumber);
 
-    //.log('message ::: ', message, 'phone number ::: ', phoneNumbers);
+    console.log('message ::: ', message, 'phone number ::: ', phoneNumbers);
 
     let data = {
       status: 'QUEUED',
@@ -331,7 +340,8 @@ export const addMessage = async (sessionid, phoneNumber) => {
       phone_numbers: JSON.stringify(phoneNumbers),
       session_id: sessionid
     };
-    await addSms(data);
+    let y = await addSms(data);
+    console.log('response from adding message ::', y);
 
     //const result = await sendSMS(phoneNumbers, message);
   }
@@ -475,17 +485,17 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 };
 
 const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, currentMenu) => {
-  //console.log('i get into send tracker data');
+  console.log('i get into send tracker data');
   const sessionDatavalues = await getSessionDataValue(sessionid);
-  //console.log('s d values :::', sessionDatavalues);
+  console.log('s d values :::', sessionDatavalues);
   const sessions = await getCurrentSession(sessionid);
 
-  //console.log('curr session ::', sessions);
+  console.log('curr session ::', sessions);
   const { dataValues } = sessionDatavalues;
   const { orgUnit } = sessions;
 
   let application_info = await getApplicationById(sessions.application_id);
-  //console.log('app info :::', application_info);
+  console.log('app info :::', application_info);
 
   const { phone_number_mapping, auto_generated_field } = application_info;
   let dtValues = dataValues;
@@ -527,18 +537,18 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
   }*/
 
   const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
-  //console.log('sync servers ::', sync_servers);
+  console.log('sync servers ::', sync_servers);
 
   let sync_server;
   for (sync_server of sync_servers) {
     await addSync({ syncserver_id: sync_server.id, session_id: sessionid, synced: false, retries: 0 });
   }
 
-  //console.log('after adding syncs');
+  console.log('after adding syncs');
 
   await addMessage(sessionid, msisdn);
 
-  //console.log('after adding message');
+  console.log('after adding message');
 
   if (currentMenu.mode && currentMenu.mode == 'tracker_event_add') {
     try {

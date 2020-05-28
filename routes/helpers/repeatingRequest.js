@@ -152,10 +152,13 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
 
           if (passed) {
             response = await collectData(sessionid, _currentMenu, correctOption);
-            if (next_menu_response) {
-              response = next_menu_response;
-            } else {
-              response = await returnNextMenu(sessionid, _next_menu_json);
+
+            if (!_currentMenu.submit_data) {
+              if (next_menu_response) {
+                response = next_menu_response;
+              } else {
+                response = await returnNextMenu(sessionid, _next_menu_json);
+              }
             }
           } else {
             // Return menu for data collector with options
@@ -164,7 +167,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           }
         } else {
           const ruleHasNotPassed = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
-          console.log('rules', ruleHasNotPassed);
+          //console.log('rules', ruleHasNotPassed);
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
             const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
@@ -227,31 +230,34 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
 
       //data to be submitted here
       if (_currentMenu.submit_data) {
-        if ((_currentMenu.type = 'data-submission')) {
-          if (USSDRequest <= dataSubmissionOptions.length) {
-            if (dataSubmissionOptions[USSDRequest - 1]) {
-              const validation = await validatedData(sessionid, _currentMenu);
-              if (validation.notSet.length > 0) {
-                const message = 'The following data is not entered:' + validation.notSet.join(',');
-                response = {
-                  response_type: 1,
-                  text: message
-                };
-              } else {
-                //TODO :: change logic here to not send data but add to list of syncs
-                const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
-
-                response = await returnNextMenu(sessionid, _next_menu_json);
-              }
+        if ((_currentMenu.type = 'data-submission' || 'data')) {
+          if (USSDRequest <= JSON.parse(_currentMenu.options).length) {
+            //if (dataSubmissionOptions[USSDRequest - 1]) {
+            const validation = await validatedData(sessionid, _currentMenu);
+            if (validation.notSet.length > 0) {
+              const message = 'The following data is not entered:' + validation.notSet.join(',');
+              response = {
+                response_type: 1,
+                text: message
+              };
             } else {
+              //TODO :: change logic here to not send data but add to list of syncs
+              const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
+
+              response = await returnNextMenu(sessionid, _next_menu_json);
+            }
+          } else {
+            if (_currentMenu.type == 'data-submission' && dataSubmissionOptions[USSDRequest - 1]) {
               response = {
                 response_type: 1,
                 text: 'Terminating the session'
               };
             }
-          } else {
-            const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
-            response = await returnNextMenu(sessionid, _currentMenu, retry_message);
+
+            //}
+            // } else {
+            //   const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
+            //   response = await returnNextMenu(sessionid, _currentMenu, retry_message);
           }
         } else {
           const { httpStatus } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
@@ -314,7 +320,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     const { use_for_year, years_back } = menu;
     if (use_for_year) {
       const arrayOfYears = getYears(years_back);
-      console.log('arrays of years :: ', arrayOfYears);
+      //console.log('arrays of years :: ', arrayOfYears);
       const msg_str = [menu.title, ...arrayOfYears.map((year, index) => `${index + 1}. ${year}`)].join('\n');
       message = {
         response_type: 2,
@@ -399,7 +405,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
 // Option Answers.
 const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
-  console.log('options :: ', options);
+  //console.log('options :: ', options);
   const responses = options.map(option => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
@@ -444,7 +450,7 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
 // Option Answers.
 const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, application_id) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
-  console.log('options', options);
+  //console.log('options', options);
   const responses = options.map(option => option.response);
   let passed = true;
   let correctOption = null;
@@ -453,7 +459,7 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, a
     passed = !passed;
   } else {
     const { value, next_menu } = options.filter(option => option.response === answer)[0];
-    console.log(next_menu);
+    // console.log(next_menu);
     if (next_menu && next_menu != '') {
       _next_menu_json = await getMenuJson(next_menu, application_id);
       next_menu_response = await returnNextMenu(sessionid, _next_menu_json);

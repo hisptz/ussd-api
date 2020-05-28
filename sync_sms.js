@@ -165,10 +165,10 @@ const sync = async () => {
             }
           }
 
-          console.log('response :::', response);
-          console.log('summary :::', response.response.importSummaries);
-          console.log('count :::', response.response.importSummaries[0].importCount);
-          console.log('conflicts :::', response.response['importSummaries'][0]['conflicts']);
+          // console.log('response :::', response);
+          // console.log('summary :::', response.response.importSummaries);
+          // console.log('count :::', response.response.importSummaries[0].importCount);
+          // console.log('conflicts :::', response.response['importSummaries'][0]['conflicts']);
 
           if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
             //update sync boolean to true
@@ -238,10 +238,10 @@ const feedback = async () => {
         response = await sendSMS(sms.phone_numbers, sms.text);
         //console.log('send sms response ::', response);
       } catch (e) {
-        //console.log('error :: ', e);
+        console.log('error :: ', e);
       }
 
-      //console.log('respose form sms', response);
+      console.log('respose form sms', response);
 
       if (response && response.statusMessage && response.statusMessage == 'Success') {
         //update the sms entry
