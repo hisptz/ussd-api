@@ -10,7 +10,7 @@ import {
   getSyncServerByAppId,
   addSms
 } from '../../db';
-import { getTrackedEntityInstance } from '../../endpoints/trackerData';
+import { getTrackedEntityInstance, getContactTrackedEntityInstance, getSuspectTrackedEntityInstance } from '../../endpoints/trackerData';
 import { getAggregateData } from '../../endpoints/dataValueSets';
 import { getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
@@ -294,7 +294,7 @@ export const addMessage = async (sessionid, phoneNumber) => {
       }).value;
     } else if (dataValues.datatype === 'tracker') {
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
-        return dataValue.trackedEntityAttribute == 'iaNdifmweXr';
+        return dataValue.trackedEntityAttribute == 'DBBpxkM88w5';
       }).value;
     }
 
@@ -524,10 +524,16 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
   if (currentMenu.mode && currentMenu.mode == 'tracker_event_add') {
     try {
       let code = _.find(dtArray, dt => {
-        return dt.attribute == 'iaNdifmweXr';
+        return dt.attribute == 'DBBpxkM88w5';
       }).value;
 
-      const existingTEInstance = await getTrackedEntityInstance(code);
+      let existingTEInstance = await getTrackedEntityInstance(code);
+      if (existingTEInstance['trackedEntityInstances'].length == 0) {
+        existingTEInstance = await getContactTrackedEntityInstance(code);
+        if (existingTEInstance['trackedEntityInstances'].length == 0) {
+          existingTEInstance = await getSuspectTrackedEntityInstance(code);
+        }
+      }
 
       //trackedEntityInstance: trackedEntityInstance,
       // let trackerUpdatedData = {
@@ -571,6 +577,9 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
           return attribute.stage != '' ? true : false;
         }).map(({ attribute, value }) => ({ dataElement: attribute, value }))
       };
+
+      console.log('event data :: ', eventData);
+      //console.log('dataValues:', eventData.dataValues[0], eventData.dataValues[1], eventData.dataValues[2], eventData.dataValues[3]);
 
       const response = await updateSessionDataValues(sessionid, {
         sessionid: sessionid,

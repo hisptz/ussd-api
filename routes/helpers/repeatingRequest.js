@@ -6,7 +6,7 @@ import {
   getMenuJson,
   getLatestApplicationEntryByKey
 } from '../../db';
-import { getTrackedEntityInstance, getContactTrackedEntityInstance } from '../../endpoints/trackerData';
+import { getTrackedEntityInstance, getContactTrackedEntityInstance, getSuspectTrackedEntityInstance } from '../../endpoints/trackerData';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode, getOrganisationUnitByLevel } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
@@ -164,21 +164,36 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
             const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
             response = await returnNextMenu(sessionid, _currentMenu, retry_message);
-          } else if (_currentMenu.data_id == 'iaNdifmweXr') {
+          } else if (_currentMenu.data_id == 'DBBpxkM88w5') {
             //TOFIX: hardcoded for validation of namba ya utambulisho.
 
             //get tei from selfcheck program
             let tei = await getTrackedEntityInstance(USSDRequest);
             if (tei['trackedEntityInstances'].length == 0) {
+              //get anc check tei form contacts program
               tei = await getContactTrackedEntityInstance(USSDRequest);
 
               if (tei['trackedEntityInstances'].length == 0) {
-                response = returnNextMenu(sessionid, _currentMenu, 'Namba ya utambulisho uliyoingiza haipo, jaribu tena');
+                //get and check tei from suspects program
+                tei = await getSuspectTrackedEntityInstance(USSDRequest);
+                if (tei['trackedEntityInstances'].length == 0) {
+                  response = returnNextMenu(sessionid, _currentMenu, 'Namba ya utambulisho uliyoingiza haipo, jaribu tena');
+                } else {
+                  //go to suspects menu id: tsbdkj384bc7wbd78web
+                  let menuJson = await getMenuJson('tsbdkj384bc7wbd78web', application_id);
+                  //console.log('the menu json :: ', menuJson);
+                  response = await collectData(sessionid, _currentMenu, USSDRequest);
+                  response = returnNextMenu(sessionid, menuJson);
+                }
               } else {
-                //go to contacts menu
+                //go to contacts menu id: TQkUz6clochDFnO238zbfNiQlPhndks72363
+                let menuJson = await getMenuJson('TQkUz6clochDFnO238zbfNiQlPhndks72363', application_id);
+                //console.log('the menu json :: ', menuJson);
+                response = await collectData(sessionid, _currentMenu, USSDRequest);
+                response = returnNextMenu(sessionid, menuJson);
               }
             } else {
-              //proceed as usual
+              //proceed as usual to selfcheck menu id:
               response = await collectData(sessionid, _currentMenu, USSDRequest);
               response = await returnNextMenu(sessionid, _next_menu_json);
             }
@@ -579,10 +594,10 @@ const terminateWithMessage = async (sessionid, menu) => {
   } else if (data.datatype === 'tracker') {
     //console.log('data on repeating req', data.dataValues.attributes);
     referenceNumber = _.find(data.dataValues.attributes, dataValue => {
-      return dataValue.attribute == 'iaNdifmweXr';
+      return dataValue.attribute == 'DBBpxkM88w5';
     })
       ? _.find(data.dataValues.attributes, dataValue => {
-          return dataValue.attribute == 'iaNdifmweXr';
+          return dataValue.attribute == 'DBBpxkM88w5';
         }).value
       : '';
   }
