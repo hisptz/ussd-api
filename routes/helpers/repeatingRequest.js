@@ -110,7 +110,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           sessionid,
           id_gen_menu,
           _next_menu_json,
-          USSDRequest
+          USSDRequest,
+          application_id
         );
         if (passed) {
           response = await collectData(sessionid, id_gen_menu, correctOption);
@@ -145,8 +146,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             sessionid,
             _currentMenu,
             _next_menu_json,
-            USSDRequest
+            USSDRequest,
+            application_id
           );
+
           if (passed) {
             response = await collectData(sessionid, _currentMenu, correctOption);
             if (next_menu_response) {
@@ -160,6 +163,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             response = await returnNextMenu(sessionid, _currentMenu, retry_message);
           }
         } else {
+          const ruleHasNotPassed = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
+          console.log('rules', ruleHasNotPassed);
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
             const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
@@ -199,6 +204,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             }
 
             //get tei from contacts
+          } else if (ruleHasNotPassed) {
+            if (ruleHasNotPassed.type === 'ERROR') {
+              response = await returnNextMenu(sessionid, _currentMenu, ruleHasNotPassed.errorMessage);
+            }
           } else {
             response = await collectData(sessionid, _currentMenu, USSDRequest);
             response = await returnNextMenu(sessionid, _next_menu_json);
@@ -432,7 +441,7 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
 };
 
 // Option Answers.
-const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) => {
+const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, application_id) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
   const responses = options.map(option => option.response);
   let passed = true;
@@ -442,7 +451,11 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) =
     passed = !passed;
   } else {
     const { value, next_menu } = options.filter(option => option.response === answer)[0];
-    if (next_menu) {
+    console.log(next_menu);
+    if (next_menu && next_menu != '') {
+      _next_menu_json = await getMenuJson(next_menu, application_id);
+      next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
+    } else {
       next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
     }
     correctOption = value;

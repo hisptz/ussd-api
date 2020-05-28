@@ -93,11 +93,12 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) =
   }
 };
 export const ruleNotPassed = async (sessionid, menu, answer) => {
-  if (menu.rules) {
+  console.log(menu.p_rules);
+  if (menu.p_rules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
 
     let retValue = false;
-    menu.rules.forEach(rule => {
+    JSON.parse(menu.p_rules).forEach(rule => {
       let ruleEval = rule.condition;
       if (sessionDatavalues && sessionDatavalues.dataValues) {
         let dtValues = sessionDatavalues.dataValues;
