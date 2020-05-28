@@ -37,16 +37,18 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     }
   ];
 
-  console.log(dataValue[0]);
+  //console.log(dataValue[0]);
+  const generatedId = _currentMenu.menu_id == 'XTaJG3uniujLyP3rQnqeoGHpwizuzj4' ? await generateCovidCode() : '';
 
   if (_currentMenu.menu_id == 'XTaJG3uniujLyP3rQnqeoGHpwizuzj4') {
-    let generatedId = await generateCovidCode();
+    console.log('generated Id object :: ', generatedId);
+
     dataValue.push({
       dataElement: '',
       categoryOptionCombo: '',
       trackedEntityAttribute: 'DBBpxkM88w5',
       programStage: '',
-      value: generatedId.value
+      value: generatedId && generatedId['value'] ? generatedId['value'] : ''
     });
   }
   let data = {
@@ -311,6 +313,8 @@ export const addMessage = async (sessionid, phoneNumber) => {
       referenceNumber = _.find(dataValues.dataValues, dataValue => {
         return dataValue.trackedEntityAttribute == 'DBBpxkM88w5';
       }).value;
+
+      console.log('ref no 1:: ', referenceNumber);
     }
 
     let message = menu.submission_message;
