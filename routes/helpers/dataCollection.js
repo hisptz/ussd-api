@@ -17,6 +17,7 @@ import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
+import { generateCovidCode } from '../../endpoints/covidCode';
 import * as _ from 'lodash';
 
 const { generateCode } = require('dhis2-uid');
@@ -35,6 +36,19 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
       value: USSDRequest
     }
   ];
+
+  console.log(dataValue[0]);
+
+  if (_currentMenu.menu_id == 'XTaJG3uniujLyP3rQnqeoGHpwizuzj4') {
+    let generatedId = await generateCovidCode();
+    dataValue.push({
+      dataElement: '',
+      categoryOptionCombo: '',
+      trackedEntityAttribute: 'DBBpxkM88w5',
+      programStage: '',
+      value: generatedId.value
+    });
+  }
   let data = {
     sessionid,
     programStage: program_stage,

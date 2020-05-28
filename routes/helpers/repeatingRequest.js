@@ -314,6 +314,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     const { use_for_year, years_back } = menu;
     if (use_for_year) {
       const arrayOfYears = getYears(years_back);
+      console.log('arrays of years :: ', arrayOfYears);
       const msg_str = [menu.title, ...arrayOfYears.map((year, index) => `${index + 1}. ${year}`)].join('\n');
       message = {
         response_type: 2,
@@ -339,7 +340,6 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menu.application_id);
     //console.log('confirm menu :: ', connfirmationSummary);
     const submitOptions = ['YES', 'NO'];
-    //const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
 
     message = {
       response_type: 2,
@@ -399,6 +399,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
 // Option Answers.
 const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
+  console.log('options :: ', options);
   const responses = options.map(option => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
@@ -443,6 +444,7 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
 // Option Answers.
 const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, application_id) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
+  console.log('options', options);
   const responses = options.map(option => option.response);
   let passed = true;
   let correctOption = null;
@@ -467,15 +469,6 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, a
   };
 };
 
-// const returnOptions = ({
-//   title,
-//   options
-// }) => {
-//   return [title, ...options.map(({
-//     response,
-//     title
-//   }) => `${response}. ${title}`)].join('\n');
-// };
 const returnOptions = ({ options }) => {
   let returnOptions = {};
 
