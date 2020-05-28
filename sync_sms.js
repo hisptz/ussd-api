@@ -46,7 +46,7 @@ const sync = async () => {
     //check if session related to sync was done
     if (session.done) {
       if (unsyncedEntry.retries <= 4) {
-        console.log('unsynced entry :: ', unsyncedEntry);
+        //console.log('unsynced entry :: ', unsyncedEntry);
         //do the sync
         if (dataValues.datatype === 'event') {
           if (dataValues.event) {
@@ -55,7 +55,7 @@ const sync = async () => {
             try {
               response = await updateEventData(dataValues.dataValues, dataValues.event, serverDetails);
             } catch (error) {
-              console.log(error);
+              //console.log(error);
             }
             if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
               //update sync boolean to true
@@ -69,7 +69,7 @@ const sync = async () => {
                 unsyncedEntry.id
               );
 
-              console.log('synced entry :::', unsyncedEntry.id);
+              //console.log('synced entry :::', unsyncedEntry.id);
             } else {
               await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
             }
@@ -79,9 +79,9 @@ const sync = async () => {
 
             try {
               response = await postEventData(dataValues.dataValues, serverDetails);
-              console.log('response ::: ', response);
+              //console.log('response ::: ', response);
             } catch (e) {
-              console.log('error', e);
+              //console.log('error', e);
             }
             if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
               //update sync boolean to true
@@ -95,7 +95,7 @@ const sync = async () => {
                 unsyncedEntry.id
               );
 
-              console.log('synced entry :::', unsyncedEntry.id);
+              //console.log('synced entry :::', unsyncedEntry.id);
             } else {
               await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
             }
@@ -138,7 +138,7 @@ const sync = async () => {
               unsyncedEntry.id
             );
 
-            console.log('synced entry :::', unsyncedEntry.id);
+            //console.log('synced entry :::', unsyncedEntry.id);
             //} else {
             //}
           } else {
@@ -149,7 +149,7 @@ const sync = async () => {
           let response;
 
           if (dataValues.tracker_event_add) {
-            console.log('adding events to tei');
+            //console.log('adding events to tei');
 
             try {
               response = await postEventData(dataValues.dataValues, serverDetails);
@@ -157,7 +157,7 @@ const sync = async () => {
               console.log(error);
             }
           } else {
-            console.log('new tei');
+            //console.log('new tei');
             try {
               response = await postTrackerData(dataValues.dataValues, serverDetails);
             } catch (error) {
@@ -165,10 +165,10 @@ const sync = async () => {
             }
           }
 
-          // console.log('response :::', response);
-          // console.log('summary :::', response.response.importSummaries);
-          // console.log('count :::', response.response.importSummaries[0].importCount);
-          // console.log('conflicts :::', response.response['importSummaries'][0]['conflicts']);
+          console.log('response :::', response);
+          console.log('summary :::', response.response.importSummaries);
+          console.log('count :::', response.response.importSummaries[0].importCount);
+          console.log('conflicts :::', response.response['importSummaries'][0]['conflicts']);
 
           if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
             //update sync boolean to true
@@ -182,7 +182,7 @@ const sync = async () => {
               unsyncedEntry.id
             );
 
-            console.log('synced entry :::', unsyncedEntry.id);
+            //console.log('synced entry :::', unsyncedEntry.id);
           } else {
             await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
           }
@@ -225,26 +225,28 @@ const feedback = async () => {
   let sms;
 
   for (sms of unsent_sms) {
-    console.log('sms data ::: ', sms);
+    //console.log('sms data ::: ', sms);
     //check if all syncs for the sessionid are synced
     const unsynced_for_this_session = await getUnsyncedBySession(sms.session_id);
     //console.log('unsynced entries ::: ', unsynced_for_this_session.length);
-    console.log('unsynced :: ', unsynced_for_this_session);
+    //console.log('unsynced :: ', unsynced_for_this_session);
 
     if (unsynced_for_this_session.length == 0) {
-      console.log('i get here');
+      //console.log('i get here');
       let response;
       try {
         response = await sendSMS(sms.phone_numbers, sms.text);
-        console.log('send sms response ::', response);
+        //console.log('send sms response ::', response);
       } catch (e) {
-        console.log('error :: ', e);
+        //console.log('error :: ', e);
       }
+
+      //console.log('respose form sms', response);
 
       if (response && response.statusMessage && response.statusMessage == 'Success') {
         //update the sms entry
 
-        console.log('sms sent response ::::', response);
+        //console.log('sms sent response ::::', response);
         await updateSms({ status: 'SENT' }, sms.sms_id);
       }
     }

@@ -3,6 +3,8 @@ const crypto = require('crypto');
 //const CryptoJS = require("crypto-js");
 import { appConfig, getAuthorizationString } from '../config/app.config';
 
+var moment = require('moment-timezone');
+
 export const sendSMS = (phoneNumbers, message) => {
   //const baseUrl = appConfig.url;
   //const url = `${baseUrl}/api/sms/outbound`;
@@ -26,7 +28,7 @@ export const sendEGASMS = (phoneNumbers, message) => {
   let data = { recipients: phoneNumbers.join(','), message: message, datetime: datetime, mobile_service_id: 106, sender_id: '199' };
 
   let sendData = JSON.stringify(data);
-  console.log('data to send :: ', sendData);
+  //console.log('data to send :: ', sendData);
   let hash = crypto
     .createHmac('sha256', appConfig.smsAPIKey)
     .update(sendData)
@@ -60,5 +62,11 @@ const getDate = () => {
   }
 
   //console.log('AEST time: ' + date.toISOString());
-  return date.getFullYear() + '-' + month + '-' + day + ' ' + date.toString().substr(16, 8);
+  //return date.getFullYear() + '-' + month + '-' + day + ' ' + date.toString().substr(16, 8);
+
+  //console.log(moment.tz.names());
+
+  return moment()
+    .tz('Africa/Dar_es_Salaam')
+    .format();
 };

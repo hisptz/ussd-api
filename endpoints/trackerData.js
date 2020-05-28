@@ -23,7 +23,33 @@ export const postTrackerData = (data, server) => {
 
 export const getTrackedEntityInstance = code => {
   const baseUrl = appConfig.url;
-  const url = `${baseUrl}/api/trackedEntityInstances.json?filter=iaNdifmweXr:eq:${code}&ou=m0frOspS7JY&ouMode=DESCENDANTS`;
+  const url = `${baseUrl}/api/trackedEntityInstances.json?filter=DBBpxkM88w5:eq:${code}&ou=m0frOspS7JY&ouMode=DESCENDANTS`;
+
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.get(url, {
+    headers: {
+      Authorization
+    }
+  }).json;
+};
+
+export const getContactTrackedEntityInstance = code => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/api/trackedEntityInstances.json?filter=SCffEwnC4Pc:eq:${code}&ou=m0frOspS7JY&ouMode=DESCENDANTS`;
+
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.get(url, {
+    headers: {
+      Authorization
+    }
+  }).json;
+};
+
+export const getSuspectTrackedEntityInstance = code => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/api/trackedEntityInstances.json?filter=uECc61ISMz2:eq:${code}&ou=m0frOspS7JY&ouMode=DESCENDANTS`;
 
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 

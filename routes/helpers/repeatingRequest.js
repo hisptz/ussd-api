@@ -6,6 +6,7 @@ import {
   getMenuJson,
   getLatestApplicationEntryByKey
 } from '../../db';
+import { getTrackedEntityInstance, getContactTrackedEntityInstance, getSuspectTrackedEntityInstance } from '../../endpoints/trackerData';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode, getOrganisationUnitByLevel } from '../../endpoints/organisationUnit';
 const { generateCode } = require('dhis2-uid');
@@ -83,7 +84,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const _currentMenu = await getMenuJson(currentmenu, application_id);
 
     // checking for previous menu is not auth and checking if user need previous menu
-    let _previous_menu = {};
+    let _previous_menu = null;
     let _next_menu_json = {};
 
     if (_currentMenu.previous_menu !== '') {
@@ -97,7 +98,11 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     // checking for previous menu is not auth and checking if user need previous menu
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
       //response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
-      response = await returnNextMenu(sessionid, _next_menu_json);
+      if (previous_menu) {
+        response = await returnNextMenu(sessionid, _previous_menu);
+      } else {
+        esponse = await returnNextMenu(sessionid, _next_menu_json);
+      }
     } else {
       if (_currentMenu.type === 'fetch') {
       } else if (_currentMenu.type === 'id_generator') {
@@ -105,7 +110,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           sessionid,
           id_gen_menu,
           _next_menu_json,
-          USSDRequest
+          USSDRequest,
+          application_id
         );
         if (passed) {
           response = await collectData(sessionid, id_gen_menu, correctOption);
@@ -118,7 +124,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
           response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
         }
-        response = checkOptionsAnswer(sessionid, id_gen_menu, USSDRequest, application_id);
+        response = checkOptionsAnswer(sessionid, id_gen_menu, USSDRequest, application_id, retries);
         //reset id gen menu
         id_gen_menu = {};
         response = await returnNextMenu(sessionid, _next_menu_json);
@@ -140,8 +146,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             sessionid,
             _currentMenu,
             _next_menu_json,
-            USSDRequest
+            USSDRequest,
+            application_id
           );
+
           if (passed) {
             response = await collectData(sessionid, _currentMenu, correctOption);
             if (next_menu_response) {
@@ -151,27 +159,68 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             }
           } else {
             // Return menu for data collector with options
-            const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
-            response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
+            const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
+            response = await returnNextMenu(sessionid, _currentMenu, retry_message);
           }
         } else {
+          const ruleHasNotPassed = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
+          console.log('rules', ruleHasNotPassed);
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
-            const retry_message = _currentMenu.retry_message || 'You did not enter numerical value, try again';
-            response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
+            const retry_message = _currentMenu.retry_message || 'Chaguo uliloingiza sio sahihi, jaribu tena';
+            response = await returnNextMenu(sessionid, _currentMenu, retry_message);
+          } else if (_currentMenu.data_id == 'DBBpxkM88w5') {
+            //TOFIX: hardcoded for validation of namba ya utambulisho.
+
+            //get tei from selfcheck program
+            let tei = await getTrackedEntityInstance(USSDRequest);
+            if (tei['trackedEntityInstances'].length == 0) {
+              //get anc check tei form contacts program
+              tei = await getContactTrackedEntityInstance(USSDRequest);
+
+              if (tei['trackedEntityInstances'].length == 0) {
+                //get and check tei from suspects program
+                tei = await getSuspectTrackedEntityInstance(USSDRequest);
+                if (tei['trackedEntityInstances'].length == 0) {
+                  response = returnNextMenu(sessionid, _currentMenu, 'Namba ya utambulisho uliyoingiza haipo, jaribu tena');
+                } else {
+                  //go to suspects menu id: tsbdkj384bc7wbd78web
+                  let menuJson = await getMenuJson('tsbdkj384bc7wbd78web', application_id);
+                  //console.log('the menu json :: ', menuJson);
+                  response = await collectData(sessionid, _currentMenu, USSDRequest);
+                  response = returnNextMenu(sessionid, menuJson);
+                }
+              } else {
+                //go to contacts menu id: TQkUz6clochDFnO238zbfNiQlPhndks72363
+                let menuJson = await getMenuJson('TQkUz6clochDFnO238zbfNiQlPhndks72363', application_id);
+                //console.log('the menu json :: ', menuJson);
+                response = await collectData(sessionid, _currentMenu, USSDRequest);
+                response = returnNextMenu(sessionid, menuJson);
+              }
+            } else {
+              //proceed as usual to selfcheck menu id:
+              response = await collectData(sessionid, _currentMenu, USSDRequest);
+              response = await returnNextMenu(sessionid, _next_menu_json);
+            }
+
+            //get tei from contacts
+          } else if (ruleHasNotPassed) {
+            if (ruleHasNotPassed.type === 'ERROR') {
+              response = await returnNextMenu(sessionid, _currentMenu, ruleHasNotPassed.errorMessage);
+            }
           } else {
             response = await collectData(sessionid, _currentMenu, USSDRequest);
             response = await returnNextMenu(sessionid, _next_menu_json);
           }
         }
       } else if (_currentMenu.type === 'options') {
-        response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
+        response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id, retries);
       } else if (_currentMenu.type === 'period') {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, _next_menu_json);
       } else if (_currentMenu.type === 'ou') {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
       } else if (_currentMenu.type === 'ou_options') {
-        response = await checkOrgUnitAnswerOptions(sessionid, _currentMenu, application_id, USSDRequest);
+        response = await checkOrgUnitAnswerOptions(sessionid, _currentMenu, application_id, USSDRequest, retries);
       } else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
       }
@@ -265,6 +314,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     const { use_for_year, years_back } = menu;
     if (use_for_year) {
       const arrayOfYears = getYears(years_back);
+      console.log('arrays of years :: ', arrayOfYears);
       const msg_str = [menu.title, ...arrayOfYears.map((year, index) => `${index + 1}. ${year}`)].join('\n');
       message = {
         response_type: 2,
@@ -290,7 +340,6 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menu.application_id);
     //console.log('confirm menu :: ', connfirmationSummary);
     const submitOptions = ['YES', 'NO'];
-    //const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
 
     message = {
       response_type: 2,
@@ -336,7 +385,8 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   // checking if previous menu is not of type auth and add back menu
 
   if (_previous_menu && _previous_menu.type !== 'auth' && menu_types_with_back.includes(menu.type)) {
-    message.text += `\n# Rudi`;
+    //message.text += `\n# Rudi`;
+    message.text += ``;
   }
 
   if (additional_message) {
@@ -347,21 +397,33 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
 };
 
 // Option Answers.
-const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
+const checkOptionsAnswer = async (sessionid, menu, answer, app_id, retries) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
+  console.log('options :: ', options);
   const responses = options.map(option => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
     if (menu.type === 'options' && menu.options) {
-      return {
-        response_type: 2,
-        text: menu.title + '\n' + (menu.retry_message || 'You did not enter the correct choice,try again'),
-        options: returnOptions({ options: options })
-      };
+      await updateUserSession(sessionid, {
+        retries: Number(retries) + 1
+      });
+
+      if (menu.number_of_retries && retries >= menu.number_of_retries) {
+        return {
+          response_type: 1,
+          text: menu.fail_message
+        };
+      } else {
+        return {
+          response_type: 2,
+          text: menu.title + '\n' + (menu.retry_message || 'Jibu lako sio sahihi, jaribu tena'),
+          options: returnOptions({ options: options })
+        };
+      }
     } else {
       return {
         response_type: 1,
-        text: `${menu.fail_message || 'You did not enter the correct choice'}`
+        text: `${menu.fail_message || 'Jibu lako sio sahihi'}`
       };
     }
   }
@@ -372,12 +434,17 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
 
   let next_menu_json = await getMenuJson(next_menu, app_id);
 
+  await updateUserSession(sessionid, {
+    retries: 0
+  });
+
   return await returnNextMenu(sessionid, next_menu_json);
 };
 
 // Option Answers.
-const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) => {
+const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, application_id) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
+  console.log('options', options);
   const responses = options.map(option => option.response);
   let passed = true;
   let correctOption = null;
@@ -386,7 +453,11 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) =
     passed = !passed;
   } else {
     const { value, next_menu } = options.filter(option => option.response === answer)[0];
-    if (next_menu) {
+    console.log(next_menu);
+    if (next_menu && next_menu != '') {
+      _next_menu_json = await getMenuJson(next_menu, application_id);
+      next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
+    } else {
       next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
     }
     correctOption = value;
@@ -398,17 +469,9 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) =
   };
 };
 
-// const returnOptions = ({
-//   title,
-//   options
-// }) => {
-//   return [title, ...options.map(({
-//     response,
-//     title
-//   }) => `${response}. ${title}`)].join('\n');
-// };
 const returnOptions = ({ options }) => {
   let returnOptions = {};
+
   options.forEach(option => {
     if (typeof option.response === 'boolean') {
       returnOptions[option.response ? '1' : '2'] = option.title;
@@ -490,12 +553,32 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
   return response;
 };
 
-const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer) => {
+const checkOrgUnitAnswerOptions = async (sessionid, menu, application_id, answer, retries) => {
   var options = JSON.parse(menu.options).filter(option => option.response == answer);
-  await collectOrganisationUnitData(sessionid, {
-    orgUnit: options[0].value
-  });
-  return await returnNextMenu(sessionid, await getMenuJson(options[0].next_menu, application_id));
+
+  if (options.length == 0) {
+    await updateUserSession(sessionid, {
+      retries: Number(retries) + 1
+    });
+
+    if (menu.number_of_retries && retries >= menu.number_of_retries) {
+      return {
+        response_type: 1,
+        text: menu.fail_message || 'Umekosea mara 3, tafadhali anza upya'
+      };
+    } else {
+      return {
+        response_type: 2,
+        text: menu.title + '\n' + (menu.retry_message || 'Jibu lako sio sahihi, jaribu tena'),
+        options: returnOptions({ options: JSON.parse(menu.options) })
+      };
+    }
+  } else {
+    await collectOrganisationUnitData(sessionid, {
+      orgUnit: options[0].value
+    });
+    return await returnNextMenu(sessionid, await getMenuJson(options[0].next_menu, application_id));
+  }
 };
 
 const getPeriodBytype = (period_type, value) => {
@@ -517,10 +600,10 @@ const terminateWithMessage = async (sessionid, menu) => {
   } else if (data.datatype === 'tracker') {
     //console.log('data on repeating req', data.dataValues.attributes);
     referenceNumber = _.find(data.dataValues.attributes, dataValue => {
-      return dataValue.attribute == 'iaNdifmweXr';
+      return dataValue.attribute == 'DBBpxkM88w5';
     })
       ? _.find(data.dataValues.attributes, dataValue => {
-          return dataValue.attribute == 'iaNdifmweXr';
+          return dataValue.attribute == 'DBBpxkM88w5';
         }).value
       : '';
   }
