@@ -4,6 +4,7 @@ const logger = require('morgan');
 const mssdnRoutes = require('./routes/mssdn');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const fs = require('fs');
 import { sendSMS } from './endpoints/sms';
 dotenv.config();
 
@@ -42,11 +43,14 @@ server.use('/sms', async (req, res) => {
     });
     return;
   }
-
-  res.send({
-    ...await sendSMS(phoneNumbers.split(','),text),
-    date:(new Date()).toISOString()
-  });
+  var results = await sendSMS(phoneNumbers.split(','),text);
+  if(results.error){
+    res.status(500);
+    res.send(results);
+    fs.writeFileSync('sms-error.log',`${JSON.stringify(req.query)}:${JSON.stringify(results)}`);
+  }else{
+    res.send(results);
+  }
 });
 
 module.exports = server;
