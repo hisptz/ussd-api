@@ -179,8 +179,25 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             const retry_message = menus.retry_message || 'You did not enter numerical value, try again';
             response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
           } else {
-            response = await collectData(sessionid, _currentMenu, USSDRequest);
-            response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+            //verify hfr code.
+            if (_currentMenu.id && _currentMenu.id == '2e9HHYjKFcX8hxBRPL2rkPkRRLBLN6e') {
+              let facility = await getOrganisationUnitByCode(USSDRequest);
+
+              if (facility['organisationUnits'] && facility['organisationUnits'].length > 0) {
+                response = await collectData(sessionid, _currentMenu, USSDRequest);
+                response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+              } else {
+                response = await returnNextMenu(
+                  sessionid,
+                  _currentMenu.id,
+                  menus,
+                  'kituo chenye namba ya msimbo uliyoitaja hakipo, jaribu tena'
+                );
+              }
+            } else {
+              response = await collectData(sessionid, _currentMenu, USSDRequest);
+              response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+            }
           }
         }
       } else if (_currentMenu.type === 'options') {

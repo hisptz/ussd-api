@@ -3,7 +3,7 @@ import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSe
 import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
-import { getOrganisationUnit } from '../../endpoints/organisationUnit';
+import { getOrganisationUnit, getOrganisationUnitByCode } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
 
@@ -282,6 +282,9 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         return dt.dataElement == 'MfykP4DsjUW';
       }).value;
 
+      let facility = await getOrganisationUnitByCode(hfrCode);
+      console.log(hfrCode, 'facility :: ', facility);
+
       console.log('hfr ::: > ', hfrCode);
       let hfrDataValue = {
         lastUpdated: getEventDate(),
@@ -327,7 +330,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       if (response && response.httpStatusCode == 200 && response.httpStatus == 'OK' && number != '') {
         sendSMS(
           [number],
-          `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye kituo chenye Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
+          `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye kituo ${facility['organisationUnits'][0]['displayName']} chenye Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
         );
       }
 
