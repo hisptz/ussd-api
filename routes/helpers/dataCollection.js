@@ -631,7 +631,13 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
     try {
       const trackedEntityInstance = await generateCode();
       //console.log('id ::: >', trackedEntityInstance);
-      console.log('trackedEntityInstanceId :: ', trackedEntityInstance);
+      //console.log('trackedEntityInstanceId :: ', trackedEntityInstance);
+
+      dtArray.push({
+        attribute: 'YBb5rN0KMoY',
+        stage: '',
+        value: msisdn
+      });
 
       //trackedEntityInstance: trackedEntityInstance,
       let trackerUpdateData = {
