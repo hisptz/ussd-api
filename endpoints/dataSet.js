@@ -3,7 +3,7 @@ import { appConfig, getAuthorizationString } from '../config/app.config';
 
 export const getDataSet = id => {
   const baseUrl = appConfig.url;
-  const url = `${baseUrl}/api/dataSets/${id}.json?fields=dataSetElements[dataElement[id,shortName], categoryCombo[categoryOptionCombos[id,shortName]]]`;
+  const url = `${baseUrl}/api/dataSets/${id}.json?fields=dataSetElements[dataElement[id,shortName,name], categoryCombo[categoryOptionCombos[id,shortName]]]`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
   return r2.get(url, {

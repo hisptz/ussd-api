@@ -124,22 +124,27 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
     const dataValueSet = await getAggregateData(menu.data_set, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
     const ids = [];
     dataSet.dataSetElements.forEach(dataSetElement => {
-      dataSetElement.categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo => {
-        let found = false;
-        if (dataValueSet.dataValues) {
-          dataValueSet.dataValues.forEach(dataValue => {
-            if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryOptionCombo === categoryOptionCombo.id) {
-              found = true;
-            }
-          });
-        }
-        if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + '.' + categoryOptionCombo.id) > -1) {
-          returnValue.notSet.push(dataSetElement.dataElement.shortName + ' ' + categoryOptionCombo.shortName);
-          ids.push(dataSetElement.dataElement.id + '.' + categoryOptionCombo.id);
-        }
-      });
+      console.log(dataSetElement.dataElement);
+      console.log(dataSetElement.categoryCombo);
+      if (dataSetElement.categoryCombo) {
+        dataSetElement.categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo => {
+          let found = false;
+          if (dataValueSet.dataValues) {
+            dataValueSet.dataValues.forEach(dataValue => {
+              if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryOptionCombo === categoryOptionCombo.id) {
+                found = true;
+              }
+            });
+          }
+          if (!found && menu.compulsory && menu.compulsory.indexOf(dataSetElement.dataElement.id + '.' + categoryOptionCombo.id) > -1) {
+            returnValue.notSet.push(dataSetElement.dataElement.shortName);
+            ids.push(dataSetElement.dataElement.id + '.' + categoryOptionCombo.id);
+          }
+        });
+      }
     });
   }
+  console.log(returnValue);
   return returnValue;
 };
 
