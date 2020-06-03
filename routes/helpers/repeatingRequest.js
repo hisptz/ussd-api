@@ -217,6 +217,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       response_type: 1,
       text: 'Server Error. Please try again.'
     };
+    console.log(e);
   }
   return response;
 };
