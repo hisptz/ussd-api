@@ -10,12 +10,12 @@ const db = require('../db');
 const router = express.Router();
 
 const format = (sessionid, response) => {
-  let response_to_format = {
+  return {
     ...response,
-    header_type: response.response_type === 1 ? '3' : '' + response.response_type
+    header_type: response.response_type === 1 ? '3' : '' + response.response_ty$
   };
 
-  return `C;${sessionid};${JSON.stringify(response_to_format)}`;
+  //return `C;${sessionid};${JSON.stringify(response_to_format)}`;
 };
 
 const requestHandler = async (req, res) => {
