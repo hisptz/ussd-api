@@ -71,13 +71,13 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
   };
   if (menu.dataSet) {
     const dataSet = await getDataSet(menu.dataSet);
-    console.log(dataSet);
+    //console.log(dataSet);
 
     const operands = await getDataSetOperands(menu.dataSet);
 
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
 
-    console.log('what are these', operands.dataElementOperands);
+    //console.log('what are these', operands.dataElementOperands);
 
     operands.dataElementOperands.forEach(dataElementOperand => {
       let found = false;
@@ -93,16 +93,16 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
         let element = _.filter(dataSet.dataSetElements, dse => {
           return dse['dataElement']['id'] == elementId ? true : false;
         });
-        console.log('element ::', element[0]);
+        //console.log('element ::', element[0]);
         if (_.includes(returnValue.notSet, element[0]['dataElement']['name'])) {
         } else {
           returnValue.notSet.push(element[0]['dataElement']['name']);
-          console.log('dataElementOperand :: ', dataElementOperand.id.split('.')[0]);
+          //console.log('dataElementOperand :: ', dataElementOperand.id.split('.')[0]);
         }
       }
     });
   }
-  console.log(returnValue);
+  //console.log(returnValue);
   return returnValue;
 };
 
