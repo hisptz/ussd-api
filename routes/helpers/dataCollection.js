@@ -110,9 +110,9 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
         // });
         let element = deMapping[elementId];
         //console.log('element ::', element[0]);
-        if (_.includes(returnValue.notSet, element[0]['dataElement']['name'])) {
+        if (_.includes(returnValue.notSet, element)) {
         } else {
-          returnValue.notSet.push(element[0]['dataElement']['name']);
+          returnValue.notSet.push(element);
           //console.log('dataElementOperand :: ', dataElementOperand.id.split('.')[0]);
         }
       }
