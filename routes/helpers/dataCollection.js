@@ -60,10 +60,10 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
 export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const deMapping = {
-    hGXnKNp7HW6: 'Malaria Clinical Cases',
-    mbN5Ha1T6Dx: 'Malaria Cases',
-    Jl5fGRORobn: 'Malaria Tested (Lab/MRDT) Cases',
-    aTBq63q6SGs: 'Malaria Tested +ve',
+    hGXnKNp7HW6: 'Malaria',
+    mbN5Ha1T6Dx: 'Malaria',
+    Jl5fGRORobn: 'Malaria',
+    aTBq63q6SGs: 'Malaria',
     J2QRKPggvRC: 'Onchocerciasis',
     RBLOayRFCwZ: 'Tick Borne Relapsing fever',
     kXD4hg575gJ: 'Diarrhoea',
