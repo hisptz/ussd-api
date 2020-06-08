@@ -59,6 +59,21 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
 
 export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
+  const deMapping = {
+    hGXnKNp7HW6: 'Malaria Clinical Cases',
+    mbN5Ha1T6Dx: 'Malaria Cases',
+    Jl5fGRORobn: 'Malaria Tested (Lab/MRDT) Cases',
+    aTBq63q6SGs: 'Malaria Tested +ve',
+    J2QRKPggvRC: 'Onchocerciasis',
+    RBLOayRFCwZ: 'Tick Borne Relapsing fever',
+    kXD4hg575gJ: 'Diarrhoea',
+    OOnL47t1Ltg: 'Typhiod',
+    R9LUB5mvxCO: 'Malnutrition',
+    qXCZieHvyrA: 'Pneumonia',
+    nrmGMpeTMpK: 'Animal Bites',
+    r9TEXVjoUun: 'Trypanosomiasis',
+    iBPKR7zootI: 'Trachoma'
+  };
 
   const session = await getCurrentSession(sessionid);
   let menu = session.datastore;
@@ -90,9 +105,10 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
       }
       if (!found && menu.compulsory && menu.compulsory.indexOf(dataElementOperand.id) > -1) {
         let elementId = dataElementOperand.id.split('.')[0];
-        let element = _.filter(dataSet.dataSetElements, dse => {
-          return dse['dataElement']['id'] == elementId ? true : false;
-        });
+        // let element = _.filter(dataSet.dataSetElements, dse => {
+        //   return dse['dataElement']['id'] == elementId ? true : false;
+        // });
+        let element = deMapping[elementId];
         //console.log('element ::', element[0]);
         if (_.includes(returnValue.notSet, element[0]['dataElement']['name'])) {
         } else {
