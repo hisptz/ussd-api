@@ -5,10 +5,11 @@ const mssdnRoutes = require('./routes/mssdn');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const fs = require('fs');
+const r2 = require('r2');
 import { sendSMS } from './endpoints/sms';
 dotenv.config();
 
-import { appConfig } from './config/app.config';
+import { appConfig, getAuthorizationString } from './config/app.config';
 
 const server = express();
 
@@ -51,6 +52,28 @@ server.use('/sms', async (req, res) => {
   }else{
     res.send(results);
   }
+});
+
+server.use('/dhisProxy', async (req, res) => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/${req.url.split('/dhisProxy').join('')}`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  console.log(url);
+  if(req.method == 'GET'){
+    res.send(await r2.get(url, {
+      headers: {
+          Authorization
+      },
+  }).json);
+  }else if(req.method == 'POST'){
+    res.send(await r2.post(url, {
+      headers: {
+          Authorization
+      },
+  }).json);
+  }
+  
+    return;
 });
 
 module.exports = server;
