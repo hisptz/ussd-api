@@ -56,7 +56,7 @@ server.use('/sms', async (req, res) => {
 
 server.use('/dhisProxy', async (req, res) => {
   const baseUrl = appConfig.url;
-  const url = `${baseUrl}/${req.url.split('/dhisProxy').join('')}`;
+  const url = `${baseUrl}${req.url.split('/dhisProxy').join('')}`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
   console.log(url);
   if(req.method == 'GET'){
