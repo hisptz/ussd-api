@@ -98,7 +98,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     // checking for previous menu is not auth and checking if user need previous menu
     const _previous_menu = menus[_currentMenu.previous_menu] || {};
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
-      console.log('option1');
       response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
     } else {
       if (_currentMenu.type === 'fetch') {
@@ -195,8 +194,15 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                 );
               }
             } else {
-              response = await collectData(sessionid, _currentMenu, USSDRequest);
-              response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+              const ruleResults = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
+              console.log('rule results :: ', ruleResults);
+
+              if (ruleResults) {
+                response = await returnNextMenu(sessionid, _currentMenu.id, menus, ruleResults.errorMessage);
+              } else {
+                response = await collectData(sessionid, _currentMenu, USSDRequest);
+                response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+              }
             }
           }
         }
@@ -523,6 +529,7 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
   //checking for period value and return appropriate menu in case of wrong selection
   if (isNumeric(answer)) {
     const ruleHasNotPassed = await ruleNotPassed(sessionid, menu, answer);
+    console.log('ou rule results :: ', ruleHasNotPassed);
 
     if (ruleHasNotPassed) {
       if (ruleHasNotPassed.type === 'ERROR') {

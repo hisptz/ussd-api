@@ -59,11 +59,11 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
   }
 };
 export const ruleNotPassed = async (sessionid, menu, answer) => {
-  if (menu.rules) {
+  if (menu.pRules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
 
     let retValue = false;
-    menu.rules.forEach(rule => {
+    menu.pRules.forEach(rule => {
       let ruleEval = rule.condition;
       if (sessionDatavalues && sessionDatavalues.dataValues) {
         let dtValues = sessionDatavalues.dataValues;
@@ -76,14 +76,19 @@ export const ruleNotPassed = async (sessionid, menu, answer) => {
       }
       ruleEval = ruleEval.split('#{' + menu.data_element + '}').join(answer);
       ruleEval = ruleEval.split('#{answer}').join(answer);
+
+      //console.log('rule string :: ', ruleEval);
       try {
         if (eval('(' + ruleEval + ')')) {
           retValue = rule.action;
         }
       } catch (e) {}
     });
+
+    //console.log('ret value ::', retValue);
     return retValue;
   } else {
+    //console.log('here');
     return false;
   }
 };
@@ -271,21 +276,21 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
   if (currentMenu.mode) {
     if (currentMenu.mode == 'event_update') {
-      console.log('1 ::: > ', dtArray);
+      //console.log('1 ::: > ', dtArray);
       let referralId = _.find(dtArray, dt => {
         return dt.dataElement == 'KlmXMXitsla';
       }).value;
 
-      console.log('referal', referralId);
+      //console.log('referal', referralId);
 
       let hfrCode = _.find(dtArray, dt => {
         return dt.dataElement == 'MfykP4DsjUW';
       }).value;
 
       let facility = await getOrganisationUnitByCode(hfrCode);
-      console.log(hfrCode, 'facility :: ', facility);
+      //console.log(hfrCode, 'facility :: ', facility);
 
-      console.log('hfr ::: > ', hfrCode);
+      //console.log('hfr ::: > ', hfrCode);
       let hfrDataValue = {
         lastUpdated: getEventDate(),
         created: getEventDate(),
@@ -296,7 +301,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
       let currentEventData = await getEventData('KlmXMXitsla', referralId.toString(), currentMenu.program);
 
-      console.log(currentEventData);
+      //console.log(currentEventData);
       //console.log('current event data', currentEventData);
 
       let eventUpdatedData = {};
@@ -320,12 +325,12 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
           }).value
         : '';
 
-      console.log('number :: ', number);
+      //console.log('number :: ', number);
 
       const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
 
-      console.log('updated values', eventUpdatedData.dataValues);
-      console.log('response', response);
+      //console.log('updated values', eventUpdatedData.dataValues);
+      //console.log('response', response);
 
       if (response && response.httpStatusCode == 200 && response.httpStatus == 'OK' && number != '') {
         sendSMS(
