@@ -621,6 +621,7 @@ const terminateWithMessage = async (sessionid, menu) => {
 
   return {
     response_type: 1,
+    noinput: true,
     //text: 'message like this'
     text: message
   };

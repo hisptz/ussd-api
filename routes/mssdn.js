@@ -26,7 +26,11 @@ const format = (sessionid, response) => {
   });
   let resToSend = response.text + '\n' + optionString;
 
-  return `P;${sessionid};${resToSend}`;
+  if (response['noinput']) {
+    return `C;${sessionid};${resToSend}`;
+  } else {
+    return `P;${sessionid};${resToSend}`;
+  }
 };
 
 const requestHandler = async (req, res) => {
