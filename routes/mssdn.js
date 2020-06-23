@@ -52,7 +52,8 @@ const requestHandler = async (req, res) => {
     response = await repeatingRequest(sessionid, USSDRequest, msisdn);
   }*/
 
-  res.send(format(sessionid, response));
+  //res.send(format(sessionid, response));
+  res.send(response);
 };
 
 router.get('/', requestHandler);
