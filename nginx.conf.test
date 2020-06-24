@@ -1,25 +1,6 @@
 upstream loadbalance {
     least_conn;
     server ussd-1:3000;
-    server ussd-2:3000;
-    server ussd-3:3000;
-    server ussd-4:3000;
-    server ussd-5:3000;
-    server ussd-6:3000;
-    server ussd-7:3000;
-    server ussd-8:3000;
-    server ussd-9:3000;
-    server ussd-10:3000;
-    server ussd-11:3000;
-    server ussd-12:3000;
-    server ussd-13:3000;
-    server ussd-14:3000;
-    server ussd-15:3000;
-    server ussd-16:3000;
-    server ussd-17:3000;
-    server ussd-18:3000;
-    server ussd-19:3000;
-    server ussd-20:3000;
 }
 
 server {

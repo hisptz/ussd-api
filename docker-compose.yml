@@ -2,14 +2,14 @@ version: '3.2'
 
 services:
   nginx:
-    network_mode: host
     build: 
       context: .
       dockerfile: Dockerfile-nginx
     image: nginx/idsr:1.0.0
+    ports:
+      - 3000:3000
     restart: always
   ussd-menu-updater:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm run menu:update
@@ -19,7 +19,6 @@ services:
         source: ./
         target: /home/app/
   ussd-syncing:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm run sync:feedback
@@ -29,250 +28,233 @@ services:
         source: ./
         target: /home/app/
   ussd-1:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3001
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-2:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3002
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-3:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3003
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-4:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3004
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-5:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3005
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-6:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3006
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-7:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3007
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-8:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3008
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-9:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3009
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-10:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3010
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-11:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3011
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-12:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3012
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-13:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3013
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-14:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3014
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-15:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3015
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-16:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3016
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-17:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3017
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-18:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3018
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-19:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3019
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
   ussd-20:
-    network_mode: host
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
     command: npm start
     restart: always
     environment:
-        - PORT=3020
+        - PORT=3000
     volumes:
       - type: bind
         source: ./
         target: /home/app/
-#   database:
-#     image: postgres:10.12
-#     restart: always
-#     volumes:
-#       - postdata
-# volumes:
-#   postdata:
-#     driver: local
+  database:
+    image: postgres:10.12
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
+    driver: local

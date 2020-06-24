@@ -48,9 +48,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   try {
     let currentmenu, retries, application_id;
     const session_details = await getCurrentSession(sessionid);
-
+    console.log(session_details);
     if (!session_details) {
       const application_data = await getLatestApplicationEntryByKey(appConfig.dataStoreId);
+      console.log(application_data);
       application_id = application_data.id;
       const starting_menu = await getMenuJson(application_data.starting_menu, application_id);
       const id = generateCode();
