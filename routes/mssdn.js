@@ -35,6 +35,16 @@ const format = (sessionid, response) => {
 
 const requestHandler = async (req, res) => {
   let { sessionid, telco, USSDRequest, input, msisdn, USSDType } = req.query;
+  console.log(sessionid, telco, USSDRequest, input, msisdn, USSDType);
+  console.log(req.body);
+  console.log(req.query);
+  //res.send(req.body);
+  //return;
+  if(req.body){
+    input = req.body.input;
+    msisdn = req.body.msisdn;
+    sessionid = req.body.sessionid;
+  }
   if (USSDRequest && !input) {
     input = USSDRequest;
   }

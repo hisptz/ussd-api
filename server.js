@@ -15,7 +15,9 @@ const server = express();
 
 // Middleware
 server.use(morgan('dev'));
-server.use(bodyParser.urlencoded({ extended: true }));
+//server.use(bodyParser.urlencoded({ extended: true }));
+server.use(bodyParser.json());
+
 
 // This allows client applications from other domains use the API Server
 server.use(function(req, res, next) {
