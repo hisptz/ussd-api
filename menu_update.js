@@ -137,6 +137,7 @@ export const getDataStoreKeys = async () => {
   let data;
   const url = `${baseUrl}/api/dataStore/ussd`;
 
+  console.log(url);
   const response = await fetch(url, {
     headers: {
       Authorization
