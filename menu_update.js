@@ -155,11 +155,13 @@ const updateMenusForAllKeys = async () => {
   console.log(' ************* STARTED MENU UPDATE SCRIPT *****************');
 
   const datastore_keys = await getDataStoreKeys();
-
+  console.log(datastore_keys);
   let datastore_key;
   for (datastore_key of datastore_keys) {
+    console.log(` ************* UPDATING MENU ${datastore_key} *****************`);
     await updateMenuForKey(datastore_key);
   }
+  console.log(` ************* FINISHED UPDATING TRYING AGAIN *****************`);
   setTimeout(() => {
     updateMenusForAllKeys();
   }, appConfig.application_update_interval);
