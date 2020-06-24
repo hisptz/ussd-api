@@ -145,6 +145,7 @@ export const getDataStoreKeys = async () => {
     size: 0,
     timeout: 0
   });
+  console.log('Fetched');
   // parsing
 
   data = await response.json();
