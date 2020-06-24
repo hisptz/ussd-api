@@ -57,5 +57,6 @@ const requestHandler = async (req, res) => {
 };
 
 router.get('/', requestHandler);
+router.post('/', requestHandler);
 
 module.exports = router;
