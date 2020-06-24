@@ -134,7 +134,8 @@ export const updateMenuForKey = async key => {
 };
 
 export const getDataStoreKeys = async () => {
-  const url = `${baseUrl}/api/dataStore/ussd`;
+  //const url = `${baseUrl}/api/dataStore/ussd`;
+  const url = `http://host.docker.internal:8080/api/dataStore/ussd`;
   console.log(url);
   const response = await getUrl(url);
   console.log(response);
