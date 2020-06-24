@@ -1,28 +1,28 @@
 import { appConfig, getAuthorizationString } from './config/app.config';
 import { getApplicationThisDate, addApplicationEntry, addMenu, addSyncServer } from './db';
 
-const fetch = require('make-fetch-happen').defaults({
-  cacheManager: '../' // path where cache will be written (and read)
-});
+const r2 = require('r2');
+
+
+export const getUrl = url => {
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.get(url, {
+    headers: {
+      Authorization
+    }
+  }).json;
+};
 
 const baseUrl = appConfig.url;
 const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
 export const getMenuMetaData = async key => {
-  let data;
   const url = `${baseUrl}/api/dataStore/ussd/${key}/metaData`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization
-    },
-    size: 0,
-    timeout: 0
-  });
-  // parsing
-  data = await response.json();
+  const response = await getUrl(url);
 
-  return data;
+  return response;
 };
 
 export const shouldUpdate = async (new_menu_date, menus_key) => {
@@ -134,23 +134,10 @@ export const updateMenuForKey = async key => {
 };
 
 export const getDataStoreKeys = async () => {
-  let data;
   const url = `${baseUrl}/api/dataStore/ussd`;
+  const response = await getUrl(url);
 
-  console.log(url);
-  const response = await fetch(url, {
-    headers: {
-      Authorization
-    },
-    size: 0,
-    timeout: 0
-  });
-  console.log('Fetched');
-  // parsing
-
-  data = await response.json();
-
-  return data;
+  return response;
 };
 
 const updateMenusForAllKeys = async () => {
