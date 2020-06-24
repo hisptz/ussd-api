@@ -134,7 +134,8 @@ export const updateMenuForKey = async key => {
 };
 
 export const getDataStoreKeys = async () => {
-  const url = `${baseUrl}/api/dataStore/ussd`;
+  //const url = `${baseUrl}/api/dataStore/ussd`;
+  const url = `http://172.28.0.3:8080/api/dataStore/ussd`;
   console.log(url);
   const response = await getUrl(url);
   console.log(response);
