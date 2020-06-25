@@ -37,10 +37,10 @@ const requestHandler = async (req, res) => {
   let { sessionid, telco, USSDRequest, input, msisdn, USSDType } = req.query;
   console.log(sessionid, telco, USSDRequest, input, msisdn, USSDType);
   console.log(req.body);
-  console.log(req.query);
+  console.log('Query:',req.query);
   //res.send(req.body);
   //return;
-  if(req.body){
+  if(!msisdn && !sessionid && req.body){
     input = req.body.input;
     msisdn = req.body.msisdn;
     sessionid = req.body.sessionid;
@@ -53,6 +53,7 @@ const requestHandler = async (req, res) => {
   const isNewRequest = USSDType === 'NR';
 
   //console.log('sessionid ::', sessionid, 'input ::', input, 'msisdn ::', msisdn);
+  console.log('To Print:',sessionid, input, msisdn);
   let response = await repeatingRequest(sessionid, input, msisdn);
 
   //console.log('hellooo im here ->', response);
