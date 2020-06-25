@@ -55,6 +55,7 @@ const requestHandler = async (req, res) => {
   //console.log('sessionid ::', sessionid, 'input ::', input, 'msisdn ::', msisdn);
   console.log('To Print:',sessionid, input, msisdn);
   let response = await repeatingRequest(sessionid, input, msisdn);
+  console.log(response);
 
   //console.log('hellooo im here ->', response);
   /*if (isNewRequest) {
