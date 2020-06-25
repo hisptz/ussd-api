@@ -65,7 +65,10 @@ const requestHandler = async (req, res) => {
   }*/
 
   //res.send(format(sessionid, response));
-  res.send(response);
+  res.send({
+    ...response,
+    "header_type": response.response_type === 2? "2":"3"
+  });
 };
 
 router.get('/', requestHandler);
