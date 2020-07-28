@@ -11,7 +11,8 @@ import {
   collectOrganisationUnitData,
   validatedData,
   ruleNotPassed,
-  getCurrentSessionDataValue
+  getCurrentSessionDataValue,
+  collectFacilityType
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';

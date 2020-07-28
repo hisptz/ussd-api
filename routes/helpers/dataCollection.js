@@ -287,8 +287,28 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         return dt.dataElement == 'MfykP4DsjUW';
       }).value;
 
+      // console.log('dtArrayy :: ', dtArray);
+      // let facilityType = _.find(dtArray, dt => {
+      //   return dt.dataElement == 'SMzP1R6D1dV';
+      // }).value;
+
       let facility = await getOrganisationUnitByCode(hfrCode);
       //console.log(hfrCode, 'facility :: ', facility);
+      let facilityTypeName = () => {
+        if (facility.organisationUnits && facility.organisationUnits.length > 0) {
+          let facilityType = _.filter(facility.organisationUnits[0]['organisationUnitGroups'], ouGroup => {
+            let groupSets = _.filter(ouGroup['groupSets'], groupSet => {
+              return groupSet.id == 'VG4aAdXA4JI' ? true : false;
+            });
+
+            return groupSets.length > 0 ? true : false;
+          });
+
+          let facilityTypeName = facilityType.length > 0 ? facilityType[0].name : null;
+
+          return facilityTypeName;
+        }
+      };
 
       //console.log('hfr ::: > ', hfrCode);
       let hfrDataValue = {
@@ -296,6 +316,14 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         created: getEventDate(),
         dataElement: 'MfykP4DsjUW',
         value: hfrCode,
+        providedElsewhere: false
+      };
+
+      let facilityObject = {
+        lastUpdated: getEventDate(),
+        created: getEventDate(),
+        dataElement: 'SMzP1R6D1dV',
+        value: facilityTypeName(),
         providedElsewhere: false
       };
 
@@ -313,7 +341,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       eventUpdatedData['event'] = currentEventData.events[0].event;
       eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
       eventUpdatedData['completedDate'] = getEventDate();
-      eventUpdatedData.dataValues.push(hfrDataValue);
+      eventUpdatedData.dataValues = [...eventUpdatedData.dataValues, hfrDataValue, facilityObject];
       //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
       //console.log('hfrCode', hfrCode);
 
