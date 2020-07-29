@@ -17,6 +17,7 @@ import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
+import { generateTEIAttribute } from '../../endpoints/trackerData';
 
 const { generateCode } = require('dhis2-uid');
 
@@ -511,6 +512,8 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
 
   //console.log('after adding message');
 
+  let idsrCaseId = await generateTEIAttribute();
+
   try {
     const trackedEntityInstance = await generateCode();
     console.log('id ::: >', trackedEntityInstance);
@@ -528,7 +531,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
           incidentDate: getEventDate()
         }
       ],
-      attributes: dtArray
+      attributes: [...dtArray, { attribute: 'CxSxifEaRzd', value: idsrCaseId.value }]
     };
 
     console.log(' i get here ::', trackerUpdateData);
