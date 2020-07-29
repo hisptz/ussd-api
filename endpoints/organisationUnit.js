@@ -14,7 +14,7 @@ export const getOrganisationUnit = id => {
 };
 export const getOrganisationUnitByCode = code => {
   const baseUrl = appConfig.url;
-  const url = `${baseUrl}/api/organisationUnits.json?fields=id,name,organisationUnitGroups[name,groupSets[id]]&filter=code:eq:${code}`;
+  const url = `${baseUrl}/api/organisationUnits.json?fields=id,name,displayName,organisationUnitGroups[name,groupSets[id]]&filter=code:eq:${code}`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
   const results = r2.get(url, {
     headers: {
