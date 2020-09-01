@@ -104,10 +104,12 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           sessionid,
           id_gen_menu,
           _next_menu_json,
-          USSDRequest
+          USSDRequest,
+          application_id
         );
         if (passed) {
           response = await collectData(sessionid, id_gen_menu, correctOption);
+
           if (next_menu_response) {
             response = next_menu_response;
           } else {
@@ -139,10 +141,14 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             sessionid,
             _currentMenu,
             _next_menu_json,
-            USSDRequest
+            USSDRequest,
+            application_id
           );
           if (passed) {
             response = await collectData(sessionid, _currentMenu, correctOption);
+
+            console.log('next menu res :: ', correctOption);
+
             if (next_menu_response) {
               response = next_menu_response;
             } else {
@@ -164,7 +170,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           }
         }
       } else if (_currentMenu.type === 'options') {
-        response = checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
+        response = await checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
+        //console.log('response on options :: ', response);
       } else if (_currentMenu.type === 'period') {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, _next_menu_json);
       } else if (_currentMenu.type === 'ou') {
@@ -369,11 +376,15 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
 
   let next_menu_json = await getMenuJson(next_menu, app_id);
 
+  // console.log('correctOption :: ', correctOption);
+  // console.log('menu id :: ', next_menu);
+  // console.log('menu json :: ', next_menu_json);
+
   return await returnNextMenu(sessionid, next_menu_json);
 };
 
 // Option Answers.
-const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) => {
+const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, app_id) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
   const responses = options.map(option => option.response);
   let passed = true;
@@ -384,6 +395,9 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer) =
   } else {
     const { value, next_menu } = options.filter(option => option.response === answer)[0];
     if (next_menu) {
+      _next_menu_json = await getMenuJson(next_menu, app_id);
+      next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
+    } else {
       next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
     }
     correctOption = value;
@@ -501,7 +515,11 @@ const terminateWithMessage = async (sessionid, menu) => {
   if (data.datatype === 'event') {
     referenceNumber = _.find(data.dataValues.dataValues, dataValue => {
       return dataValue.dataElement == 'KlmXMXitsla';
-    }).value;
+    })
+      ? _.find(data.dataValues.dataValues, dataValue => {
+          return dataValue.dataElement == 'KlmXMXitsla';
+        }).value
+      : null;
   }
 
   //end of specific menu for referral confirmation menu

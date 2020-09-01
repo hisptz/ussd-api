@@ -46,9 +46,9 @@ const requestHandler = async (req, res) => {
       //console.log('auth response ::: ', response);
       res.send(format(sessionid, response));
     } else {
-      console.log('there is a session entry');
+      //console.log('there is a session entry');
       let response = await repeatingRequest(sessionid, input, msisdn);
-      console.log(format(sessionid, response));
+      //console.log(format(sessionid, response));
       res.send(format(sessionid, response));
     }
   } else {

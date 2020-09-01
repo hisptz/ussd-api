@@ -10,10 +10,9 @@ import {
   getSyncServerByAppId,
   addSms
 } from '../../db';
-import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
-import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
+import { getAggregateData } from '../../endpoints/dataValueSets';
+import { getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
-import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
@@ -125,8 +124,8 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
     const dataValueSet = await getAggregateData(menu.data_set, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
     const ids = [];
     dataSet.dataSetElements.forEach(dataSetElement => {
-      console.log(dataSetElement.dataElement);
-      console.log(dataSetElement.categoryCombo);
+      //console.log(dataSetElement.dataElement);
+      //console.log(dataSetElement.categoryCombo);
       if (dataSetElement.categoryCombo) {
         dataSetElement.categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo => {
           let found = false;
@@ -145,7 +144,7 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
       }
     });
   }
-  console.log(returnValue);
+  //console.log(returnValue);
   return returnValue;
 };
 
@@ -316,6 +315,8 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   const { dataValues } = sessionDatavalues;
   const { orgUnit } = sessions;
 
+  //console.log('org Unit :: ', orgUnit);
+
   let application_info = await getApplicationById(sessions.application_id);
 
   const { phone_number_mapping, auto_generated_field } = application_info;
@@ -323,10 +324,23 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   try {
     dtValues = JSON.parse(dataValues);
   } catch (e) {}
-  let dtArray = dtValues.map(({ dataElement, value }) => ({
-    dataElement,
-    value
-  }));
+
+  //console.log('dtValues :: ', JSON.stringify(dtValues, null, 4));
+  let dtArray = [];
+
+  await _.each(dtValues, dtValue => {
+    dtArray.push({
+      dataElement: dtValue['dataElement'] == '' && dtValue['value'] == 'Maternal Death' ? 'Of2oRqwosOB' : dtValue['dataElement'],
+      value: dtValue['value']
+    });
+  });
+
+  //console.log('dt array :: ', dtArray);
+
+  // dtValues.map(({ dataElement, value }) => ({
+
+  // }));
+
   // adding phone number if exist on mapping
   if (phone_number_mapping && phone_number_mapping[program]) {
     const mappings = phone_number_mapping[program];
@@ -431,7 +445,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       programStage,
       eventDate: getEventDate(),
       orgUnit,
-      status: '',
+      status: 'COMPLETED',
       dataValues: dtArray
     };
 
@@ -516,7 +530,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
 
   try {
     const trackedEntityInstance = await generateCode();
-    console.log('id ::: >', trackedEntityInstance);
+    //console.log('id ::: >', trackedEntityInstance);
     let trackerUpdateData = {
       trackedEntityInstance: trackedEntityInstance,
       trackedEntityType,
@@ -534,7 +548,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
       attributes: [...dtArray, { attribute: 'CxSxifEaRzd', value: idsrCaseId.value }]
     };
 
-    console.log(' i get here ::', trackerUpdateData);
+    //console.log(' i get here ::', trackerUpdateData);
 
     const response = await updateSessionDataValues(sessionid, {
       sessionid: sessionid,

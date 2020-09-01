@@ -49,6 +49,7 @@ const sync = async () => {
         console.log('unsynced entry :: ', unsyncedEntry);
         //do the sync
         if (dataValues.datatype === 'event') {
+          console.log('event ?????');
           if (dataValues.event) {
             //update the event
             let response;
@@ -78,6 +79,7 @@ const sync = async () => {
             let response;
 
             try {
+              console.log('data to send :: ', JSON.stringify(dataValues.dataValues, null, 4));
               response = await postEventData(dataValues.dataValues, serverDetails);
               console.log('response ::: ', response);
             } catch (e) {
@@ -145,6 +147,7 @@ const sync = async () => {
             await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
           }
         } else if (dataValues.datatype === 'tracker') {
+          console.log('tracker ?????');
           //post the event
           let response;
           try {
@@ -153,7 +156,7 @@ const sync = async () => {
             console.log(error);
           }
 
-          console.log('responce form post tracker :::', response);
+          console.log('responce form post tracker :::', JSON.stringify(response.response.importSummaries, null, 4));
           if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
             //update sync boolean to true
             await updateSync(
