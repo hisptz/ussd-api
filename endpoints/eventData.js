@@ -2,6 +2,7 @@ const r2 = require('r2');
 import { appConfig, getAuthorizationString } from '../config/app.config';
 
 export const postEventData = data => {
+  //console.log(data);
   const baseUrl = appConfig.url;
   const url = `${baseUrl}/api/events`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
@@ -15,9 +16,10 @@ export const postEventData = data => {
 
 export const getEventData = (dataElement, data, program) => {
   const baseUrl = appConfig.url;
+
   const url = `${baseUrl}/api/events.json?program=${program}&filter=${dataElement}:eq:${data}`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
-  console.log('url', url);
+  //console.log('url', url);
   return r2.get(url, {
     headers: {
       Authorization

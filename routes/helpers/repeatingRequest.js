@@ -11,7 +11,8 @@ import {
   collectOrganisationUnitData,
   validatedData,
   ruleNotPassed,
-  getCurrentSessionDataValue
+  getCurrentSessionDataValue,
+  collectFacilityType
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
@@ -93,10 +94,11 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     const menus = datastore.menus;
     const _currentMenu = menus[currentmenu];
 
+    //console.log(_currentMenu);
+
     // checking for previous menu is not auth and checking if user need previous menu
     const _previous_menu = menus[_currentMenu.previous_menu] || {};
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
-      console.log('option1');
       response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
     } else {
       if (_currentMenu.type === 'fetch') {
@@ -128,7 +130,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         console.log('got into the id gen block');
         const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, id_gen_menu, USSDRequest, menus);
         if (passed) {
-          console.log('correct Options :::', correctOption);
+          //console.log('correct Options :::', correctOption);
           response = await collectData(sessionid, id_gen_menu, correctOption);
           if (next_menu_response) {
             response = next_menu_response;
@@ -152,14 +154,14 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
         }
       } else if (_currentMenu.type === 'data') {
-        console.log('where data is collected');
+        //console.log('where data is collected');
         const { options } = _currentMenu;
         if (options && options.length) {
           //console.log('test here', sessionid, 'current menu :::', _currentMenu, 'ussd req ::::', USSDRequest, 'menus :::', menus);
 
           const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, _currentMenu, USSDRequest, menus);
           if (passed) {
-            console.log('correct Options :::', correctOption);
+            //console.log('correct Options :::', correctOption);
             response = await collectData(sessionid, _currentMenu, correctOption);
             if (next_menu_response) {
               response = next_menu_response;
@@ -177,8 +179,32 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             const retry_message = menus.retry_message || 'You did not enter numerical value, try again';
             response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
           } else {
-            response = await collectData(sessionid, _currentMenu, USSDRequest);
-            response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+            //verify hfr code.
+            if (_currentMenu.id && _currentMenu.id == '2e9HHYjKFcX8hxBRPL2rkPkRRLBLN6e') {
+              let facility = await getOrganisationUnitByCode(USSDRequest);
+
+              if (facility['organisationUnits'] && facility['organisationUnits'].length > 0) {
+                response = await collectData(sessionid, _currentMenu, USSDRequest);
+                response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+              } else {
+                response = await returnNextMenu(
+                  sessionid,
+                  _currentMenu.id,
+                  menus,
+                  'kituo chenye namba ya msimbo uliyoitaja hakipo, jaribu tena'
+                );
+              }
+            } else {
+              const ruleResults = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
+              console.log('rule results :: ', ruleResults);
+
+              if (ruleResults) {
+                response = await returnNextMenu(sessionid, _currentMenu.id, menus, ruleResults.errorMessage);
+              } else {
+                response = await collectData(sessionid, _currentMenu, USSDRequest);
+                response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+              }
+            }
           }
         }
       } else if (_currentMenu.type === 'options') {
@@ -193,7 +219,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       }
       // if you are to submit data submit here.
       if (_currentMenu.submit_data) {
-        console.log('data submissions ::::> ', _currentMenu.submit_data);
+        //console.log('data submissions ::::> ', _currentMenu.submit_data);
         console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
           console.log('route2');
@@ -283,7 +309,7 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
 const returnNextMenu = async (sessionid, next_menu, menus, additional_message) => {
   let message;
 
-  console.log('next menu ------.....>>>>', next_menu);
+  //console.log('next menu ------.....>>>>', next_menu);
 
   await updateUserSession(sessionid, {
     currentmenu: next_menu,
@@ -293,8 +319,8 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
   //console.log('here', menu);
 
-  console.log('menu', menu);
-  console.log('menus', menus);
+  //console.log('menu', menu);
+  //console.log('menus', menus);
   const _previous_menu = menus[menu.previous_menu] || {};
   //console.log('menu.type:', menu.type);
   if (menu.type === 'options') {
@@ -327,7 +353,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       }
     }
   } else if (menu.type === 'message') {
-    console.log('here at message menu');
+    //console.log('here at message menu');
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
@@ -356,10 +382,9 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
     let orgUnitDetails = await getOrganisationUnit(session.orgUnit);
 
-    let code = await getCode(orgUnitDetails.code);
-    //console.log('code----->>>>', code, session);
+    const code = await getCode(orgUnitDetails.code);
 
-    let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
+    let generatedId = parseInt(orgUnitDetails.code + '' + code.listGrid.rows[0][0]);
     id_gen_menu = menus[menu.id];
     id_gen_menu['options'] = [{ id: '123', response: '1', title: ' tuma id', value: generatedId.toString() }];
     message = {
@@ -505,6 +530,7 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
   //checking for period value and return appropriate menu in case of wrong selection
   if (isNumeric(answer)) {
     const ruleHasNotPassed = await ruleNotPassed(sessionid, menu, answer);
+    console.log('ou rule results :: ', ruleHasNotPassed);
 
     if (ruleHasNotPassed) {
       if (ruleHasNotPassed.type === 'ERROR') {
@@ -539,12 +565,14 @@ const terminateWithMessage = async (sessionid, menu) => {
   let dataValues = await getSessionDataValue(sessionid);
   let referenceNumber = _.find(dataValues.dataValues, dataValue => {
     return dataValue.dataElement == 'KlmXMXitsla';
-  }).value;
+  });
 
   let message = menu.title;
-  message = message.split('${ref_number}').join(referenceNumber);
+  if (referenceNumber) {
+    message = message.split('${ref_number}').join(referenceNumber.value);
+  }
 
-  console.log('here at last menu message');
+  //console.log('here at last menu message');
 
   return {
     response_type: 1,

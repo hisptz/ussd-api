@@ -3,7 +3,7 @@ import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSe
 import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
-import { getOrganisationUnit } from '../../endpoints/organisationUnit';
+import { getOrganisationUnit, getOrganisationUnitByCode } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
 
@@ -59,11 +59,11 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
   }
 };
 export const ruleNotPassed = async (sessionid, menu, answer) => {
-  if (menu.rules) {
+  if (menu.pRules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
 
     let retValue = false;
-    menu.rules.forEach(rule => {
+    menu.pRules.forEach(rule => {
       let ruleEval = rule.condition;
       if (sessionDatavalues && sessionDatavalues.dataValues) {
         let dtValues = sessionDatavalues.dataValues;
@@ -76,14 +76,19 @@ export const ruleNotPassed = async (sessionid, menu, answer) => {
       }
       ruleEval = ruleEval.split('#{' + menu.data_element + '}').join(answer);
       ruleEval = ruleEval.split('#{answer}').join(answer);
+
+      //console.log('rule string :: ', ruleEval);
       try {
         if (eval('(' + ruleEval + ')')) {
           retValue = rule.action;
         }
       } catch (e) {}
     });
+
+    //console.log('ret value ::', retValue);
     return retValue;
   } else {
+    //console.log('here');
     return false;
   }
 };
@@ -207,13 +212,17 @@ export const completeForm = async (sessionid, phoneNumber) => {
     //console.log('dataValues', dataValues);
     let referenceNumber = _.find(dataValues.dataValues, dataValue => {
       return dataValue.dataElement == 'KlmXMXitsla';
-    }).value;
+    });
 
     let message = menu.submission_message;
     message = message.split('${period_year}').join(year);
     message = message.split('${sub_period}').join(period);
     message = message.split('${org_unit_code}').join(orgUnitDetails.code);
-    message = message.split('${ref_number}').join(referenceNumber);
+
+    if (referenceNumber) {
+      message = message.split('${ref_number}').join(referenceNumber.value);
+    }
+
     const result = await sendSMS(phoneNumbers, message);
   }
   return response;
@@ -267,14 +276,41 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
   if (currentMenu.mode) {
     if (currentMenu.mode == 'event_update') {
+      //console.log('1 ::: > ', dtArray);
       let referralId = _.find(dtArray, dt => {
         return dt.dataElement == 'KlmXMXitsla';
       }).value;
+
+      //console.log('referal', referralId);
 
       let hfrCode = _.find(dtArray, dt => {
         return dt.dataElement == 'MfykP4DsjUW';
       }).value;
 
+      // console.log('dtArrayy :: ', dtArray);
+      // let facilityType = _.find(dtArray, dt => {
+      //   return dt.dataElement == 'SMzP1R6D1dV';
+      // }).value;
+
+      let facility = await getOrganisationUnitByCode(hfrCode);
+      //console.log(hfrCode, 'facility :: ', facility);
+      let facilityTypeName = () => {
+        if (facility.organisationUnits && facility.organisationUnits.length > 0) {
+          let facilityType = _.filter(facility.organisationUnits[0]['organisationUnitGroups'], ouGroup => {
+            let groupSets = _.filter(ouGroup['groupSets'], groupSet => {
+              return groupSet.id == 'VG4aAdXA4JI' ? true : false;
+            });
+
+            return groupSets.length > 0 ? true : false;
+          });
+
+          let facilityTypeName = facilityType.length > 0 ? facilityType[0].name : null;
+
+          return facilityTypeName;
+        }
+      };
+
+      //console.log('hfr ::: > ', hfrCode);
       let hfrDataValue = {
         lastUpdated: getEventDate(),
         created: getEventDate(),
@@ -283,8 +319,17 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         providedElsewhere: false
       };
 
-      let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
+      let facilityObject = {
+        lastUpdated: getEventDate(),
+        created: getEventDate(),
+        dataElement: 'SMzP1R6D1dV',
+        value: facilityTypeName(),
+        providedElsewhere: false
+      };
 
+      let currentEventData = await getEventData('KlmXMXitsla', referralId.toString(), currentMenu.program);
+
+      //console.log(currentEventData);
       //console.log('current event data', currentEventData);
 
       let eventUpdatedData = {};
@@ -296,22 +341,46 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       eventUpdatedData['event'] = currentEventData.events[0].event;
       eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
       eventUpdatedData['completedDate'] = getEventDate();
-      eventUpdatedData.dataValues.push(hfrDataValue);
+      eventUpdatedData.dataValues = [...eventUpdatedData.dataValues, hfrDataValue, facilityObject];
       //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
       //console.log('hfrCode', hfrCode);
 
+      let number = _.find(eventUpdatedData.dataValues, dt => {
+        return dt.dataElement == 'lDcAemv4pVO';
+      })
+        ? _.find(eventUpdatedData.dataValues, dt => {
+            return dt.dataElement == 'lDcAemv4pVO';
+          }).value
+        : '';
+
+      //console.log('number :: ', number);
+
       const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
+
+      //console.log('updated values', eventUpdatedData.dataValues);
+      //console.log('response', response);
+
+      if (response && response.httpStatusCode == 200 && response.httpStatus == 'OK' && number != '') {
+        sendSMS(
+          [number],
+          `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye kituo ${facility['organisationUnits'][0]['displayName']} chenye Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
+        );
+      }
+
+      //original message: `Mteja wako mwenye kumb. Na. ${referralId} ya rufaa, amepokelewa kwenye (Aina ya kituo) ya/cha (Jina la kituo) Namba ya msimbo ${hfrCode}. Asante kwa kufuata utaratibu uliowekwa kwa  kutoa rufaa inapotakiwa.`
 
       return response;
     }
   } else {
+    //added dataelement 'zaujKG9gZFs' for storing phonenumber for future sms when confirming referall, should be handled different in feature-sync branch
+
     const response = await postEventData({
       program,
       programStage,
       eventDate: getEventDate(),
       orgUnit,
       status: 'COMPLETED',
-      dataValues: dtArray
+      dataValues: [...dtArray, { dataElement: 'lDcAemv4pVO', value: msisdn }]
     });
 
     return response;
