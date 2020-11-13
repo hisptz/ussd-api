@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile-nginx
     image: nginx/idsr:1.0.0
     ports:
-        - "3000:80"
+        - "5000:80"
     restart: always
   database:
     image: postgres:10.12
