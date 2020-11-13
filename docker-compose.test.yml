@@ -20,7 +20,7 @@ services:
   ussd-1:
     image: node:10.18.1-alpine3.11
     working_dir: /home/app
-    command: npm start
+    command: npm run dev
     restart: always
     volumes:
       - type: bind
