@@ -1,7 +1,15 @@
 export const appConfig = {
-    url: "https://play.dhis2.org/2.28",
-    username: "admin",
-    password: "district"
+    url: "http://172.18.0.1:8080",
+    username: "ussd",//"ussd_api"
+    password: "DHIS2013",//Pass@USSD1234",
+    otherServers: [
+        {
+            url: 'https://dhis.moh.go.tz',
+            username: "ussd",
+            password: "DHIS2013"
+        }
+    ],
+    dataStoreId: "idsr",
 }
 
 export function getAuthorizationString(username, password) {
