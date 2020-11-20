@@ -40,9 +40,12 @@ export const getCurrentSessionByPhoneNumber = (mssdn, sessionTimeout, testConn) 
 };
 export const getCurrentSession = (sessionid, testConn) => {
     const conn = testConn || connection;
-    return conn('sessions')
+    let y = conn('sessions')
         .where('sessionid', sessionid)
         .first();
+
+        console.log("the res :: ",y)
+        return y;
 };
 
 export const getSessionDataValue = (sessionid, testConn) => {
