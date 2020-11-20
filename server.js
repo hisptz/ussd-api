@@ -4,6 +4,7 @@ const logger = require('morgan');
 const mssdnRoutes = require('./routes/mssdn');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+import { sendSMS } from './endpoints/sms';
 dotenv.config();
 
 import {
