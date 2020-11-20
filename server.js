@@ -28,4 +28,31 @@ server.use(function(req, res, next) {
 
 server.use('/' + appConfig.dataStoreId, mssdnRoutes);
 
+server.use('/sms', async (req, res) => {
+  console.log('Send SMS');
+  let { phoneNumbers,text } = req.query;
+  if(!phoneNumbers){
+    res.send({
+      status:'ERROR',
+      message:'No Phone number set',
+    });
+    return;
+  }
+  if(!text){
+    res.send({
+      status:'ERROR',
+      message:'No text message set',
+    });
+    return;
+  }
+  var results = await sendSMS(phoneNumbers.split(','),text);
+  if(results.error){
+    res.status(500);
+    res.send(results);
+    fs.writeFileSync('sms-error.log',`${JSON.stringify(req.query)}:${JSON.stringify(results)}`);
+  }else{
+    res.send(results);
+  }
+});
+
 module.exports = server;
