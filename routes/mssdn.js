@@ -17,6 +17,14 @@ const db = require('../db');
 
 const router = express.Router();
 
+const format = response => {
+  //console.log('respose :::> ', response);
+  return {
+    ...response,
+    header_type: response.response_type === 1 ? '3' : '' + response.response_type
+  };
+};
+
 const requestHandler = async (req, res) => {
   //console.log("process :",process)
   console.log('Called Port:', process.env.PORT);
@@ -45,7 +53,7 @@ const requestHandler = async (req, res) => {
           done: true
         });
       }
-      res.send(response);
+      res.send(format(response));
     } catch (e) {
       response = {
         response_type: 1,
@@ -71,7 +79,7 @@ const requestHandler = async (req, res) => {
     } else {
       response = await repeatingRequest(sessionid, USSDRequest, msisdn);
     }
-    res.send(response);
+    res.send(format(response));
   }  
 };
 
