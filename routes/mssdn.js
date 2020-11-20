@@ -18,6 +18,7 @@ const db = require('../db');
 const router = express.Router();
 
 const requestHandler = async (req, res) => {
+  //console.log("process :",process)
   console.log('Called Port:', process.env.PORT);
   if (appConfig.setSessionTimeout){
     try {
