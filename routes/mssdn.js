@@ -30,13 +30,24 @@ const requestHandler = async (req, res) => {
   console.log('Called Port:', process.env.PORT);
   if (appConfig.setSessionTimeout){
     try {
+      // let {
+      //   sessionid,
+      //   telco,
+      //   USSDRequest,
+      //   msisdn,
+      //   USSDType
+      // } = req.query;
+
       let {
-        sessionid,
-        telco,
-        USSDRequest,
-        msisdn,
-        USSDType
+        transaction_id,
+        welcome_page,
+        mno,
+        msisdn
       } = req.params;
+
+      let sessionid = transaction_id;
+      let USSDRequest = welcome_page;
+      let telco = mno;
 
       //const isNewRequest = USSDType === 'NR';
       let response;
