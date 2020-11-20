@@ -21,7 +21,10 @@ export const returnAuthenticationResponse = async (mssdn, sessionid) => {
     settings,
     menus
   } = dataStore;
-  response = `C;${sessionid};${settings.no_user_message}`;
+  response = {
+    response_type: 1,
+    text: settings.no_user_message
+  };
   if (users.length) {
     const starting_menu = menus[settings.starting_menu];
     const name = users[0].displayName;

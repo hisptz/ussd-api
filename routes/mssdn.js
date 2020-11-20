@@ -18,7 +18,7 @@ const db = require('../db');
 const router = express.Router();
 
 const format = response => {
-  //console.log('respose :::> ', response);
+  console.log('respose :::> ', response);
   return {
     ...response,
     header_type: response.response_type === 1 ? '3' : '' + response.response_type
