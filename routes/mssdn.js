@@ -39,14 +39,18 @@ const requestHandler = async (req, res) => {
       } else {
         response = await returnAuthenticationResponse(msisdn, sessionid);
       }
-      if (response.indexOf('C;') > -1) {
+      if (response.response_type == 1) {
         await db.updateUserSession(sessionid, {
           done: true
         });
       }
       res.send(response);
     } catch (e) {
-      res.send('C;${sessionid};Server Error. Please try again.');
+      response = {
+        response_type: 1,
+        text: 'Server Error. Please try again.'
+      };
+      
       console.log(e.stack);
 
     }
