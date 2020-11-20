@@ -36,7 +36,8 @@ const requestHandler = async (req, res) => {
         USSDRequest,
         msisdn,
         USSDType
-      } = req.query;
+      } = req.params;
+
       //const isNewRequest = USSDType === 'NR';
       let response;
       const session = await db.getCurrentSessionByPhoneNumber(msisdn, appConfig.setSessionTimeout);
@@ -83,6 +84,8 @@ const requestHandler = async (req, res) => {
   }  
 };
 
-router.get('/', requestHandler);
+console.log(requestHandler);
+
+router.post('/', requestHandler);
 
 module.exports = router;
