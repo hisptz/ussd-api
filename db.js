@@ -44,7 +44,7 @@ export const getCurrentSession = (sessionid, testConn) => {
         .where('sessionid', sessionid)
         .first();
 
-        console.log("the res :: ",y)
+        //console.log("the res :: ",y)
         return y;
 };
 

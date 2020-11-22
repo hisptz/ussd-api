@@ -83,17 +83,20 @@ const requestHandler = async (req, res) => {
 
     let { transaction_id, welcome_page, mno, msisdn } = req.body;
 
-    let { USSDType } = req.query;
 
     let sessionid = transaction_id;
     let USSDRequest = welcome_page;
     let telco = mno;
 
 
-    console.log('session :: ', sessionid, "req :: " ,USSDRequest,"trans_id :: ", transaction_id);
+    //console.log('session :: ', sessionid, "req :: " ,USSDRequest,"trans_id :: ", transaction_id);
     let session = await db.getCurrentSession(sessionid);
 
-    const isNewRequest = USSDType === 'NR';
+    //console.log("the sess: ", session)
+
+    const isNewRequest = session? false: true;
+
+    console.log("newReq :: ", isNewRequest)
 
     let response;
     if (isNewRequest) {
