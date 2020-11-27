@@ -216,9 +216,9 @@ const completeForm = async (sessionid, phoneNumber) => {
       .split('Z')
       .join('') +
     ', District: ' +
-    orgUnitDetails?.parent?.name +
+    orgUnitDetails.parent.name +
     ', Facility Name: ' +
-    orgUnitDetails?.name +
+    orgUnitDetails.name +
     '. Thank you';
   const result = await sendSMS(phoneNumbers, message);
   return response;
