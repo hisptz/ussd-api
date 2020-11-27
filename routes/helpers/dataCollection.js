@@ -216,9 +216,9 @@ const completeForm = async (sessionid, phoneNumber) => {
       .split('Z')
       .join('') +
     ', District: ' +
-    orgUnitDetails.parent.name +
+    orgUnitDetails?.parent?.name +
     ', Facility Name: ' +
-    orgUnitDetails.name +
+    orgUnitDetails?.name +
     '. Thank you';
   const result = await sendSMS(phoneNumbers, message);
   return response;
@@ -299,6 +299,8 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
       const orgUnitDetails = await getOrganisationUnit(orgUnit);
       message = message.split('V{org_unit_name}').join(orgUnitDetails.name);
       message = message.split('V{org_unit_parent_name}').join(orgUnitDetails.parent.name);
+
+      console.log(orgUnitDetails)
       if (programNotificationTemplate.notificationRecipient === 'USER_GROUP') {
         const userGroup = await getUserGroup(programNotificationTemplate.recipientUserGroup.id);
         userGroup.users.forEach(async user => {

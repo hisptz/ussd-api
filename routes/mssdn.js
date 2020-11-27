@@ -111,6 +111,7 @@ const requestHandler = async (req, res) => {
 
 const getRequestHandler = async(req, res) => {
 
+
   //console.log("process :",process)
   console.log('Called Port:', process.env.PORT);
   if (appConfig.setSessionTimeout) {
@@ -150,33 +151,38 @@ const getRequestHandler = async(req, res) => {
       console.log(e.stack);
     }
   } else {
+    
+    try{
+      const {
+        sessionid,
+        input,
+        msisdn,
+      } = req.query;
+  
+      let USSDRequest = input;
+  
+  
+      //console.log('session :: ', sessionid, "req :: " ,USSDRequest,"trans_id :: ", transaction_id);
+      let session = await db.getCurrentSession(sessionid);
+  
+      //console.log("the sess: ", session)
+  
+      const isNewRequest = session? false: true;
+  
+      console.log("newReq :: ", isNewRequest)
+  
+      let response;
+      if (isNewRequest) {
+        response = await returnAuthenticationResponse(msisdn, sessionid);
+      } else {
+        response = await repeatingRequest(sessionid, USSDRequest, msisdn);
+      }
+  
+      res.send(format(response));
+
+    }catch(e){}
  
-    const {
-      sessionid,
-      input,
-      msisdn,
-    } = req.query;
-
-    let USSDRequest = input;
-
-
-    //console.log('session :: ', sessionid, "req :: " ,USSDRequest,"trans_id :: ", transaction_id);
-    let session = await db.getCurrentSession(sessionid);
-
-    //console.log("the sess: ", session)
-
-    const isNewRequest = session? false: true;
-
-    console.log("newReq :: ", isNewRequest)
-
-    let response;
-    if (isNewRequest) {
-      response = await returnAuthenticationResponse(msisdn, sessionid);
-    } else {
-      response = await repeatingRequest(sessionid, USSDRequest, msisdn);
-    }
-
-    res.send(format(response));
+    
   }
 
 }
