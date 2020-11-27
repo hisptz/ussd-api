@@ -109,8 +109,82 @@ const requestHandler = async (req, res) => {
   }
 };
 
+const getRequestHandler = async(req, res) => {
+
+  //console.log("process :",process)
+  console.log('Called Port:', process.env.PORT);
+  if (appConfig.setSessionTimeout) {
+    try {
+      let {
+        sessionid,
+        input,
+        msisdn
+      } = req.query;
+
+      let USSDRequest = input;
+      
+
+      //const isNewRequest = USSDType === 'NR';
+      let response;
+      const session = await db.getCurrentSessionByPhoneNumber(msisdn, appConfig.setSessionTimeout);
+      if (session) {
+        await db.updateUserSession(session.sessionid, {
+          sessionid: sessionid,
+        });
+        response = await repeatingRequest(sessionid, USSDRequest, msisdn);
+      } else {
+        response = await returnAuthenticationResponse(msisdn, sessionid);
+      }
+      if (response.response_type == 1) {
+        await db.updateUserSession(sessionid, {
+          done: true,
+        });
+      }
+      res.send(format(response));
+    } catch (e) {
+      response = {
+        response_type: 1,
+        text: 'Server Error. Please try again.',
+      };
+
+      console.log(e.stack);
+    }
+  } else {
+ 
+    const {
+      sessionid,
+      input,
+      msisdn,
+    } = req.query;
+
+    let USSDRequest = input;
+
+
+    //console.log('session :: ', sessionid, "req :: " ,USSDRequest,"trans_id :: ", transaction_id);
+    let session = await db.getCurrentSession(sessionid);
+
+    //console.log("the sess: ", session)
+
+    const isNewRequest = session? false: true;
+
+    console.log("newReq :: ", isNewRequest)
+
+    let response;
+    if (isNewRequest) {
+      response = await returnAuthenticationResponse(msisdn, sessionid);
+    } else {
+      response = await repeatingRequest(sessionid, USSDRequest, msisdn);
+    }
+
+    res.send(format(response));
+  }
+
+}
+
 console.log(requestHandler);
 
 router.post('/', requestHandler);
+
+router.get('/', getRequestHandler);
 
 module.exports = router;
