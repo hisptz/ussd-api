@@ -77,7 +77,7 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
 
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
 
-    //console.log('what are these', operands.dataElementOperands);
+    console.log('what are these', operands.dataElementOperands);
 
     operands.dataElementOperands.forEach(dataElementOperand => {
       let found = false;
