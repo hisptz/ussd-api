@@ -36,13 +36,13 @@ const requestHandler = async (req, res) => {
       //   msisdn,
       //   USSDType
       // } = req.query;
-      console.log("req body :: ",req.body)
+      // console.log("req body :: ",req.body)
 
-      let { transaction_id, welcome_page, mno, msisdn } = req.body;
+      let { sessionid, input, msisdn } = req.body;
 
       let sessionid = transaction_id;
-      let USSDRequest = welcome_page;
-      let telco = mno;
+      let USSDRequest = input;
+      // let telco = mno;
 
       //const isNewRequest = USSDType === 'NR';
       let response;
@@ -79,16 +79,11 @@ const requestHandler = async (req, res) => {
     //   USSDType
     // } = req.query;
 
-    console.log("req body :: ",req.body)
+    // console.log("req body :: ",req.body)
 
-    let { transaction_id, welcome_page, mno, msisdn } = req.body;
+    let { sessionid, input, msisdn } = req.body;
 
-
-    let sessionid = transaction_id;
-    let USSDRequest = welcome_page;
-    let telco = mno;
-
-
+    let USSDRequest = input;
     //console.log('session :: ', sessionid, "req :: " ,USSDRequest,"trans_id :: ", transaction_id);
     let session = await db.getCurrentSession(sessionid);
 
