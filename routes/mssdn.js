@@ -40,7 +40,7 @@ const requestHandler = async (req, res) => {
 
       let { sessionid, input, msisdn } = req.body;
 
-      let sessionid = transaction_id;
+      //let sessionid = transaction_id;
       let USSDRequest = input;
       // let telco = mno;
 
