@@ -312,7 +312,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
         if(period.indexOf('W') > -1){
           let currentWeek = getWeekNumber(new Date());
           if(currentWeek === 1){
-            currentWeek = 53;
+            currentWeek = 54;
           }
           if(parseInt(period.substr(1)) >= currentWeek){
             const retry_message = `Future periods are not allowed, try again`;
