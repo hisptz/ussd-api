@@ -24,6 +24,14 @@ const startSync = async () => {
 
   let smsResponse = await sendSMS(['0738238564'],'Message to send')
 
+  let smsResponse = await sendSMS(['255738238564'],'Message to send')
+
+  let smsResponse = await sendSMS(['0656548317'],'Message to send')
+
+  let smsResponse = await sendSMS(['255656548317'],'Message to send')
+
+  let smsResponse = await sendSMS(['0659376016'],'Message to send')
+
   console.log("response :: ", smsResponse);
 
   while (true) {
