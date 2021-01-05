@@ -22,6 +22,10 @@ const http_status = ['OK', 'SUCCESS'];
 const startSync = async () => {
   console.log('************************ SYNC & FEEDBACK STARTED ********************');
 
+  let smsResponse = await sendSMS(['0738238564'],'Message to send')
+
+  console.log("response :: ", smsResponse);
+
   while (true) {
     //process data syncs
     await sync();
