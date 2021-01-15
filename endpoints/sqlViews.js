@@ -12,3 +12,18 @@ export const getCode = async id => {
     }
   }).json;
 };
+
+export const getEventUidByCode = async code => {
+  
+  const baseUrl = appConfig.url;
+
+  const url = `${baseUrl}/api/sqlViews/OZZLbhMFqfm/data.json?var=code:${code}`
+
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.get(url, {
+    headers: {
+      Authorization
+    }
+  }).json;
+}

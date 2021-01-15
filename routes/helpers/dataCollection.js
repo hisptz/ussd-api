@@ -1,11 +1,12 @@
 import { getSessionDataValue, updateSessionDataValues, addSessionDatavalues, updateUserSession, getCurrentSession } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
-import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
+import { postEventData, updateEventData, getEventData, getEventByUid } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit, getOrganisationUnitByCode } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
+import { getEventUidByCode } from '../../endpoints/sqlViews';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -327,19 +328,32 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         providedElsewhere: false
       };
 
-      let currentEventData = await getEventData('KlmXMXitsla', referralId.toString(), currentMenu.program);
+      let eventUid = await getEventUidByCode(referralId.toString());
 
-      //console.log(currentEventData);
-      //console.log('current event data', currentEventData);
+      console.log("event uid :: ", eventUid)
+
+      // let currentEventData = await getEventData('KlmXMXitsla', referralId.toString(), currentMenu.program);
+
+      let currentEventData;
+
+      if(eventUid['listGrid']['rows'] && eventUid['listGrid']['rows'][0] && eventUid['listGrid']['rows'][0][0]){
+        currentEventData = await getEventByUid(eventUid['listGrid']['rows'][0][0]);
+
+      }else{
+        
+      }
+      
+      console.log(currentEventData);
+      console.log('current event data', currentEventData);
 
       let eventUpdatedData = {};
-      eventUpdatedData['program'] = currentEventData.events[0].program;
-      eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
-      eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
-      eventUpdatedData['status'] = currentEventData.events[0].status;
-      eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
-      eventUpdatedData['event'] = currentEventData.events[0].event;
-      eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
+      eventUpdatedData['program'] = currentEventData.program;
+      eventUpdatedData['programStage'] = currentEventData.programStage;
+      eventUpdatedData['orgUnit'] = currentEventData.orgUnit;
+      eventUpdatedData['status'] = currentEventData.status;
+      eventUpdatedData['eventDate'] = currentEventData.eventDate;
+      eventUpdatedData['event'] = currentEventData.event;
+      eventUpdatedData['dataValues'] = currentEventData.dataValues;
       eventUpdatedData['completedDate'] = getEventDate();
       eventUpdatedData.dataValues = [...eventUpdatedData.dataValues, hfrDataValue, facilityObject];
       //console.log('eventsUpdatedData', eventUpdatedData.dataValues);

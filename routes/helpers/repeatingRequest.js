@@ -321,7 +321,18 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
   //console.log('menu', menu);
   //console.log('menus', menus);
-  const _previous_menu = menus[menu.previous_menu] || {};
+  let _previous_menu;
+  
+  if(menu){
+
+    _previous_menu = menus[menu.previous_menu] || {};
+
+  }else{
+    _previous_menu = {}
+  }
+
+  
+  console.log("the menu >>> ", menu)
   //console.log('menu.type:', menu.type);
   if (menu.type === 'options') {
     message = {
