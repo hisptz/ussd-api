@@ -17,9 +17,9 @@ export const postEventData = data => {
 export const getEventData = (dataElement, data, program) => {
   const baseUrl = appConfig.url;
 
-  console.log("data elem :: ",dataElement);
-  console.log("data :: ", data)
-  console.log("program :: ", program)
+  // console.log("data elem :: ",dataElement);
+  // console.log("data :: ", data)
+  // console.log("program :: ", program)
 
 
 

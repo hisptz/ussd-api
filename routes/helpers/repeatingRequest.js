@@ -12,19 +12,19 @@ import {
   validatedData,
   ruleNotPassed,
   getCurrentSessionDataValue,
-  collectFacilityType
+  collectFacilityType,
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
-import { getEventData } from '../../endpoints/eventData';
-import { getCode } from '../../endpoints/sqlViews';
+import { getEventByUid, getEventData } from '../../endpoints/eventData';
+import { getCode, getEventUidByCode } from '../../endpoints/sqlViews';
 // Deals with curren menu.
 
 const periodTypes = {
   Weekly: 'W',
   Monthly: '',
   BiMonthly: 'S',
-  Quoterly: 'Q'
+  Quoterly: 'Q',
 };
 
 const makeLocalUid = () => {
@@ -64,11 +64,11 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         id,
         sessionid,
         currentmenu: starting_menu.id,
-        retries: 0
+        retries: 0,
       };
       const insertResults = await addUserSession({
         ...session_data,
-        datastore: JSON.stringify(dataStore)
+        datastore: JSON.stringify(dataStore),
         //datastore: dataStore
       });
       currentmenu = starting_menu.id;
@@ -77,7 +77,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       response = {
         response_type: 2,
         text: starting_menu.title,
-        options: returnOptions(starting_menu)
+        options: returnOptions(starting_menu),
       };
       return response;
     } else {
@@ -127,7 +127,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         returnNextMenu(sessionid, _currentMenu.next_menu, menus);*/
       } else if (_currentMenu.type === 'id_generator') {
         //_currentMenu.options = [{ response: USSDRequest, title: 'bnfjkebfyuweu', value: 'bnfjkebfyuweu' }];
-        console.log('got into the id gen block');
+        // console.log('got into the id gen block');
         const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(sessionid, id_gen_menu, USSDRequest, menus);
         if (passed) {
           //console.log('correct Options :::', correctOption);
@@ -148,7 +148,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
           response = {
             response_type: 1,
-            text: _currentMenu.fail_message
+            text: _currentMenu.fail_message,
           };
         } else {
           response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, menus, retries);
@@ -194,9 +194,54 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                   'kituo chenye namba ya msimbo uliyoitaja hakipo, jaribu tena'
                 );
               }
+            } else if (_currentMenu.id && _currentMenu.id == 'CcDzSdx451SjHTpIg9vDpUe6cUhSm9G') {
+              // console.log("the req :: ",USSDRequest)
+
+              let eventUid = await getEventUidByCode(USSDRequest.toString());
+
+              console.log('events :: ', eventUid);
+
+              if (
+                eventUid &&
+                eventUid['listGrid'] &&
+                eventUid['listGrid']['rows'] &&
+                eventUid['listGrid']['rows'].length > 0 &&
+                eventUid['listGrid']['rows'][0].length > 0 &&
+                eventUid['listGrid']['rows'][0][0].length > 0
+              ) {
+                let eventObject = await getEventByUid(eventUid['listGrid']['rows'][0][0]);
+
+                //console.log('event object :: ', eventObject);
+
+                let FacilityHFRDataValue = _.filter(eventObject['dataValues'], (dataValue) => {
+                  return dataValue['dataElement'] == 'MfykP4DsjUW';
+                });
+
+                //console.log("facilities ::: ",FacilityHFRDataValue)
+
+                if (FacilityHFRDataValue.length > 0) {
+                  response = await returnNextMenu(
+                    sessionid,
+                    _currentMenu.id,
+                    menus,
+                    'Namba ya rufaa uliyoingiza imeshatumika. tafadhali ingiza  namba tena kwa usahihi'
+                  );
+
+                } else {
+                  response = await collectData(sessionid, _currentMenu, USSDRequest);
+                  response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
+                }
+              } else {
+                response = await returnNextMenu(
+                  sessionid,
+                  _currentMenu.id,
+                  menus,
+                  'Namba ya rufaa uliyoingiza haipo. tafadhali ingiza  namba tena kwa usahihi'
+                );
+              }
             } else {
               const ruleResults = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
-              console.log('rule results :: ', ruleResults);
+              // console.log('rule results :: ', ruleResults);
 
               if (ruleResults) {
                 response = await returnNextMenu(sessionid, _currentMenu.id, menus, ruleResults.errorMessage);
@@ -220,68 +265,68 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       // if you are to submit data submit here.
       if (_currentMenu.submit_data) {
         //console.log('data submissions ::::> ', _currentMenu.submit_data);
-        console.log('route1');
+        // console.log('route1');
         if ((_currentMenu.type = 'data-submission')) {
-          console.log('route2');
+          // console.log('route2');
           if (USSDRequest <= dataSubmissionOptions.length) {
-            console.log('route3');
+            // console.log('route3');
             if (dataSubmissionOptions[USSDRequest - 1]) {
-              console.log('route4');
+              // console.log('route4');
               const validation = await validatedData(sessionid, _currentMenu, menus);
               if (validation.notSet.length > 0) {
-                console.log('route5');
+                // console.log('route5');
                 const message = 'The following data is not entered:' + validation.notSet.join(',');
                 response = {
                   response_type: 1,
-                  text: message
+                  text: message,
                 };
               } else {
-                console.log('route6');
+                // console.log('route6');
                 // handling error message
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
                 if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
-                  console.log('route7');
+                  // console.log('route7');
                   await completeForm(sessionid, msisdn);
                   response = await returnNextMenu(sessionid, _currentMenu.next_menu, menus);
                 } else {
-                  console.log('route8');
+                  // console.log('route8');
                   //terminate with proper error messages
                   const error_message = await getSanitizedErrorMessage(requestResponse);
                   response = {
                     response_type: 1,
-                    text: error_message
+                    text: error_message,
                   };
                 }
               }
             } else {
-              console.log('route9');
+              // console.log('route9');
               response = {
                 response_type: 1,
-                text: 'Terminating the session'
+                text: 'Terminating the session',
               };
             }
           } else {
-            console.log('route10');
+            // console.log('route10');
             const retry_message = menus.retry_message || 'You did not enter the correct choice, try again';
             response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
           }
         } else {
-          console.log('route11');
+          // console.log('route11');
           const { httpStatus } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
           if (httpStatus !== OK) {
             response = {
               response_type: 1,
-              text: 'Terminating the session'
+              text: 'Terminating the session',
             };
           }
         }
       }
     }
   } catch (e) {
-    console.log(e);
+    // console.log(e);
     response = {
       response_type: 1,
-      text: 'Server Error. Please try again.'
+      text: 'Server Error. Please try again.',
     };
   }
   return response;
@@ -294,11 +339,11 @@ const checkAuthKey = async (sessionid, response, currentMenu, menus, retries) =>
     message = await returnNextMenu(sessionid, next_menu, menus);
   } else {
     await updateUserSession(sessionid, {
-      retries: Number(retries) + 1
+      retries: Number(retries) + 1,
     });
     message = {
       response_type: 2,
-      text: retry_message
+      text: retry_message,
     };
   }
 
@@ -313,7 +358,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 
   await updateUserSession(sessionid, {
     currentmenu: next_menu,
-    retries: 0
+    retries: 0,
   });
   const menu = menus[next_menu];
 
@@ -322,23 +367,20 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   //console.log('menu', menu);
   //console.log('menus', menus);
   let _previous_menu;
-  
-  if(menu){
 
+  if (menu) {
     _previous_menu = menus[menu.previous_menu] || {};
-
-  }else{
-    _previous_menu = {}
+  } else {
+    _previous_menu = {};
   }
 
-  
-  console.log("the menu >>> ", menu)
+  // console.log('the menu >>> ', menu);
   //console.log('menu.type:', menu.type);
   if (menu.type === 'options') {
     message = {
       response_type: 2,
       text: menu.title,
-      options: returnOptions(menu)
+      options: returnOptions(menu),
     };
   } else if (menu.type === 'period' || menu.type === 'data') {
     const { use_for_year, years_back } = menu;
@@ -347,19 +389,19 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
       const msg_str = [menu.title, ...arrayOfYears.map((year, index) => `${index + 1}. ${year}`)].join('\n');
       message = {
         response_type: 2,
-        text: msg_str
+        text: msg_str,
       };
     } else {
       if (menu.options && menu.options.length) {
         message = {
           response_type: 2,
           text: menu.title,
-          options: returnOptions(menu)
+          options: returnOptions(menu),
         };
       } else {
         message = {
           response_type: 2,
-          text: menu.title
+          text: menu.title,
         };
       }
     }
@@ -373,7 +415,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     message = {
       response_type: 2,
       text: menu.title,
-      options: returnOptions(menu)
+      options: returnOptions(menu),
       /*options: {
         '1': 'Kutuma',
         '2': 'Kukataa'
@@ -385,7 +427,7 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
   } else if (menu.type === 'ou') {
     message = {
       response_type: 2,
-      text: menu.title
+      text: menu.title,
     };
   } else if (menu.type === 'id_generator') {
     let session = await getCurrentSession(sessionid);
@@ -396,13 +438,13 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     const code = await getCode(orgUnitDetails.code);
 
     let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
-    console.log("Generated ID:", generatedId);
+    // console.log('Generated ID:', generatedId);
     id_gen_menu = menus[menu.id];
     id_gen_menu['options'] = [{ id: '123', response: '1', title: ' tuma id', value: generatedId.toString() }];
     message = {
       response_type: 2,
       text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo<br/>' + generatedId,
-      options: returnOptions(id_gen_menu)
+      options: returnOptions(id_gen_menu),
     };
   } else if (menu.type == 'fetch') {
     //fetch event details
@@ -431,24 +473,24 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
 // Option Answers.
 const checkOptionsAnswer = async (sessionid, menu, answer, menus) => {
   const { options } = menu;
-  const responses = options.map(option => option.response);
+  const responses = options.map((option) => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
     if (menu.type === 'options' && menu.options) {
       return {
         response_type: 2,
         text: menu.title + '\n' + (menu.retry_message || 'You did not enter the correct choice,try again'),
-        options: returnOptions(menu)
+        options: returnOptions(menu),
       };
     } else {
       return {
         response_type: 1,
-        text: `${menu.fail_message || 'You did not enter the correct choice'}`
+        text: `${menu.fail_message || 'You did not enter the correct choice'}`,
       };
     }
   }
 
-  const correctOption = options.filter(option => option.response === answer)[0];
+  const correctOption = options.filter((option) => option.response === answer)[0];
   const { next_menu } = correctOption;
   return await returnNextMenu(sessionid, next_menu, menus);
 };
@@ -456,14 +498,14 @@ const checkOptionsAnswer = async (sessionid, menu, answer, menus) => {
 // Option Answers.
 const checkOptionSetsAnswer = async (sessionid, menu, answer, menus) => {
   const { options } = menu;
-  const responses = options.map(option => option.response);
+  const responses = options.map((option) => option.response);
   let passed = true;
   let correctOption = null;
   let next_menu_response = null;
   if (!responses.includes(answer)) {
     passed = !passed;
   } else {
-    const { value, next_menu } = options.filter(option => option.response === answer)[0];
+    const { value, next_menu } = options.filter((option) => option.response === answer)[0];
     if (next_menu) {
       next_menu_response = await returnNextMenu(sessionid, next_menu, menus);
     }
@@ -472,7 +514,7 @@ const checkOptionSetsAnswer = async (sessionid, menu, answer, menus) => {
   return {
     passed,
     correctOption,
-    next_menu_response
+    next_menu_response,
   };
 };
 
@@ -487,7 +529,7 @@ const checkOptionSetsAnswer = async (sessionid, menu, answer, menus) => {
 // };
 const returnOptions = ({ options }) => {
   let returnOptions = {};
-  options.forEach(option => {
+  options.forEach((option) => {
     if (typeof option.response === 'boolean') {
       returnOptions[option.response ? '1' : '2'] = option.title;
     } else {
@@ -509,7 +551,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
       if (answer > 0 && answer <= limit) {
         const year = getYears(years_back)[answer - 1];
         await collectPeriodData(sessionid, {
-          year
+          year,
         });
       } else {
         const retry_message = menu.retry_message || `You did not enter the correct choice`;
@@ -522,7 +564,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, menus) => {
         const period =
           period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`;
         await collectPeriodData(sessionid, {
-          period
+          period,
         });
       } else {
         const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
@@ -542,7 +584,7 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
   //checking for period value and return appropriate menu in case of wrong selection
   if (isNumeric(answer)) {
     const ruleHasNotPassed = await ruleNotPassed(sessionid, menu, answer);
-    console.log('ou rule results :: ', ruleHasNotPassed);
+    // console.log('ou rule results :: ', ruleHasNotPassed);
 
     if (ruleHasNotPassed) {
       if (ruleHasNotPassed.type === 'ERROR') {
@@ -553,7 +595,7 @@ const checkOrgUnitAnswer = async (sessionid, menu, answer, menus) => {
       if (results.organisationUnits.length > 0) {
         const orgUnit = results.organisationUnits[0].id;
         await collectOrganisationUnitData(sessionid, {
-          orgUnit
+          orgUnit,
         });
         response = await returnNextMenu(sessionid, next_menu, menus);
       } else {
@@ -575,7 +617,7 @@ const terminateWithMessage = async (sessionid, menu) => {
   // TODO: DO other things like deleting session. not to overcloud database.
 
   let dataValues = await getSessionDataValue(sessionid);
-  let referenceNumber = _.find(dataValues.dataValues, dataValue => {
+  let referenceNumber = _.find(dataValues.dataValues, (dataValue) => {
     return dataValue.dataElement == 'KlmXMXitsla';
   });
 
@@ -589,15 +631,15 @@ const terminateWithMessage = async (sessionid, menu) => {
   return {
     response_type: 1,
     //text: 'message like this'
-    text: message
+    text: message,
   };
 };
 
-const isNumeric = n => {
+const isNumeric = (n) => {
   return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
-const getYears = years_back => {
+const getYears = (years_back) => {
   const currentYear = new Date().getFullYear();
   const arrayOfYears = [];
   for (let index = 0; index <= years_back; index++) {

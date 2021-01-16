@@ -343,8 +343,8 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         
       }
       
-      console.log(currentEventData);
-      console.log('current event data', currentEventData);
+      // console.log(currentEventData);
+      // console.log('current event data', currentEventData);
 
       let eventUpdatedData = {};
       eventUpdatedData['program'] = currentEventData.program;
