@@ -281,7 +281,9 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                   text: message,
                 };
               } else {
-                // console.log('route6');
+                
+                console.log('route6');
+                // console.log("current menu :: ", _currentMenu);
                 // handling error message
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
                 if (requestResponse && requestResponse.status && successStatus.includes(requestResponse.status)) {
@@ -311,7 +313,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             response = await returnNextMenu(sessionid, _currentMenu.id, menus, retry_message);
           }
         } else {
-          // console.log('route11');
+          console.log('route11');
           const { httpStatus } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest, menus);
           if (httpStatus !== OK) {
             response = {

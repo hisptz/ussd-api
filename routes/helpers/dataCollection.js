@@ -6,9 +6,10 @@ import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit, getOrganisationUnitByCode } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
-import { getEventUidByCode } from '../../endpoints/sqlViews';
+import { getEventUidByCode, getCode } from '../../endpoints/sqlViews';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
+  console.log('current menu :: ', _currentMenu);
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const { dataType, category_combo, data_element, program, program_stage } = _currentMenu;
   const dataValue = [
@@ -46,8 +47,47 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, menus) => {
   console.log('-------------------------*******----------------------------');
+  console.log('curr menu :: :: :: ', _currentMenu);
+
+  if (_currentMenu.id == 'pjQ0W3g2oqu0wHjW1n2kCjsFTEUelMd') {
+    const sessions = await getCurrentSession(sessionid);
+
+    const orgUnitDetails = await getOrganisationUnit(sessions.orgUnit);
+
+    const code = await getCode(orgUnitDetails.code);
+
+    const sessionDatavalues = await getSessionDataValue(sessionid);
+
+    let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
+
+    const dataValue = [
+      {
+        dataElement: 'KlmXMXitsla',
+        categoryOptionCombo: null,
+        value: generatedId,
+      },
+    ];
+    const data = {
+      sessionid,
+      programStage: 'lfib7bTig0W',
+      program: 'yHmOLp2KAXz',
+      datatype: 'event',
+    };
+    let oldDataValues = sessionDatavalues.dataValues;
+    try {
+      oldDataValues = JSON.parse(oldDataValues);
+    } catch (e) {}
+    const dataValues = [...oldDataValues, ...dataValue];
+    await updateSessionDataValues(sessionid, {
+      ...data,
+      dataValues: JSON.stringify(dataValues),
+      //dataValues: dataValues
+    });
+  }
 
   const sessionDatavalues = await getSessionDataValue(sessionid);
+
+  console.log('updated data values :: ', sessionDatavalues.dataValues);
 
   //console.log('sessionDataValues', sessionDatavalues);
   const { datatype, program, programStage } = sessionDatavalues;
@@ -59,6 +99,7 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
     return completeForm(sessionid, msisdn);
   }
 };
+
 export const ruleNotPassed = async (sessionid, menu, answer) => {
   if (menu.pRules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -294,7 +335,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       // }).value;
 
       let facility = await getOrganisationUnitByCode(hfrCode);
-     // console.log(hfrCode, 'facility :: ', facility);
+      // console.log(hfrCode, 'facility :: ', facility);
       let facilityTypeName = () => {
         if (facility.organisationUnits && facility.organisationUnits.length > 0) {
           let facilityType = _.filter(facility.organisationUnits[0]['organisationUnitGroups'], (ouGroup) => {
@@ -396,10 +437,6 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
       let eventUid = await getEventUidByCode(referralId.toString());
 
-      //console.log('event uid :: ', eventUid);
-
-      // let currentEventData = await getEventData('KlmXMXitsla', referralId.toString(), currentMenu.program);
-
       let currentEventData;
 
       if (eventUid['listGrid']['rows'] && eventUid['listGrid']['rows'][0] && eventUid['listGrid']['rows'][0][0]) {
@@ -407,8 +444,6 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       } else {
       }
 
-      // console.log(currentEventData);
-      // console.log('current event data', currentEventData);
 
       let eventUpdatedData = {};
       eventUpdatedData['program'] = currentEventData.program;
@@ -419,9 +454,14 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       eventUpdatedData['event'] = currentEventData.event;
       eventUpdatedData['dataValues'] = currentEventData.dataValues;
       eventUpdatedData['completedDate'] = getEventDate();
-      eventUpdatedData.dataValues = [...eventUpdatedData.dataValues, hfrDataValue, facilityObject, facilityName, facilityDistrict, facilityRegion];
-      //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
-      //console.log('hfrCode', hfrCode);
+      eventUpdatedData.dataValues = [
+        ...eventUpdatedData.dataValues,
+        hfrDataValue,
+        facilityObject,
+        facilityName,
+        facilityDistrict,
+        facilityRegion,
+      ];
 
       let number = _.find(eventUpdatedData.dataValues, (dt) => {
         return dt.dataElement == 'lDcAemv4pVO';
@@ -431,12 +471,9 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
           }).value
         : '';
 
-      //console.log('number :: ', number);
 
       const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
 
-      //console.log('updated values', eventUpdatedData.dataValues);
-      //console.log('response', response);
 
       if (response && response.httpStatusCode == 200 && response.httpStatus == 'OK' && number != '') {
         sendSMS(
@@ -460,6 +497,8 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       status: 'COMPLETED',
       dataValues: [...dtArray, { dataElement: 'lDcAemv4pVO', value: msisdn }],
     });
+
+    // console.log("response :: ", response)
 
     return response;
   }
