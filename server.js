@@ -23,6 +23,6 @@ server.use(function(req, res, next) {
 
 // Routes
 
-server.use('/' + 'test', mssdnRoutes);
+server.use('/' + 'afya', mssdnRoutes);
 
 module.exports = server;
