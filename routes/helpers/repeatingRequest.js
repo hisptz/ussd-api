@@ -409,9 +409,13 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
     //console.log('here at message menu');
     message = await terminateWithMessage(sessionid, menu);
   } else if (menu.type === 'data-submission') {
+
+    //TODO: Add logic for specific menu data submission to generate code
+
     const connfirmationSummary = await getConfirmationSummarySummary(sessionid, menus);
     const submitOptions = ['YES', 'NO'];
     const submitMsgString = [menu.title, ...submitOptions.map((option, index) => `${index + 1}. ${option}`)].join('\n');
+    
     message = {
       response_type: 2,
       text: menu.title,
@@ -421,9 +425,11 @@ const returnNextMenu = async (sessionid, next_menu, menus, additional_message) =
         '2': 'Kukataa'
       }*/
     };
+    
     if (menu.show_confirmation_summary) {
       message.text += `\n${connfirmationSummary}`;
     }
+  
   } else if (menu.type === 'ou') {
     message = {
       response_type: 2,
