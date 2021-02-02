@@ -22,17 +22,17 @@ const http_status = ['OK', 'SUCCESS'];
 const startSync = async () => {
   console.log('************************ SYNC & FEEDBACK STARTED ********************');
 
-  let smsResponse1 = await sendSMS(['0738238564'],'Message to send')
+ // let smsResponse1 = await sendSMS(['0738238564'],'Message to send')
 
-  let smsResponse2 = await sendSMS(['255738238564'],'Message to send')
+ // let smsResponse2 = await sendSMS(['255738238564'],'Message to send')
 
-  let smsResponse3 = await sendSMS(['0656548317'],'Message to send')
+ // let smsResponse3 = await sendSMS(['0656548317'],'Message to send')
 
-  let smsResponse4 = await sendSMS(['255656548317'],'Message to send')
+ // let smsResponse4 = await sendSMS(['255656548317'],'Message to send')
 
-  let smsResponse5 = await sendSMS(['0659376016'],'Message to send')
+ // let smsResponse5 = await sendSMS(['0659376016'],'Message to send')
 
-  console.log("response :: ", smsResponse1, " :: ", smsResponse1, " :: " , smsResponse2, " :: ", smsResponse3, " :: ", smsResponse4," :: ", smsResponse5);
+ // console.log("response :: ", smsResponse1, " :: ", smsResponse1, " :: " , smsResponse2, " :: ", smsResponse3, " :: ", smsResponse4," :: ", smsResponse5);
 
   while (true) {
     //process data syncs

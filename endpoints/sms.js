@@ -33,7 +33,14 @@ export const sendEGASMS = (phoneNumbers, message) => {
     .createHmac('sha256', appConfig.smsAPIKey)
     .update(sendData)
     .digest();
-  return r2.post(url, {
+
+console.log({
+      data: sendData,
+      datetime
+    })
+  
+
+return r2.post(url, {
     headers: {
       'X-Auth-Request-Hash': Buffer.from(hash).toString('base64'),
       'X-Auth-Request-Id': 'walter.ndesanjo@afya.go.tz',
@@ -45,7 +52,6 @@ export const sendEGASMS = (phoneNumbers, message) => {
     }
   }).json;
 };
-
 const getDate = () => {
   let date = new Date();
   //var aestTime = new Date().toLocaleString("en-US", {timeZone: "Africa/Nairobi"});
