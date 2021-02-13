@@ -15,9 +15,9 @@ const uploadData = (data) => {
   }
 }
 export const postEventData = data => {
-  const baseUrl = appConfig.url
+  const baseUrl = appConfig.otherServers[0].url
   const url = `${baseUrl}/api/events`;
-  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
   if (appConfig.otherServers) {
     appConfig.otherServers.forEach(uploadData(data))
   }

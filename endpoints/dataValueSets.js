@@ -5,9 +5,9 @@ import {
 } from '../config/app.config';
 
 export const postAggregateData = data => {
-  const baseUrl = appConfig.url
+  const baseUrl = appConfig.otherServers[0].url
   const url = `${baseUrl}/api/dataValueSets`;
-  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
   if (appConfig.otherServers) {
     appConfig.otherServers.forEach(async (server) => {
       await r2.post(`${server.url}/api/dataValueSets`, {
@@ -27,9 +27,9 @@ export const postAggregateData = data => {
 };
 
 export const getAggregateData = (dataSet,period,orgUnit) => {
-  const baseUrl = appConfig.url
+  const baseUrl = appConfig.otherServers[0].url
   const url = `${baseUrl}/api/dataValueSets?dataSet=${dataSet}&orgUnit=${orgUnit}&period=${period}`;
-  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
 
   return r2.get(url, {
     headers: {
