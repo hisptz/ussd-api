@@ -2,9 +2,9 @@ const r2 = require('r2');
 import { appConfig, getAuthorizationString } from '../config/app.config';
 
 export const getDataSet = id => {
-  const baseUrl = appConfig.url;
+  const baseUrl = appConfig.otherServers[0].url;
   const url = `${baseUrl}/api/dataSets/${id}.json?fields=dataSetElements[dataElement[id,shortName,name],categoryCombo[categoryOptionCombos[id,shortName]]]`;
-  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
 
   return r2.get(url, {
     headers: {
@@ -16,9 +16,9 @@ export const getDataSet = id => {
 var operands = {};
 export const getDataSetOperands = async id => {
   if (!operands[id]) {
-    const baseUrl = appConfig.url;
+    const baseUrl = appConfig.otherServers[0].url;
     let url = `${baseUrl}/api/dataSets/${id}.json?fields=dataSetElements[dataElement[id,shortName,name]]`;
-    const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+    const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
 
     const results = await r2.get(url, {
       headers: {
@@ -41,9 +41,9 @@ export const getDataSetOperands = async id => {
 };
 
 export const complete = (dataSet, period, orgUnit) => {
-  const baseUrl = appConfig.url;
+  const baseUrl = appConfig.otherServers[0].url;
   const url = `${baseUrl}/api/completeDataSetRegistrations`;
-  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
 
   if (appConfig.otherServers) {
     appConfig.otherServers.forEach(async server => {
