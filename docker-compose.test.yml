@@ -5,7 +5,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile-nginx
-    image: nginx/idsr:1.0.0
+    image: nginx/idsr:2.0.0
     ports:
         - "5000:80"
     restart: always

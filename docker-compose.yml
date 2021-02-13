@@ -6,7 +6,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile-nginx
-    image: nginx/idsr:1.0.0
+    image: nginx/idsr:2.0.0
     restart: always
   ussd-1:
     network_mode: host
