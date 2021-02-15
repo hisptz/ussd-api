@@ -15,16 +15,33 @@ const uploadData = (data) => {
   }
 }
 export const postEventData = data => {
-  const baseUrl = appConfig.otherServers[0].url
+
+  if(appConfig.otherServerss){
+
+    const baseUrl = appConfig.otherServers[0].url
   const url = `${baseUrl}/api/events`;
   const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
-  if (appConfig.otherServers) {
-    appConfig.otherServers.forEach(uploadData(data))
-  }
+
   return r2.post(url, {
     headers: {
       Authorization
     },
     json: data
   }).json;
+
+  }else{
+
+    const baseUrl = appConfig.url
+    const url = `${baseUrl}/api/events`;
+    const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+  
+    return r2.post(url, {
+      headers: {
+        Authorization
+      },
+      json: data
+    }).json;
+
+  }
+  
 };
