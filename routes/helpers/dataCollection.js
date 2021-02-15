@@ -92,6 +92,8 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
 
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
 
+    console.log("response 1 :: ", dataValueSet)
+
     //console.log('what are these', operands.dataElementOperands);
 
     operands.dataElementOperands.forEach(dataElementOperand => {
@@ -169,6 +171,9 @@ const sendAggregateData = async sessionid => {
   const response = await postAggregateData({
     dataValues: dtArray
   });
+
+  console.log("resposnes :: 2", response)
+
   return response;
 };
 
