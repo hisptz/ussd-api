@@ -13,18 +13,15 @@ const {
 
 export const returnAuthenticationResponse = async (mssdn, sessionid) => {
 
-  console.log("napita humu ?? ")
 
   let response;
   const {
     users
   } = await getUserFromDHIS2(mssdn);
 
-  console.log('getUserResp :: ', users)
 
   const dataStore = await getDataStoreFromDHIS2();
 
-  console.log("datastore resp :: ", dataStore.settings)
 
   const {
     settings,
@@ -35,21 +32,18 @@ export const returnAuthenticationResponse = async (mssdn, sessionid) => {
   
   if (users && users.length) {
 
-    console.log(1)
     const starting_menu = menus[settings.starting_menu];
     const name = users[0].displayName;
     const orgUnits = users[0].organisationUnits;
     response = `P;${sessionid};${`Welcome ${name} to Afya Reporting -- Enter PIN`}`;
     if (users.length > 1) {
 
-      console.log(2)
       response = `C;${sessionid};This phone number is associated with more than one user`;
 
-      console.log(3)
+      // console.log(3)
     } else {
       
-      console.log(4)
-
+      
       const id = generateCode();
       const session_data = {
         id,
@@ -69,10 +63,8 @@ export const returnAuthenticationResponse = async (mssdn, sessionid) => {
         datastore: dataStore
       });
 
-      console.log(5, " : ", userAdd)
-    }
+      }
   }
 
-  console.log(6, " : ",response)
   return response;
 };
