@@ -90,6 +90,8 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
 
     const operands = await getDataSetOperands(menu.dataSet);
 
+    console.log("Rresponse :: ", operands)
+
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
 
     console.log("response 1 :: ", dataValueSet)
@@ -341,6 +343,8 @@ const sendEventData = async (sessionid, program, programStage, msisdn) => {
   }
   if (noErrors) {
     const response = await postEventData(event);
+
+    console.log("Event Data Respo :: ", response);
     for (const message of messages) {
       await sendSMS(message.numbers, message.sms);
     }

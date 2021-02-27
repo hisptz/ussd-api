@@ -3,7 +3,7 @@ import { appConfig, getAuthorizationString } from '../config/app.config';
 
 export const getDataSet = id => {
 
-  if(appConfig.otherServerss){
+  if(appConfig.otherServers){
     const baseUrl = appConfig.otherServers[0].url;
     const url = `${baseUrl}/api/dataSets/${id}.json?fields=dataSetElements[dataElement[id,shortName,name],categoryCombo[categoryOptionCombos[id,shortName]]]`;
     const Authorization = getAuthorizationString(appConfig.otherServers[0].username, appConfig.otherServers[0].password);
@@ -32,7 +32,7 @@ export const getDataSet = id => {
 var operands = {};
 export const getDataSetOperands = async id => {
 
-  if(appConfig.otherServerss){
+  if(appConfig.otherServers){
 
     if (!operands[id]) {
       const baseUrl = appConfig.otherServers[0].url;
@@ -113,7 +113,7 @@ export const getDataSetOperands = async id => {
 
 export const complete = (dataSet, period, orgUnit) => {
 
-  if(appConfig.otherServerss){
+  if(appConfig.otherServers){
 
     const baseUrl = appConfig.otherServers[0].url;
     const url = `${baseUrl}/api/completeDataSetRegistrations`;

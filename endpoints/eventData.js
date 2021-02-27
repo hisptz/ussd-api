@@ -16,7 +16,7 @@ const uploadData = (data) => {
 }
 export const postEventData = data => {
 
-  if(appConfig.otherServerss){
+  if(appConfig.otherServers){
 
     const baseUrl = appConfig.otherServers[0].url
   const url = `${baseUrl}/api/events`;
