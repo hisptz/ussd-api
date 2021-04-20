@@ -1,27 +1,29 @@
 import { getSessionDataValue, updateSessionDataValues, addSessionDatavalues, updateUserSession, getCurrentSession } from '../../db';
 import { postAggregateData, getAggregateData } from '../../endpoints/dataValueSets';
-import { postEventData, updateEventData, getEventData } from '../../endpoints/eventData';
+import { postEventData, updateEventData, getEventData, getEventByUid } from '../../endpoints/eventData';
 import { getDataSet, complete } from '../../endpoints/dataSet';
 import { sendSMS } from '../../endpoints/sms';
 import { getOrganisationUnit, getOrganisationUnitByCode } from '../../endpoints/organisationUnit';
 import { getEventDate, getCurrentWeekNumber, getRandomCharacters } from './periods';
 import * as _ from 'lodash';
+import { getEventUidByCode, getCode } from '../../endpoints/sqlViews';
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
+  console.log('current menu :: ', _currentMenu);
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const { dataType, category_combo, data_element, program, program_stage } = _currentMenu;
   const dataValue = [
     {
       dataElement: data_element,
       categoryOptionCombo: category_combo,
-      value: USSDRequest
-    }
+      value: USSDRequest,
+    },
   ];
   const data = {
     sessionid,
     programStage: program_stage,
     program,
-    datatype: dataType
+    datatype: dataType,
   };
   if (sessionDatavalues) {
     let oldDataValues = sessionDatavalues.dataValues;
@@ -31,22 +33,61 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
     const dataValues = [...oldDataValues, ...dataValue];
     return updateSessionDataValues(sessionid, {
       ...data,
-      dataValues: JSON.stringify(dataValues)
+      dataValues: JSON.stringify(dataValues),
       //dataValues: dataValues
     });
   }
 
   return addSessionDatavalues({
     ...data,
-    dataValues: JSON.stringify(dataValue)
+    dataValues: JSON.stringify(dataValue),
     //dataValues: dataValue
   });
 };
 
 export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, menus) => {
   console.log('-------------------------*******----------------------------');
+  console.log('curr menu :: :: :: ', _currentMenu);
+
+  if (_currentMenu.id == 'pjQ0W3g2oqu0wHjW1n2kCjsFTEUelMd') {
+    const sessions = await getCurrentSession(sessionid);
+
+    const orgUnitDetails = await getOrganisationUnit(sessions.orgUnit);
+
+    const code = await getCode(orgUnitDetails.code);
+
+    const sessionDatavalues = await getSessionDataValue(sessionid);
+
+    let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
+
+    const dataValue = [
+      {
+        dataElement: 'KlmXMXitsla',
+        categoryOptionCombo: null,
+        value: generatedId,
+      },
+    ];
+    const data = {
+      sessionid,
+      programStage: 'lfib7bTig0W',
+      program: 'yHmOLp2KAXz',
+      datatype: 'event',
+    };
+    let oldDataValues = sessionDatavalues.dataValues;
+    try {
+      oldDataValues = JSON.parse(oldDataValues);
+    } catch (e) {}
+    const dataValues = [...oldDataValues, ...dataValue];
+    await updateSessionDataValues(sessionid, {
+      ...data,
+      dataValues: JSON.stringify(dataValues),
+      //dataValues: dataValues
+    });
+  }
 
   const sessionDatavalues = await getSessionDataValue(sessionid);
+
+  console.log('updated data values :: ', sessionDatavalues.dataValues);
 
   //console.log('sessionDataValues', sessionDatavalues);
   const { datatype, program, programStage } = sessionDatavalues;
@@ -58,19 +99,20 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest, m
     return completeForm(sessionid, msisdn);
   }
 };
+
 export const ruleNotPassed = async (sessionid, menu, answer) => {
   if (menu.pRules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
 
     let retValue = false;
-    menu.pRules.forEach(rule => {
+    menu.pRules.forEach((rule) => {
       let ruleEval = rule.condition;
       if (sessionDatavalues && sessionDatavalues.dataValues) {
         let dtValues = sessionDatavalues.dataValues;
         try {
           dtValues = JSON.parse(sessionDatavalues.dataValues);
         } catch (e) {}
-        dtValues.forEach(dtValue => {
+        dtValues.forEach((dtValue) => {
           ruleEval = ruleEval.split('#{' + dtValue.dataElement + '}').join(dtValue.value);
         });
       }
@@ -102,17 +144,17 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest, menus)
   } catch (e) {}
   menu = menu.menus[session.currentmenu];
   const returnValue = {
-    notSet: []
+    notSet: [],
   };
   if (menu.dataSet) {
     const dataSet = await getDataSet(menu.dataSet);
     const dataValueSet = await getAggregateData(menu.dataSet, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
     const ids = [];
-    dataSet.dataSetElements.forEach(dataSetElement => {
-      dataSetElement.categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo => {
+    dataSet.dataSetElements.forEach((dataSetElement) => {
+      dataSetElement.categoryCombo.categoryOptionCombos.forEach((categoryOptionCombo) => {
         let found = false;
         if (dataValueSet.dataValues) {
-          dataValueSet.dataValues.forEach(dataValue => {
+          dataValueSet.dataValues.forEach((dataValue) => {
             if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryOptionCombo === categoryOptionCombo.id) {
               found = true;
             }
@@ -134,12 +176,12 @@ export const collectPeriodData = async (sessionid, obj) => {
     sessionDatavalues.dataValues = JSON.stringify(sessionDatavalues.dataValues);
     return updateSessionDataValues(sessionid, {
       ...sessionDatavalues,
-      ...obj
+      ...obj,
     });
   }
   return addSessionDatavalues({
     sessionid,
-    ...obj
+    ...obj,
   });
 };
 
@@ -147,11 +189,11 @@ export const collectOrganisationUnitData = async (sessionid, obj) => {
   const sessionData = await getCurrentSession(sessionid);
   return updateUserSession(sessionid, {
     ...sessionData,
-    ...obj
+    ...obj,
   });
 };
 
-export const getCurrentSessionDataValue = async sessionid => {
+export const getCurrentSessionDataValue = async (sessionid) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   let { dataValues, datatype } = sessionDatavalues;
   try {
@@ -159,11 +201,11 @@ export const getCurrentSessionDataValue = async sessionid => {
   } catch (e) {}
   return {
     dataValues: dataValues,
-    datatype
+    datatype,
   };
 };
 
-const sendAggregateData = async sessionid => {
+const sendAggregateData = async (sessionid) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const sessions = await getCurrentSession(sessionid);
   const { dataValues, year, period } = sessionDatavalues;
@@ -179,16 +221,16 @@ const sendAggregateData = async sessionid => {
       dataElement,
       value,
       period: finalPeriod,
-      orgUnit
+      orgUnit,
     }))
-    .filter(dt => {
+    .filter((dt) => {
       return dt.dataElement ? true : false;
     });
 
   //console.log('data to post ::', dtArray);
 
   const response = await postAggregateData({
-    dataValues: dtArray
+    dataValues: dtArray,
   });
   return response;
 };
@@ -210,7 +252,7 @@ export const completeForm = async (sessionid, phoneNumber) => {
     let dataValues = await getSessionDataValue(sessionid);
 
     //console.log('dataValues', dataValues);
-    let referenceNumber = _.find(dataValues.dataValues, dataValue => {
+    let referenceNumber = _.find(dataValues.dataValues, (dataValue) => {
       return dataValue.dataElement == 'KlmXMXitsla';
     });
 
@@ -244,17 +286,17 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   } catch (e) {}
   let dtArray = dtValues.map(({ dataElement, value }) => ({
     dataElement,
-    value
+    value,
   }));
   // adding phone number if exist on mapping
   if (phone_number_mapping && phone_number_mapping[program]) {
     const mappings = phone_number_mapping[program];
-    mappings.map(mapping => {
+    mappings.map((mapping) => {
       const { program_stage, data_element } = mapping;
       if (program_stage && programStage === program_stage && data_element) {
         dtArray.push({
           dataElement: data_element,
-          value: msisdn
+          value: msisdn,
         });
       }
     });
@@ -262,13 +304,13 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   // adding  auto generated fields if exist on mapping
   if (auto_generated_field && auto_generated_field[program]) {
     const mappings = auto_generated_field[program];
-    mappings.map(mapping => {
+    mappings.map((mapping) => {
       const { program_stage, data_element } = mapping;
       const value = `${getCurrentWeekNumber()}-${getRandomCharacters(12)}`;
       if (program_stage && programStage === program_stage && data_element) {
         dtArray.push({
           dataElement: data_element,
-          value
+          value,
         });
       }
     });
@@ -277,13 +319,13 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   if (currentMenu.mode) {
     if (currentMenu.mode == 'event_update') {
       //console.log('1 ::: > ', dtArray);
-      let referralId = _.find(dtArray, dt => {
+      let referralId = _.find(dtArray, (dt) => {
         return dt.dataElement == 'KlmXMXitsla';
       }).value;
 
       //console.log('referal', referralId);
 
-      let hfrCode = _.find(dtArray, dt => {
+      let hfrCode = _.find(dtArray, (dt) => {
         return dt.dataElement == 'MfykP4DsjUW';
       }).value;
 
@@ -293,11 +335,11 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       // }).value;
 
       let facility = await getOrganisationUnitByCode(hfrCode);
-      //console.log(hfrCode, 'facility :: ', facility);
+      // console.log(hfrCode, 'facility :: ', facility);
       let facilityTypeName = () => {
         if (facility.organisationUnits && facility.organisationUnits.length > 0) {
-          let facilityType = _.filter(facility.organisationUnits[0]['organisationUnitGroups'], ouGroup => {
-            let groupSets = _.filter(ouGroup['groupSets'], groupSet => {
+          let facilityType = _.filter(facility.organisationUnits[0]['organisationUnitGroups'], (ouGroup) => {
+            let groupSets = _.filter(ouGroup['groupSets'], (groupSet) => {
               return groupSet.id == 'VG4aAdXA4JI' ? true : false;
             });
 
@@ -310,13 +352,55 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         }
       };
 
+      let getFacilityName = () => {
+        if (facility.organisationUnits && facility.organisationUnits.length > 0) {
+          return facility.organisationUnits[0]['name'];
+        } else {
+          return '';
+        }
+      };
+
+      let districtName = () => {
+        if (
+          facility.organisationUnits &&
+          facility.organisationUnits.length > 0 &&
+          facility.organisationUnits[0]['parent'] &&
+          facility.organisationUnits[0]['parent']['level'] &&
+          facility.organisationUnits[0]['parent']['level'] == 3
+        ) {
+          return facility.organisationUnits[0]['parent']['name'];
+        } else {
+          return '';
+        }
+      };
+
+      let regionName = () => {
+        if (
+          facility.organisationUnits &&
+          facility.organisationUnits.length > 0 &&
+          facility.organisationUnits[0]['parent'] &&
+          facility.organisationUnits[0]['parent']['level'] &&
+          facility.organisationUnits[0]['parent']['level'] == 3 &&
+          facility.organisationUnits[0]['parent']['parent'] &&
+          facility.organisationUnits[0]['parent']['parent']['level'] &&
+          facility.organisationUnits[0]['parent']['parent']['level'] == 2
+        ) {
+          //console.log("here")
+          //console.log("the region ::  ",facility.organisationUnits[0]['parent']['parent']['name'])
+          return facility.organisationUnits[0]['parent']['parent']['name'];
+        } else {
+          //console.log("this route")
+          return '';
+        }
+      };
+
       //console.log('hfr ::: > ', hfrCode);
       let hfrDataValue = {
         lastUpdated: getEventDate(),
         created: getEventDate(),
         dataElement: 'MfykP4DsjUW',
         value: hfrCode,
-        providedElsewhere: false
+        providedElsewhere: false,
       };
 
       let facilityObject = {
@@ -324,41 +408,72 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
         created: getEventDate(),
         dataElement: 'SMzP1R6D1dV',
         value: facilityTypeName(),
-        providedElsewhere: false
+        providedElsewhere: false,
       };
 
-      let currentEventData = await getEventData('KlmXMXitsla', referralId.toString(), currentMenu.program);
+      let facilityName = {
+        lastUpdated: getEventDate(),
+        created: getEventDate(),
+        dataElement: 'wwEU7hDHQsA',
+        value: getFacilityName(),
+        providedElsewhere: false,
+      };
 
-      //console.log(currentEventData);
-      //console.log('current event data', currentEventData);
+      let facilityDistrict = {
+        lastUpdated: getEventDate(),
+        created: getEventDate(),
+        dataElement: 'ORAKeJ6UIMe',
+        value: districtName(),
+        providedElsewhere: false,
+      };
+
+      let facilityRegion = {
+        lastUpdated: getEventDate(),
+        created: getEventDate(),
+        dataElement: 'sht4GzaRsUl',
+        value: regionName(),
+        providedElsewhere: false,
+      };
+
+      let eventUid = await getEventUidByCode(referralId.toString());
+
+      let currentEventData;
+
+      if (eventUid['listGrid']['rows'] && eventUid['listGrid']['rows'][0] && eventUid['listGrid']['rows'][0][0]) {
+        currentEventData = await getEventByUid(eventUid['listGrid']['rows'][0][0]);
+      } else {
+      }
+
 
       let eventUpdatedData = {};
-      eventUpdatedData['program'] = currentEventData.events[0].program;
-      eventUpdatedData['programStage'] = currentEventData.events[0].programStage;
-      eventUpdatedData['orgUnit'] = currentEventData.events[0].orgUnit;
-      eventUpdatedData['status'] = currentEventData.events[0].status;
-      eventUpdatedData['eventDate'] = currentEventData.events[0].eventDate;
-      eventUpdatedData['event'] = currentEventData.events[0].event;
-      eventUpdatedData['dataValues'] = currentEventData.events[0].dataValues;
+      eventUpdatedData['program'] = currentEventData.program;
+      eventUpdatedData['programStage'] = currentEventData.programStage;
+      eventUpdatedData['orgUnit'] = currentEventData.orgUnit;
+      eventUpdatedData['status'] = currentEventData.status;
+      eventUpdatedData['eventDate'] = currentEventData.eventDate;
+      eventUpdatedData['event'] = currentEventData.event;
+      eventUpdatedData['dataValues'] = currentEventData.dataValues;
       eventUpdatedData['completedDate'] = getEventDate();
-      eventUpdatedData.dataValues = [...eventUpdatedData.dataValues, hfrDataValue, facilityObject];
-      //console.log('eventsUpdatedData', eventUpdatedData.dataValues);
-      //console.log('hfrCode', hfrCode);
+      eventUpdatedData.dataValues = [
+        ...eventUpdatedData.dataValues,
+        hfrDataValue,
+        facilityObject,
+        facilityName,
+        facilityDistrict,
+        facilityRegion,
+      ];
 
-      let number = _.find(eventUpdatedData.dataValues, dt => {
+      let number = _.find(eventUpdatedData.dataValues, (dt) => {
         return dt.dataElement == 'lDcAemv4pVO';
       })
-        ? _.find(eventUpdatedData.dataValues, dt => {
+        ? _.find(eventUpdatedData.dataValues, (dt) => {
             return dt.dataElement == 'lDcAemv4pVO';
           }).value
         : '';
 
-      //console.log('number :: ', number);
 
       const response = await updateEventData(eventUpdatedData, eventUpdatedData.event);
 
-      //console.log('updated values', eventUpdatedData.dataValues);
-      //console.log('response', response);
 
       if (response && response.httpStatusCode == 200 && response.httpStatus == 'OK' && number != '') {
         sendSMS(
@@ -380,8 +495,10 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       eventDate: getEventDate(),
       orgUnit,
       status: 'COMPLETED',
-      dataValues: [...dtArray, { dataElement: 'lDcAemv4pVO', value: msisdn }]
+      dataValues: [...dtArray, { dataElement: 'lDcAemv4pVO', value: msisdn }],
     });
+
+    // console.log("response :: ", response)
 
     return response;
   }
