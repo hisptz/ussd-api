@@ -5,7 +5,7 @@ const legendSet = {
   created: '2018-10-15T05:15:47.506',
   lastUpdated: '2018-10-15T05:19:31.722',
   name: 'Legend 2',
-  href: 'http://154.118.230.229/api/legendSets/pAtZWUyG6mw',
+  href: 'http://154.118.230.229api/legendSets/pAtZWUyG6mw',
   id: 'pAtZWUyG6mw',
   displayName: 'Legend 2',
   publicAccess: 'rw------',
@@ -128,7 +128,7 @@ const baseUrl = appConfig.url;
 const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
 function getLegend() {
-  const url = `${baseUrl}/api/legendSets.json?fields=legends[id,startValue,endValue,color]`;
+  const url = `${baseUrl}api/legendSets.json?fields=legends[id,startValue,endValue,color]`;
   return r2.get(url, {
     headers: {
       Authorization,
@@ -136,8 +136,8 @@ function getLegend() {
   }).json;
 }
 function getOrganisationUnits(page = 1) {
-  const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&order=name:asc&filter=organisationUnitGroups.id:eq:QWHGAtRYcr0&filter=organisationUnitGroups.id:eq:v2yuaIqu4tZ&rootJunction=OR&fields=id,name,code,phoneNumber,attributeValues`;
-  //const url = `${baseUrl}/api/29/organisationUnits.json?page=${page}&filter=id:eq:EjxCAxGdiZ8&fields=id,name,phoneNumber,attributeValues`;
+  const url = `${baseUrl}api/29/organisationUnits.json?page=${page}&order=name:asc&filter=organisationUnitGroups.id:eq:QWHGAtRYcr0&filter=organisationUnitGroups.id:eq:v2yuaIqu4tZ&rootJunction=OR&fields=id,name,code,phoneNumber,attributeValues`;
+  //const url = `${baseUrl}api/29/organisationUnits.json?page=${page}&filter=id:eq:EjxCAxGdiZ8&fields=id,name,phoneNumber,attributeValues`;
   console.log('Org Unit:', url);
   return r2.get(url, {
     headers: {
@@ -159,7 +159,7 @@ function getPeriod() {
   return year + monthStr;
 }
 function getAnalytics(ou) {
-  const url = `${baseUrl}/api/analytics?dimension=dx:${indicators.join(';')}&dimension=pe:${getPeriod()}&dimension=ou:${ou.join(
+  const url = `${baseUrl}api/analytics?dimension=dx:${indicators.join(';')}&dimension=pe:${getPeriod()}&dimension=ou:${ou.join(
     ';'
   )}&displayProperty=NAME&hierarchyMeta=true`;
   console.log('Url:', url);
@@ -171,7 +171,7 @@ function getAnalytics(ou) {
 }
 var sentSMS;
 async function getSentSMS() {
-  const url = `${baseUrl}/api/dataStore/performance_sms_sent/${getPeriod()}`;
+  const url = `${baseUrl}api/dataStore/performance_sms_sent/${getPeriod()}`;
   try {
     let results = await r2.get(url, {
       headers: {
@@ -189,7 +189,7 @@ async function getSentSMS() {
   }
 }
 async function saveSentSMS() {
-  const url = `${baseUrl}/api/dataStore/performance_sms_sent/${getPeriod()}`;
+  const url = `${baseUrl}api/dataStore/performance_sms_sent/${getPeriod()}`;
   try {
     let results = await r2.put(url, {
       headers: {
