@@ -349,10 +349,10 @@ async function load(page) {
           phoneNumbers.push(attributeValue.value);
         }
       });
+      phoneNumbers = phoneNumbers.filter((phone) => phone.length > 9);
       if (phoneNumbers.length > 0) {
         try {
-          //await sendSMS(phoneNumbers, message);
-          console.log(phoneNumbers, message);
+          await sendSMS(phoneNumbers, message);
           if (!sentSMS[ou.id]) {
             sentSMS[ou.id] = {};
           }
@@ -378,7 +378,7 @@ async function load(page) {
   if (ouResults.pager.page !== ouResults.pager.pageCount) {
     await load(page + 1);
   } else {
-    //await sendSMS(['0657142395', '0713238387', '0754710020'], `Performance, reminders and educational SMS have been Successful sent addos`);
+    await sendSMS(['0657142395', '0713238387', '0754710020'], `Performance, reminders and educational SMS have been Successful sent addos`);
     console.log('Done sending reminders and sms.');
     console.table(typesSent);
   }
