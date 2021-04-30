@@ -8,6 +8,7 @@
     "dev": "nodemon index --exec \"babel-node index --presets es2015,stage-0\"",
     "start": "babel-node index --presets es2015,stage-0",
     "start:performance:sms": "babel-node performanceSMS --presets es2015,stage-0",
+    "start:validation:sms": "babel-node validation/validation.sms --presets es2015,stage-0",
     "test": "jest --watchAll"
   },
   "repository": {
@@ -21,6 +22,7 @@
   },
   "homepage": "https://github.com/dev-academy-challenges/boilerplate-knex#readme",
   "dependencies": {
+    "async": "3.2.0",
     "body-parser": "^1.18.2",
     "commitizen": "^2.10.1",
     "compression": "^1.5.2",
@@ -30,10 +32,10 @@
     "dotenv": "^5.0.1",
     "express": "^4.16.2",
     "express-handlebars": "^3.0.0",
-    "knex": "^0.14.2",
+    "knex": "0.95.4",
     "make-fetch-happen": "^3.0.0",
-    "morgan": "^1.8.0",
-    "node-fetch": "^2.1.2",
+    "morgan": "1.10.0",
+    "node-fetch": "2.6.1",
     "pg": "^7.18.2",
     "r2": "^2.0.0",
     "yargs": "^15.1.0"
