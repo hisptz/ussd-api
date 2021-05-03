@@ -21,17 +21,13 @@ import { sendSMS } from '../endpoints/sms';
    *
    */
   const json = { organisationUnit: 'Tanzani2018', dataSets: ['t6N3L1IElxb'] };
-  const rus = await r2.post(`${baseUrl}/api/minMaxValues`, {
+  await r2.post(`${baseUrl}/api/minMaxValues`, {
     headers: {
       Authorization,
     },
     json,
   }).response;
-  let page = 0;
-  page++;
-  console.log('FETCHING DATA FOR PAGE::', page);
   const orgsUrl = `${authLink}organisationUnits.json?filter=level:eq:6&paging=false&fields=id,name,code,phoneNumber,attributeValues`;
-  console.log('orgsUrl', orgsUrl);
   const validation = `http://${appConfig.username}:${appConfig.password}@${appConfig.stripped}/dhis-web-dataentry/getDataValues.action?periodId=${period}&dataSetId=t6N3L1IElxb`;
   https
     .get(orgsUrl, (resp) => {
