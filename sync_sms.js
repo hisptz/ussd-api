@@ -7,7 +7,7 @@ import {
   updateSms,
   getUnsyncedBySession,
   getCurrentSession,
-  getMenuJson
+  getMenuJson,
 } from './db';
 import { updateEventData, postEventData } from './endpoints/eventData';
 import { postTrackerData } from './endpoints/trackerData';
@@ -35,13 +35,19 @@ const sync = async () => {
   //get all unsynced entries
   const unsyncedEntries = await getUnsynced();
   //loop through the unsynced entries
-  let unsyncedEntry;
+  // console.log("unsynced entries :: ",unsyncedEntries);
 
+  let unsyncedEntry;
   for (unsyncedEntry of unsyncedEntries) {
     //get session + its data values
+
+    // console.log("unsynceed entry :: ",unsyncedEntry)
     let dataValues = await getSessionDataValue(unsyncedEntry.session_id);
     let serverDetails = await getSyncServerById(unsyncedEntry.syncserver_id);
     let session = await getCurrentSession(unsyncedEntry.session_id);
+
+    console.log('data valies :: ', dataValues);
+    console.log('server details :: ', serverDetails);
 
     //check if session related to sync was done
     if (session.done) {
@@ -49,7 +55,7 @@ const sync = async () => {
         console.log('unsynced entry :: ', unsyncedEntry);
         //do the sync
         if (dataValues.datatype === 'event') {
-          console.log('event ?????');
+          // console.log('event ?????');
           if (dataValues.event) {
             //update the event
             let response;
@@ -65,7 +71,7 @@ const sync = async () => {
                   syncserver_id: unsyncedEntry.syncserver_id,
                   session_id: unsyncedEntry.session_id,
                   synced: true,
-                  retries: unsyncedEntry.retries + 1
+                  retries: unsyncedEntry.retries + 1,
                 },
                 unsyncedEntry.id
               );
@@ -92,7 +98,7 @@ const sync = async () => {
                   syncserver_id: unsyncedEntry.syncserver_id,
                   session_id: unsyncedEntry.session_id,
                   synced: true,
-                  retries: unsyncedEntry.retries + 1
+                  retries: unsyncedEntry.retries + 1,
                 },
                 unsyncedEntry.id
               );
@@ -110,7 +116,7 @@ const sync = async () => {
           const payload = {
             period: dataValues.year + '' + dataValues.period,
             orgUnit: session.orgUnit,
-            dataValues: dataValues.dataValues
+            dataValues: dataValues.dataValues,
           };
           try {
             //console.log('data values ::: ', payload);
@@ -135,7 +141,7 @@ const sync = async () => {
                 syncserver_id: unsyncedEntry.syncserver_id,
                 session_id: unsyncedEntry.session_id,
                 synced: true,
-                retries: unsyncedEntry.retries + 1
+                retries: unsyncedEntry.retries + 1,
               },
               unsyncedEntry.id
             );
@@ -147,14 +153,16 @@ const sync = async () => {
             await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
           }
         } else if (dataValues.datatype === 'tracker') {
-          console.log('tracker ?????');
+          // console.log('tracker ?????');
           //post the event
           let response;
-          try {
+          // try {
             response = await postTrackerData(dataValues.dataValues, serverDetails);
-          } catch (error) {
-            console.log(error);
-          }
+
+            console.log("response from posttrackereeeee :: ", response)
+          // } catch (error) {
+            // console.log(error);
+          // }
 
           console.log('responce form post tracker :::', JSON.stringify(response.response.importSummaries, null, 4));
           if (response && response.httpStatus && http_status.includes(response.httpStatus)) {
@@ -164,14 +172,23 @@ const sync = async () => {
                 syncserver_id: unsyncedEntry.syncserver_id,
                 session_id: unsyncedEntry.session_id,
                 synced: true,
-                retries: unsyncedEntry.retries + 1
+                retries: unsyncedEntry.retries + 1,
               },
               unsyncedEntry.id
             );
 
             console.log('synced entry :::', unsyncedEntry.id);
           } else {
-            await updateSync({ retries: unsyncedEntry.retries + 1 }, unsyncedEntry.id);
+            await updateSync(
+              {
+                syncserver_id: unsyncedEntry.syncserver_id,
+                session_id: unsyncedEntry.session_id,
+                synced: false,
+                retries: unsyncedEntry.retries + 1
+              },
+              unsyncedEntry.id
+            );
+
           }
         } else {
         }
@@ -183,7 +200,7 @@ const sync = async () => {
             from: appConfig.mail.auth.user,
             to: serverDetails.admin_email,
             subject: 'Sync failed',
-            text: 'Could not sync data for session : ' + unsyncedEntry.session_id + ' to server: ' + serverDetails.url + '<br/>'
+            text: 'Could not sync data for session : ' + unsyncedEntry.session_id + ' to server: ' + serverDetails.url + '<br/>',
           };
 
           const transporter = nodemailer.createTransport(appConfig.mail);

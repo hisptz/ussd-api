@@ -39,3 +39,4 @@ jspm_packages
 dev.sqlite3
 TODO.md
 config/app.config.js
+knexfile.js
