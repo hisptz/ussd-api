@@ -2,8 +2,8 @@ module.exports = {
   development: {
     client: 'postgresql',
     connection: {
-      host: 'localhost',
-      database: 'idsr',
+host: 'db-tracker',
+database: 'ussd',
       user: 'postgres',
       password: 'postgres'
     },
@@ -25,10 +25,10 @@ module.exports = {
   },
 
   production: {
-    client: 'postgresql',
+  client: 'postgresql',
     connection: {
-      host: 'localhost',
-      database: 'idsr',
+host: 'db-tracker',    
+  database: 'ussd',
       user: 'postgres',
       password: 'postgres'
     },
