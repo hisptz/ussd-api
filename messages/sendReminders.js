@@ -35,8 +35,6 @@ async function getDataValues({ ous }) {
       .filter((phone) => phone);
     try {
       if (phoneNumbers.length > 0) {
-        console.log(':::11::', phoneNumbers);
-
         const dataValues = (
           await axios.get(valuesUrl + addo.id, {
             auth: { username: appConfig.username, password: appConfig.password },

@@ -145,12 +145,12 @@ import { sendSMS } from '../endpoints/sms';
             const parsedMax = parseFloat(max);
             if (parsedValue > parsedMax) {
               const message = `${addo.name} | ${addo.code} Hongera kwa kutuma taarifa za mwezi ${monthName}. Takwimu zako zinaonesha idadi ya ECP zilizotolewa dukani kwako ni kubwa ukilinganisha na wastani kwa miezi 6 iliyopita. Idadi: ${parsedValue} , Wastani: ${parsedMax}`;
-              //sendSMS(phoneNumbers, message);
+              sendSMS(phoneNumbers, message);
               //console.log(JSON.stringify({ message, phoneNumbers }) + ',');
             }
             if (parsedValue < parsedMin) {
               const message = `${addo.name} | ${addo.code} Hongera kwa kutuma taarifa za mwezi ${monthName}. Takwimu zako zinaonesha idadi ya ECP zilizotolewa dukani kwako ni ndogo ukilinganisha na wastani kwa miezi 6 iliyopita. Idadi: ${parsedValue} , Wastani: ${parsedMin}`;
-              //sendSMS(phoneNumbers, message);
+              sendSMS(phoneNumbers, message);
               //console.log(JSON.stringify({ message, phoneNumbers }) + ',');
             }
           }
@@ -162,12 +162,11 @@ import { sendSMS } from '../endpoints/sms';
             const parsedMax = parseFloat(max);
             if (parsedValue > parsedMax) {
               const message = `${addo.name} | ${addo.code} Hongera kwa kutuma taarifa za mwezi ${monthName}. Takwimu zako zinaonesha idadi ya OCP zilizotolewa dukani kwako ni kubwa ukilinganisha na wastani kwa miezi 6 iliyopita. Idadi: ${parsedValue} , Wastani: ${parsedMax}`;
-              //sendSMS(phoneNumbers, message);
-              console.log(JSON.stringify({ message, phoneNumbers }) + ',');
+              sendSMS(phoneNumbers, message);
             }
             if (parsedValue < parsedMin) {
               const message = `${addo.name} | ${addo.code} Hongera kwa kutuma taarifa za mwezi ${monthName}. Takwimu zako zinaonesha idadi ya OCP zilizotolewa dukani kwako ni ndogo ukilinganisha na wastani kwa miezi 6 iliyopita. Idadi: ${parsedValue} , Wastani: ${parsedMin}`;
-              //sendSMS(phoneNumbers, message);
+              sendSMS(phoneNumbers, message);
               //console.log(JSON.stringify({ message, phoneNumbers }) + ',');
             }
           }
@@ -179,12 +178,12 @@ import { sendSMS } from '../endpoints/sms';
             const parsedMax = parseFloat(max);
             if (parsedValue > parsedMax) {
               const message = `${addo.name} | ${addo.code} Hongera kwa kutuma taarifa za mwezi ${monthName}. Takwimu zako zinaonesha idadi ya pakiti za kondomu zilizotolewa dukani kwako ni kubwa ukilinganisha na wastani kwa miezi 6 iliyopita.Huduma rafiki kwa vijana zinapatikana. Idadi: ${parsedValue} , Wastani: ${parsedMax}`;
-              //sendSMS(phoneNumbers, message);
+              sendSMS(phoneNumbers, message);
               //console.log(JSON.stringify({ message, phoneNumbers }) + ',');
             }
             if (parsedValue < parsedMin) {
               const message = `${addo.name} | ${addo.code} Hongera kwa kutuma taarifa za mwezi ${monthName}. Takwimu zako zinaonesha idadi ya pakiti za kondomu zilizotolewa dukani kwako ni ndogo ukilinganisha na wastani kwa miezi 6 iliyopita.Huduma rafiki kwa vijana zinapatikana. Idadi: ${parsedValue} , Wastani: ${parsedMin}`;
-              //sendSMS(phoneNumbers, message);
+              sendSMS(phoneNumbers, message);
               //console.log(JSON.stringify({ message, phoneNumbers }) + ',');
             }
           }
