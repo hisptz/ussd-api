@@ -8,8 +8,8 @@
     "dev": "nodemon index --exec \"babel-node index --presets es2015,stage-0\"",
     "start": "babel-node index --presets es2015,stage-0",
     "start:performance:sms": "babel-node performanceSMS --presets es2015,stage-0",
-    "validation": "babel-node validation/validation.sms --presets es2015,stage-0",
-    "reminders": "babel-node validation/sendReminders --presets es2015,stage-0",
+    "validation": "babel-node messages/validation.sms --presets es2015,stage-0",
+    "reminders": "babel-node messages/sendReminders --presets es2015,stage-0",
     "test": "jest --watchAll"
   },
   "repository": {
