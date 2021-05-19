@@ -10,8 +10,10 @@ const monthName = new Date(`${new Date().getUTCFullYear() + '-' + new Date().get
 const month = new Date().getUTCMonth().toString();
 const period = new Date().getUTCFullYear() + (month.length === 1 ? '0' + month : month);
 const authLink = `http://${appConfig.username}:${appConfig.password}@${appConfig.stripped}/api/`;
-const valuesUrl = `${authLink}dataValueSets.json?dataSet=t6N3L1IElxb&period=${period}&orgUnit=`;
-const orgsUrl = `${authLink}organisationUnits.json?filter=level:eq:6&paging=false&fields=id,name,code,phoneNumber,attributeValues,parent[name,leve,parent[name,level,parent[name,level]]]`;
+const valuesUrl = `http://localhost:5050/api/dataValueSets.json?dataSet=t6N3L1IElxb&period=${period}&orgUnit=`;
+//const valuesUrl = `${authLink}dataValueSets.json?dataSet=t6N3L1IElxb&period=${period}&orgUnit=`;
+const orgsUrl = `http://localhost:5050/api/organisationUnits.json?filter=level:eq:6&paging=false&fields=id,name,code,phoneNumber,attributeValues,parent[name,leve,parent[name,level,parent[name,level]]]`;
+//const orgsUrl = `${authLink}organisationUnits.json?filter=level:eq:6&paging=false&fields=id,name,code,phoneNumber,attributeValues,parent[name,leve,parent[name,level,parent[name,level]]]`;
 (async () => {
   try {
     let ous = (
