@@ -2,7 +2,7 @@ const axios = require('axios');
 import { sendSMS } from '../endpoints/sms';
 
 import { appConfig } from '../config/app.config';
-sendSMS(['0754710020', '0657142395'], 'Reminder And Educational messages going out');
+//sendSMS(['0754710020', '0657142395'], 'Reminder And Educational messages going out');
 const monthName = new Date(`${new Date().getUTCFullYear() + '-' + new Date().getMonth() + '-' + 10}`).toLocaleString('default', {
   month: 'long',
   year: 'numeric',
@@ -51,19 +51,21 @@ async function getDataValues({ ous }) {
 const sendMessages = ({ addo, dataValues, phoneNumbers }) => {
   if (dataValues.dataValues && dataValues.dataValues.length > 0) {
     let message = `Mradi wa Afya ya Uzazi: ${addo.name} , yenye namba ya kurepoti ${addo.code}. Unakumbushwa kwamba dawa za uzazi wa mpango zinapatikana katika maeneo uliyopo/ili kuweza kujua zinapatikana wapi, tafadhali wasiliana na mfamasia wa Halmashauri ya ${addo.parent.parent.parent.name}`;
-    sendSMS(phoneNumbers, message);
+    //sendSMS(phoneNumbers, message);
 
     message = `Mradi wa Afya ya Uzazi: ${addo.name} , yenye namba ya kurepoti ${addo.code}. Unakumbushwa kuendelea kutumia miongozo iliyoainishwa na wizara ya afya kutoa rufaa kwa mteja anayehitaji huduma ya ziada ya uzazi wa mpango kuelekea kwenye kituo cha kutolea huduma za afya  ya uzazi kilichopo karibu na mteja.`;
-    sendSMS(phoneNumbers, message);
+    //sendSMS(phoneNumbers, message);
 
     message = `Mradi wa Afya ya Uzazi: ${addo.name} , yenye namba ya kurepoti ${addo.code}. Unakumbushwa kuendelea kutoa elimu ya matumizi sahihi ya kondomu kwa wateja kwenye huduma za uzazi wa mpango na kujikinga na ukimwi`;
-    sendSMS(phoneNumbers, message);
+    //sendSMS(phoneNumbers, message);
 
     message = `Mradi wa Afya ya Uzazi: ${addo.name} , yenye namba ya kurepoti ${addo.code}. Unakumbushwa kutoa rufuaa kuhusu upatikanaji wa huduma ya afya ya uzazi kwa vijana katika vituo vya kutolea huduma rafiki kwa vijana vilivyopo karibu nao`;
-    sendSMS(phoneNumbers, message);
+    //sendSMS(phoneNumbers, message);
+    console.log(message);
   }
   if (!dataValues.dataValues || dataValues.dataValues.length === 0) {
     const message = `${addo.name} | ${addo.code}, unakumbushwa kutuma taarifa mwezi ${monthName}. Tafadhali tuma ripoti hiyo kwa manufaa ya wizara ya afya. Asante.`;
-    sendSMS(phoneNumbers, message);
+    //sendSMS(phoneNumbers, message);
+    console.log(message);
   }
 };
