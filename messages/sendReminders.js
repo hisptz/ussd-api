@@ -49,6 +49,7 @@ async function getDataValues({ ous }) {
 }
 
 const sendMessages = ({ addo, dataValues, phoneNumbers }) => {
+  console.log(addo);
   if (dataValues.dataValues && dataValues.dataValues.length > 0) {
     let message = `Mradi wa Afya ya Uzazi: ${addo.name} , yenye namba ya kurepoti ${addo.code}. Unakumbushwa kwamba dawa za uzazi wa mpango zinapatikana katika maeneo uliyopo/ili kuweza kujua zinapatikana wapi, tafadhali wasiliana na mfamasia wa Halmashauri ya ${addo.parent.parent.parent.name}`;
     //sendSMS(phoneNumbers, message);
