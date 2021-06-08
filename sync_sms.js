@@ -32,10 +32,12 @@ const startSync = async () => {
 };
 
 const sync = async () => {
+
+  // console.log("nimeitwa")
   //get all unsynced entries
   const unsyncedEntries = await getUnsynced();
   //loop through the unsynced entries
-  // console.log("unsynced entries :: ",unsyncedEntries);
+   console.log("unsynced entries :: ",unsyncedEntries);
 
   let unsyncedEntry;
   for (unsyncedEntry of unsyncedEntries) {
