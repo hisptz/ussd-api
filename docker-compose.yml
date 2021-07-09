@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile-nginx
     image: nginx/idsr:2.0.0
-    ports:
-        - "4205:80"
+   # ports:
+   #     - "4205:80"
     restart: always
   db-tracker:
     image: postgres:10.12
@@ -24,6 +24,8 @@ services:
     working_dir: /home/app
     command: npm run start_all
     restart: always
+    ports:
+        - "4205:3021"
     volumes:
       - type: bind
         source: ./
@@ -33,4 +35,3 @@ services:
 volumes:
   idsr-tracker-data:
     driver: local
-
