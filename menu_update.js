@@ -39,7 +39,7 @@ export const updateMenuForKey = async key => {
     //check date on application table & compare with metadata update date to determine whether to update the menu
     let applicationMenu = await shouldUpdate(metadata.lastUpdated, metadata.key);
 
-    console.log("should update")
+    // console.log("should update")
 
     if (applicationMenu === undefined) {
       let data = {};
@@ -132,7 +132,7 @@ export const updateMenuForKey = async key => {
       }
     }
   } catch (e) {
-    console.log("error on update :: ", e)
+    // console.log("error on update :: ", e)
   }
 };
 
@@ -154,11 +154,11 @@ export const getDataStoreKeys = async () => {
 };
 
 const updateMenusForAllKeys = async () => {
-  console.log(' ************* STARTED MENU UPDATE SCRIPT *****************');
+  // console.log(' ************* STARTED MENU UPDATE SCRIPT *****************');
 
   const datastore_keys = await getDataStoreKeys();
 
-  console.log("got keys :: ",datastore_keys);
+  // console.log("got keys :: ",datastore_keys);
 
   let datastore_key;
   for (datastore_key of datastore_keys) {

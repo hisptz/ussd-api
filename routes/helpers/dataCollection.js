@@ -8,7 +8,7 @@ import {
   getApplicationById,
   addSync,
   getSyncServerByAppId,
-  addSms
+  addSms,
 } from '../../db';
 import { getAggregateData } from '../../endpoints/dataValueSets';
 import { getEventData } from '../../endpoints/eventData';
@@ -28,15 +28,15 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
       dataElement: data_element,
       categoryOptionCombo: category_combo,
       trackedEntityAttribute: tracked_entity_attribute,
-      value: USSDRequest
-    }
+      value: USSDRequest,
+    },
   ];
   const data = {
     sessionid,
     programStage: program_stage,
     program,
     trackedEntityType: tracked_entity_type,
-    datatype: data_type
+    datatype: data_type,
   };
   if (sessionDatavalues) {
     let oldDataValues = sessionDatavalues.dataValues;
@@ -51,14 +51,14 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
 
     return updateSessionDataValues(sessionid, {
       ...data,
-      dataValues: JSON.stringify(dataValues)
+      dataValues: JSON.stringify(dataValues),
       //dataValues: dataValues
     });
   }
 
   return addSessionDatavalues({
     ...data,
-    dataValues: JSON.stringify(dataValue)
+    dataValues: JSON.stringify(dataValue),
     //dataValues: dataValue
   });
 };
@@ -83,29 +83,37 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) =
   }
 };
 export const ruleNotPassed = async (sessionid, menu, answer) => {
-  if (menu.rules) {
+  console.log('P_RULES :: ', typeof menu.p_rules);
+
+  if (menu.p_rules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
 
     let retValue = false;
-    menu.rules.forEach(rule => {
+    JSON.parse(menu.p_rules).forEach((rule) => {
       let ruleEval = rule.condition;
       if (sessionDatavalues && sessionDatavalues.dataValues) {
         let dtValues = sessionDatavalues.dataValues;
         try {
           dtValues = JSON.parse(sessionDatavalues.dataValues);
         } catch (e) {}
-        dtValues.forEach(dtValue => {
+        dtValues.forEach((dtValue) => {
           ruleEval = ruleEval.split('#{' + dtValue.dataElement + '}').join(dtValue.value);
         });
       }
       ruleEval = ruleEval.split('#{' + menu.data_element + '}').join(answer);
       ruleEval = ruleEval.split('#{answer}').join(answer);
+
+      // console.log('rule ::', ruleEval);
+
+      // console.log('Evaluated Rule :: ', eval('(' + ruleEval + ')'));
+
       try {
         if (eval('(' + ruleEval + ')')) {
           retValue = rule.action;
         }
       } catch (e) {}
     });
+
     return retValue;
   } else {
     return false;
@@ -117,20 +125,20 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
   const session = await getCurrentSession(sessionid);
   let menu = await getMenuJson(session.currentmenu, session.application_id);
   const returnValue = {
-    notSet: []
+    notSet: [],
   };
   if (menu.data_set) {
     const dataSet = await getDataSet(menu.data_set);
     const dataValueSet = await getAggregateData(menu.data_set, sessionDatavalues.year + sessionDatavalues.period, session.orgUnit);
     const ids = [];
-    dataSet.dataSetElements.forEach(dataSetElement => {
+    dataSet.dataSetElements.forEach((dataSetElement) => {
       //console.log(dataSetElement.dataElement);
       //console.log(dataSetElement.categoryCombo);
       if (dataSetElement.categoryCombo) {
-        dataSetElement.categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo => {
+        dataSetElement.categoryCombo.categoryOptionCombos.forEach((categoryOptionCombo) => {
           let found = false;
           if (dataValueSet.dataValues) {
-            dataValueSet.dataValues.forEach(dataValue => {
+            dataValueSet.dataValues.forEach((dataValue) => {
               if (dataValue.dataElement === dataSetElement.dataElement.id && dataValue.categoryOptionCombo === categoryOptionCombo.id) {
                 found = true;
               }
@@ -154,12 +162,12 @@ export const collectPeriodData = async (sessionid, obj) => {
     sessionDatavalues.dataValues = JSON.stringify(sessionDatavalues.dataValues);
     return updateSessionDataValues(sessionid, {
       ...sessionDatavalues,
-      ...obj
+      ...obj,
     });
   }
   return addSessionDatavalues({
     sessionid,
-    ...obj
+    ...obj,
   });
 };
 
@@ -167,11 +175,11 @@ export const collectOrganisationUnitData = async (sessionid, obj) => {
   const sessionData = await getCurrentSession(sessionid);
   return updateUserSession(sessionid, {
     ...sessionData,
-    ...obj
+    ...obj,
   });
 };
 
-export const getCurrentSessionDataValue = async sessionid => {
+export const getCurrentSessionDataValue = async (sessionid) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
   let { dataValues, datatype } = sessionDatavalues;
   try {
@@ -179,7 +187,7 @@ export const getCurrentSessionDataValue = async sessionid => {
   } catch (e) {}
   return {
     dataValues: dataValues,
-    datatype
+    datatype,
   };
 };
 
@@ -199,9 +207,9 @@ const sendAggregateData = async (sessionid, msisdn) => {
       dataElement,
       value,
       period: finalPeriod,
-      orgUnit
+      orgUnit,
     }))
-    .filter(dt => {
+    .filter((dt) => {
       return dt.dataElement ? true : false;
     });
 
@@ -219,7 +227,7 @@ const sendAggregateData = async (sessionid, msisdn) => {
     period: period,
     sessionid: sessionid,
     datatype: 'aggregate',
-    dataValues: JSON.stringify(dtArray)
+    dataValues: JSON.stringify(dtArray),
   });
 
   // const response = await postAggregateData({
@@ -284,7 +292,7 @@ export const addMessage = async (sessionid, phoneNumber) => {
     let referenceNumber;
 
     if (dataValues.datatype === 'event') {
-      referenceNumber = _.find(dataValues.dataValues, dataValue => {
+      referenceNumber = _.find(dataValues.dataValues, (dataValue) => {
         return dataValue.dataElement == 'KlmXMXitsla';
       }).value;
     }
@@ -301,7 +309,7 @@ export const addMessage = async (sessionid, phoneNumber) => {
       status: 'QUEUED',
       text: message,
       phone_numbers: JSON.stringify(phoneNumbers),
-      session_id: sessionid
+      session_id: sessionid,
     };
     await addSms(data);
 
@@ -328,10 +336,10 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   //console.log('dtValues :: ', JSON.stringify(dtValues, null, 4));
   let dtArray = [];
 
-  await _.each(dtValues, dtValue => {
+  await _.each(dtValues, (dtValue) => {
     dtArray.push({
       dataElement: dtValue['dataElement'] == '' && dtValue['value'] == 'Maternal Death' ? 'Of2oRqwosOB' : dtValue['dataElement'],
-      value: dtValue['value']
+      value: dtValue['value'],
     });
   });
 
@@ -344,12 +352,12 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   // adding phone number if exist on mapping
   if (phone_number_mapping && phone_number_mapping[program]) {
     const mappings = phone_number_mapping[program];
-    mappings.map(mapping => {
+    mappings.map((mapping) => {
       const { program_stage, data_element } = mapping;
       if (program_stage && programStage === program_stage && data_element) {
         dtArray.push({
           dataElement: data_element,
-          value: msisdn
+          value: msisdn,
         });
       }
     });
@@ -357,13 +365,13 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
   // adding  auto generated fields if exist on mapping
   if (auto_generated_field && auto_generated_field[program]) {
     const mappings = auto_generated_field[program];
-    mappings.map(mapping => {
+    mappings.map((mapping) => {
       const { program_stage, data_element } = mapping;
       const value = `${getCurrentWeekNumber()}-${getRandomCharacters(12)}`;
       if (program_stage && programStage === program_stage && data_element) {
         dtArray.push({
           dataElement: data_element,
-          value
+          value,
         });
       }
     });
@@ -378,12 +386,12 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
 
     //process and send request
     let referralId = parseInt(
-      _.find(dtArray, dt => {
+      _.find(dtArray, (dt) => {
         return dt.dataElement == 'KlmXMXitsla';
       }).value
     );
 
-    let hfrCode = _.find(dtArray, dt => {
+    let hfrCode = _.find(dtArray, (dt) => {
       return dt.dataElement == 'pcEvQLQzTsN';
     }).value;
 
@@ -392,7 +400,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       created: getEventDate(),
       dataElement: 'pcEvQLQzTsN',
       value: hfrCode,
-      providedElsewhere: false
+      providedElsewhere: false,
     };
 
     let currentEventData = await getEventData('KlmXMXitsla', referralId, currentMenu.program);
@@ -414,7 +422,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       datatype: 'event',
       programStage: eventUpdatedData.programStage,
       dataValues: eventUpdatedData,
-      event: currentEventData.events[0].event
+      event: currentEventData.events[0].event,
     });
 
     const sync_servers = await getSyncServerByAppId(currentMenu.application_id);
@@ -446,7 +454,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       eventDate: getEventDate(),
       orgUnit,
       status: 'COMPLETED',
-      dataValues: dtArray
+      dataValues: dtArray,
     };
 
     const response = await updateSessionDataValues(sessionid, {
@@ -454,7 +462,7 @@ const sendEventData = async (sessionid, program, programStage, msisdn, currentMe
       datatype: 'event',
       program,
       programStage,
-      dataValues: JSON.stringify(eventDataToPost)
+      dataValues: JSON.stringify(eventDataToPost),
     });
 
     return response;
@@ -482,7 +490,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
 
   let dtArray = dtValues.map(({ trackedEntityAttribute, value }) => ({
     attribute: trackedEntityAttribute,
-    value
+    value,
   }));
   // adding phone number if exist on mapping
   /*if (phone_number_mapping && phone_number_mapping[program]) {
@@ -542,10 +550,10 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
           status: 'ACTIVE',
           orgUnit,
           enrollmentDate: getEventDate(),
-          incidentDate: getEventDate()
-        }
+          incidentDate: getEventDate(),
+        },
       ],
-      attributes: [...dtArray, { attribute: 'CxSxifEaRzd', value: idsrCaseId.value }]
+      attributes: [...dtArray, { attribute: 'CxSxifEaRzd', value: idsrCaseId.value }],
     };
 
     //console.log(' i get here ::', trackerUpdateData);
@@ -554,7 +562,7 @@ const sendTrackerData = async (sessionid, program, trackedEntityType, msisdn, cu
       sessionid: sessionid,
       datatype: 'tracker',
       trackedEntityType: trackedEntityType,
-      dataValues: JSON.stringify(trackerUpdateData)
+      dataValues: JSON.stringify(trackerUpdateData),
     });
 
     await updateUserSession(sessionid, { done: true });

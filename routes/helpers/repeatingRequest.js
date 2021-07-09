@@ -4,7 +4,7 @@ import {
   addUserSession,
   getSessionDataValue,
   getMenuJson,
-  getLatestApplicationEntryByKey
+  getLatestApplicationEntryByKey,
 } from '../../db';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode, getOrganisationUnit } from '../../endpoints/organisationUnit';
@@ -18,7 +18,7 @@ import {
   collectOrganisationUnitData,
   validatedData,
   ruleNotPassed,
-  addMessage
+  addMessage,
 } from './dataCollection';
 import { getConfirmationSummarySummary } from './confirmationSummary';
 import { getSanitizedErrorMessage } from './errorMessage';
@@ -29,7 +29,7 @@ const periodTypes = {
   Weekly: 'W',
   Monthly: '',
   BiMonthly: 'S',
-  Quoterly: 'Q'
+  Quoterly: 'Q',
 };
 
 var id_gen_menu = {};
@@ -60,7 +60,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         done: false,
         started: new Date(),
         application_id: application_id,
-        msisdn: msisdn
+        msisdn: msisdn,
       };
 
       await addUserSession(session_data);
@@ -69,7 +69,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       response = {
         response_type: 2,
         text: starting_menu.title,
-        options: returnOptions({ options: JSON.parse(starting_menu.options) })
+        options: returnOptions({ options: JSON.parse(starting_menu.options) }),
       };
 
       return response;
@@ -98,6 +98,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
       //response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
       response = await returnNextMenu(sessionid, _next_menu_json);
     } else {
+      // console.log("MENU 12 :: ", _currentMenu)
+
       if (_currentMenu.type === 'fetch') {
       } else if (_currentMenu.type === 'id_generator') {
         const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(
@@ -124,17 +126,33 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         id_gen_menu = {};
         response = await returnNextMenu(sessionid, _next_menu_json);
       } else if (_currentMenu.type === 'auth') {
+        console.log('here on auth menu');
         if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
           response = {
             response_type: 1,
-            text: _currentMenu.fail_message
+            text: _currentMenu.fail_message,
           };
         } else {
           response = await checkAuthKey(sessionid, USSDRequest, _currentMenu, _next_menu_json, retries);
         }
       } else if (_currentMenu.type === 'data') {
         const options = JSON.parse(_currentMenu.options);
-        if (options && options.length) {
+
+        // console.log('MENU :: ', JSON.stringify(_currentMenu));
+
+        // console.log('SESS :: ', sessionid, '  ANS :: ', USSDRequest);
+        const ruleHasNtPassed = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
+        // console.log('RULE :: ', ruleHasNtPassed);
+
+        if (ruleHasNtPassed && ruleHasNtPassed.type == 'ERROR') {
+          // console.log('sessionid :: ', sessionid);
+          // console.log('curr menu :: ', _currentMenu);
+          // console.log('error msg :: ', ruleHasNtPassed.errorMessage);
+
+          response = await returnNextMenu(sessionid, _currentMenu, ruleHasNtPassed.errorMessage);
+
+          return response;
+        } else if (options && options.length) {
           //console.log('test here', sessionid, 'current menu :::', _currentMenu, 'ussd req ::::', USSDRequest, 'menus :::', menus);
 
           const { passed, correctOption, next_menu_response } = await checkOptionSetsAnswer(
@@ -144,6 +162,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             USSDRequest,
             application_id
           );
+
           if (passed) {
             response = await collectData(sessionid, _currentMenu, correctOption);
 
@@ -190,7 +209,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                 const message = 'The following data is not entered:' + validation.notSet.join(',');
                 response = {
                   response_type: 1,
-                  text: message
+                  text: message,
                 };
               } else {
                 //TODO :: change logic here to not send data but add to list of syncs
@@ -201,7 +220,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             } else {
               response = {
                 response_type: 1,
-                text: 'Terminating the session'
+                text: 'Terminating the session',
               };
             }
           } else {
@@ -213,7 +232,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           if (httpStatus !== OK) {
             response = {
               response_type: 1,
-              text: 'Terminating the session'
+              text: 'Terminating the session',
             };
           }
         }
@@ -222,7 +241,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
   } catch (e) {
     response = {
       response_type: 1,
-      text: 'Server Error. Please try again.'
+      text: 'Server Error. Please try again.',
     };
     console.log(e);
   }
@@ -236,11 +255,11 @@ const checkAuthKey = async (sessionid, response, currentMenu, _next_menu_json, r
     message = await returnNextMenu(sessionid, _next_menu_json);
   } else {
     await updateUserSession(sessionid, {
-      retries: Number(retries) + 1
+      retries: Number(retries) + 1,
     });
     message = {
       response_type: 2,
-      text: retry_message
+      text: retry_message,
     };
   }
 
@@ -253,7 +272,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
 
   await updateUserSession(sessionid, {
     currentmenu: next_menu_json.menu_id,
-    retries: 0
+    retries: 0,
   });
   const menu = next_menu_json;
 
@@ -263,7 +282,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     message = {
       response_type: 2,
       text: menu.title,
-      options: returnOptions({ options: JSON.parse(menu.options) })
+      options: returnOptions({ options: JSON.parse(menu.options) }),
     };
   } else if (menu.type === 'period' || menu.type === 'data') {
     const { use_for_year, years_back } = menu;
@@ -272,19 +291,19 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
       const msg_str = [menu.title, ...arrayOfYears.map((year, index) => `${index + 1}. ${year}`)].join('\n');
       message = {
         response_type: 2,
-        text: msg_str
+        text: msg_str,
       };
     } else {
       if (menu.options && menu.options.length) {
         message = {
           response_type: 2,
           text: menu.title,
-          options: returnOptions({ options: JSON.parse(menu.options) })
+          options: returnOptions({ options: JSON.parse(menu.options) }),
         };
       } else {
         message = {
           response_type: 2,
-          text: menu.title
+          text: menu.title,
         };
       }
     }
@@ -299,7 +318,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     message = {
       response_type: 2,
       text: menu.title,
-      options: returnOptions({ options: JSON.parse(menu.options) })
+      options: returnOptions({ options: JSON.parse(menu.options) }),
       /*options: {
         '1': 'Kutuma',
         '2': 'Kukataa'
@@ -311,7 +330,7 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   } else if (menu.type === 'ou') {
     message = {
       response_type: 2,
-      text: menu.title
+      text: menu.title,
     };
   } else if (menu.type === 'id_generator') {
     let session = await getCurrentSession(sessionid);
@@ -323,12 +342,12 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     let generatedId = orgUnitDetails.code + '' + code.listGrid.rows[0][0];
     id_gen_menu = menu;
     id_gen_menu['options'] = [
-      { id: '123', response: '1', title: ' tuma id', value: generatedId.toString(), next_menu: id_gen_menu.next_menu }
+      { id: '123', response: '1', title: ' tuma id', value: generatedId.toString(), next_menu: id_gen_menu.next_menu },
     ];
     message = {
       response_type: 2,
       text: 'Bonyeza moja kutunza ID ya rufaa kwenye mfumo<br/>' + generatedId,
-      options: returnOptions(id_gen_menu)
+      options: returnOptions(id_gen_menu),
     };
   } else if (menu.type == 'fetch') {
     //fetch event details
@@ -353,24 +372,24 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
 // Option Answers.
 const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
-  const responses = options.map(option => option.response);
+  const responses = options.map((option) => option.response);
   if (!responses.includes(answer)) {
     // return menu with options in case of incorrect value on selection
     if (menu.type === 'options' && menu.options) {
       return {
         response_type: 2,
         text: menu.title + '\n' + (menu.retry_message || 'You did not enter the correct choice,try again'),
-        options: returnOptions({ options: options })
+        options: returnOptions({ options: options }),
       };
     } else {
       return {
         response_type: 1,
-        text: `${menu.fail_message || 'You did not enter the correct choice'}`
+        text: `${menu.fail_message || 'You did not enter the correct choice'}`,
       };
     }
   }
 
-  const correctOption = options.filter(option => option.response === answer)[0];
+  const correctOption = options.filter((option) => option.response === answer)[0];
 
   const { next_menu } = correctOption;
 
@@ -386,14 +405,14 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
 // Option Answers.
 const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, app_id) => {
   const options = typeof menu.options == 'string' ? JSON.parse(menu.options) : menu.options;
-  const responses = options.map(option => option.response);
+  const responses = options.map((option) => option.response);
   let passed = true;
   let correctOption = null;
   let next_menu_response = null;
   if (!responses.includes(answer)) {
     passed = !passed;
   } else {
-    const { value, next_menu } = options.filter(option => option.response === answer)[0];
+    const { value, next_menu } = options.filter((option) => option.response === answer)[0];
     if (next_menu) {
       _next_menu_json = await getMenuJson(next_menu, app_id);
       next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
@@ -405,7 +424,7 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, a
   return {
     passed,
     correctOption,
-    next_menu_response
+    next_menu_response,
   };
 };
 
@@ -418,9 +437,9 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, a
 //     title
 //   }) => `${response}. ${title}`)].join('\n');
 // };
-const returnOptions = ({ options }) => {
+export const returnOptions = ({ options }) => {
   let returnOptions = {};
-  options.forEach(option => {
+  options.forEach((option) => {
     if (typeof option.response === 'boolean') {
       returnOptions[option.response ? '1' : '2'] = option.title;
     } else {
@@ -443,7 +462,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
       if (answer > 0 && answer <= limit) {
         const year = getYears(years_back)[answer - 1];
         await collectPeriodData(sessionid, {
-          year
+          year,
         });
       } else {
         const retry_message = menu.retry_message || `You did not enter the correct choice`;
@@ -456,7 +475,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
         const period =
           period_type === 'BiMonthly' ? `${period_value}${periodTypes[period_type]}` : `${periodTypes[period_type]}${period_value}`;
         await collectPeriodData(sessionid, {
-          period
+          period,
         });
       } else {
         const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
@@ -486,7 +505,7 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
       if (results.organisationUnits.length > 0) {
         const orgUnit = results.organisationUnits[0].id;
         await collectOrganisationUnitData(sessionid, {
-          orgUnit
+          orgUnit,
         });
         response = await returnNextMenu(sessionid, _next_menu_json);
       } else {
@@ -513,10 +532,10 @@ const terminateWithMessage = async (sessionid, menu) => {
   //specific message for addo referral confimation menu
   let referenceNumber;
   if (data.datatype === 'event') {
-    referenceNumber = _.find(data.dataValues.dataValues, dataValue => {
+    referenceNumber = _.find(data.dataValues.dataValues, (dataValue) => {
       return dataValue.dataElement == 'KlmXMXitsla';
     })
-      ? _.find(data.dataValues.dataValues, dataValue => {
+      ? _.find(data.dataValues.dataValues, (dataValue) => {
           return dataValue.dataElement == 'KlmXMXitsla';
         }).value
       : null;
@@ -530,15 +549,15 @@ const terminateWithMessage = async (sessionid, menu) => {
   return {
     response_type: 1,
     //text: 'message like this'
-    text: message
+    text: message,
   };
 };
 
-const isNumeric = n => {
+const isNumeric = (n) => {
   return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
-const getYears = years_back => {
+const getYears = (years_back) => {
   const currentYear = new Date().getFullYear();
   const arrayOfYears = [];
   for (let index = 0; index <= years_back; index++) {

@@ -1,6 +1,7 @@
 import { getUserFromDHIS2 } from '../../endpoints/users';
 import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { addUserSession } from '../../db';
+import { returnOptions } from '../../routes/helpers/repeatingRequest';
 const { generateCode } = require('dhis2-uid');
 
 export const returnAuthenticationResponse = async (mssdin, sessionid, appid) => {
@@ -14,20 +15,24 @@ export const returnAuthenticationResponse = async (mssdin, sessionid, appid) => 
   const { settings, menus } = dataStore;
   response = {
     response_type: 1,
-    text: settings.no_user_message
+    text: settings.no_user_message,
   };
   if (users.length) {
     const starting_menu = menus[settings.starting_menu];
     const name = users[0].displayName;
     const orgUnits = users[0].organisationUnits;
+
+    console.log(starting_menu.options);
+
     response = {
       response_type: 2,
-      text: `Welcome ${name} to Afya Reporting -- Enter PIN`
+      text: `Welcome ${name} to Afya Reporting, Select options`,
+      options: returnOptions({ options: starting_menu.options }),
     };
     if (users.length > 1) {
       response = {
         response_type: 1,
-        text: `This phone number is associated with more than one user`
+        text: `This phone number is associated with more than one user`,
       };
     } else {
       const id = generateCode();
@@ -40,12 +45,12 @@ export const returnAuthenticationResponse = async (mssdin, sessionid, appid) => 
         retries: 0,
         msisdn: mssdin,
         started: new Date(),
-        done: false
+        done: false,
       };
       await addUserSession({
         ...session_data,
         //datastore: JSON.stringify(dataStore)
-        application_id: appid
+        application_id: appid,
       });
     }
   }
