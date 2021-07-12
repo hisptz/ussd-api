@@ -6,8 +6,8 @@ import {
   getMenuJson,
   getLatestApplicationEntryByKey,
 } from '../../db';
-import { getDataStoreFromDHIS2 } from '../../endpoints/dataStore';
 import { getOrganisationUnitByCode, getOrganisationUnit } from '../../endpoints/organisationUnit';
+import { getDataSetOutliers, getDataSet } from '../../endpoints/dataSet';
 const { generateCode } = require('dhis2-uid');
 import * as _ from 'lodash';
 import {
@@ -40,8 +40,8 @@ const dataSubmissionOptions = [true, false];
 const successStatus = ['SUCCESS', 'OK'];
 const OK = 'OK';
 
-export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
-  //console.log('USSDRequest Input:', USSDRequest)
+export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) => {
+  console.log('USSDRequest Input:', session);
   let response;
   try {
     let currentmenu, retries, application_id;
@@ -96,7 +96,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
     // checking for previous menu is not auth and checking if user need previous menu
     if (_previous_menu && _previous_menu.type !== 'auth' && USSDRequest === '#' && menu_types_with_back.includes(_currentMenu.type)) {
       //response = await returnNextMenu(sessionid, _currentMenu.previous_menu, menus);
-      response = await returnNextMenu(sessionid, _next_menu_json);
+      response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
     } else {
       // console.log("MENU 12 :: ", _currentMenu)
 
@@ -115,16 +115,16 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           if (next_menu_response) {
             response = next_menu_response;
           } else {
-            response = await returnNextMenu(sessionid, _next_menu_json);
+            response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
           }
         } else {
           const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
-          response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
+          response = await returnNextMenu(sessionid, _next_menu_json, retry_message, session.orgUnit);
         }
         response = checkOptionsAnswer(sessionid, id_gen_menu, USSDRequest, application_id);
         //reset id gen menu
         id_gen_menu = {};
-        response = await returnNextMenu(sessionid, _next_menu_json);
+        response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
       } else if (_currentMenu.type === 'auth') {
         console.log('here on auth menu');
         if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
@@ -149,7 +149,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           // console.log('curr menu :: ', _currentMenu);
           // console.log('error msg :: ', ruleHasNtPassed.errorMessage);
 
-          response = await returnNextMenu(sessionid, _currentMenu, ruleHasNtPassed.errorMessage);
+          response = await returnNextMenu(sessionid, _currentMenu, ruleHasNtPassed.errorMessage, session.orgUnit);
 
           return response;
         } else if (options && options.length) {
@@ -182,10 +182,10 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
           // checking for values types from current menu and value send from ussd
           if (_currentMenu.field_value_type && numericalValueTypes.includes(_currentMenu.field_value_type) && !isNumeric(USSDRequest)) {
             const retry_message = _currentMenu.retry_message || 'You did not enter numerical value, try again';
-            response = await returnNextMenu(sessionid, _next_menu_json, retry_message);
+            response = await returnNextMenu(sessionid, _next_menu_json, retry_message, session.orgUnit);
           } else {
             response = await collectData(sessionid, _currentMenu, USSDRequest);
-            response = await returnNextMenu(sessionid, _next_menu_json);
+            response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
           }
         }
       } else if (_currentMenu.type === 'options') {
@@ -197,6 +197,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
         response = await checkOrgUnitAnswer(sessionid, _currentMenu, _next_menu_json, USSDRequest);
       } else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
+      } else if (_currentMenu.type === 'outliers') {
+        response = await checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
       }
 
       //data to be submitted here
@@ -215,7 +217,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
                 //TODO :: change logic here to not send data but add to list of syncs
                 const requestResponse = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
 
-                response = await returnNextMenu(sessionid, _next_menu_json);
+                response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
               }
             } else {
               response = {
@@ -225,7 +227,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn) => {
             }
           } else {
             const retry_message = _currentMenu.retry_message || 'You did not enter the correct choice, try again';
-            response = await returnNextMenu(sessionid, _currentMenu, retry_message);
+            response = await returnNextMenu(sessionid, _currentMenu, retry_message, session.orgUnit);
           }
         } else {
           const { httpStatus } = await submitData(sessionid, _currentMenu, msisdn, USSDRequest);
@@ -252,7 +254,7 @@ const checkAuthKey = async (sessionid, response, currentMenu, _next_menu_json, r
   let message;
   const { next_menu, retry_message } = currentMenu;
   if (response === currentMenu.auth_key) {
-    message = await returnNextMenu(sessionid, _next_menu_json);
+    message = await returnNextMenu(sessionid, _next_menu_json, null, null);
   } else {
     await updateUserSession(sessionid, {
       retries: Number(retries) + 1,
@@ -267,7 +269,7 @@ const checkAuthKey = async (sessionid, response, currentMenu, _next_menu_json, r
 };
 
 // Deals with next menu;
-const returnNextMenu = async (sessionid, next_menu_json, additional_message) => {
+const returnNextMenu = async (sessionid, next_menu_json, additional_message, orgUnit) => {
   let message;
 
   await updateUserSession(sessionid, {
@@ -355,7 +357,43 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
     //   response_type: 2,
     //   text: menu.title
     // };
+  } else if (menu.type == 'outliers') {
+    let dataValues = await getSessionDataValue(sessionid);
+
+    let session = await getCurrentSession(sessionid);
+
+    let dataSetMetaData = await getDataSet(menu.data_set);
+
+    let dataElemsShortNames = {};
+
+    _.each(dataSetMetaData.dataSetElements, (dataElement) => {
+      dataElemsShortNames[dataElement.dataElement.id] = dataElement.dataElement.shortName;
+    });
+
+    let periodId = `${dataValues.year}${dataValues.period}`;
+    let dataElementsMinMax = await getDataSetOutliers(menu.data_set, periodId, session.orgUnit);
+
+    let outliersList = getOutliersList(dataValues.dataValues, dataElementsMinMax.minMaxDataElements, dataElemsShortNames);
+
+    let text;
+
+    if (outliersList.length > 0) {
+      text = `Outliers exist in the following data: \n ${_.uniq(
+        _.map(outliersList, (outlier) => {
+          return outlier.shortName;
+        })
+      ).join(', ')} \n You may repeat data entry or proceed to data validation \n`;
+    } else {
+      text = `There are no outliers, you may proceed.`;
+    }
+
+    message = {
+      response_type: 2,
+      text: text,
+      options: returnOptions({ options: JSON.parse(menu.options) }),
+    };
   }
+
   // checking if previous menu is not of type auth and add back menu
 
   if (_previous_menu && _previous_menu.type !== 'auth' && menu_types_with_back.includes(menu.type)) {
@@ -367,6 +405,39 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message) => 
   }
 
   return message;
+};
+
+const getOutliersList = (dataValues, maxMin, deShortNames) => {
+  let processedDataValues = _.map(dataValues, (dv) => {
+    let max = _.filter(maxMin, (range) => {
+      if (range.id == `${dv.dataElement}-${dv.categoryOptionCombo}`) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    if (max.length > 0) {
+      return { ...dv, max: max[0].max, min: max[0].min, shortName: deShortNames[dv.dataElement] };
+    } else {
+      return { ...dv, shortName: deShortNames[dv.dataElement] };
+    }
+  });
+
+  let deOutliers = _.filter(processedDataValues, (deToCheckOutlier) => {
+    if (
+      deToCheckOutlier.max &&
+      deToCheckOutlier.max &&
+      (parseInt(deToCheckOutlier.max) < parseInt(deToCheckOutlier.value) ||
+        parseInt(deToCheckOutlier.min) > parseInt(deToCheckOutlier.value))
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  return deOutliers;
 };
 
 // Option Answers.
@@ -399,7 +470,7 @@ const checkOptionsAnswer = async (sessionid, menu, answer, app_id) => {
   // console.log('menu id :: ', next_menu);
   // console.log('menu json :: ', next_menu_json);
 
-  return await returnNextMenu(sessionid, next_menu_json);
+  return await returnNextMenu(sessionid, next_menu_json, null, null);
 };
 
 // Option Answers.
@@ -415,9 +486,9 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, a
     const { value, next_menu } = options.filter((option) => option.response === answer)[0];
     if (next_menu) {
       _next_menu_json = await getMenuJson(next_menu, app_id);
-      next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
+      next_menu_response = await returnNextMenu(sessionid, _next_menu_json, null, null);
     } else {
-      next_menu_response = await returnNextMenu(sessionid, _next_menu_json);
+      next_menu_response = await returnNextMenu(sessionid, _next_menu_json, null, null);
     }
     correctOption = value;
   }
@@ -453,7 +524,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
   let response;
 
   const { period_type, maximum_value, use_for_year, years_back } = menu;
-  response = await returnNextMenu(sessionid, _next_menu_json);
+  response = await returnNextMenu(sessionid, _next_menu_json, null, null);
   //checking for period value and return appropriate menu in case of wrong selection
   if (isNumeric(answer)) {
     //checking for yearly period types
@@ -466,7 +537,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
         });
       } else {
         const retry_message = menu.retry_message || `You did not enter the correct choice`;
-        response = await returnNextMenu(sessionid, menu, retry_message);
+        response = await returnNextMenu(sessionid, menu, retry_message, null);
       }
     } else {
       //checking for validity of values for other priod types
@@ -479,12 +550,12 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
         });
       } else {
         const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
-        response = await returnNextMenu(sessionid, menu, retry_message);
+        response = await returnNextMenu(sessionid, menu, retry_message, null);
       }
     }
   } else {
     const retry_message = menu.retry_message || `You did not enter numerical value, try again`;
-    response = await returnNextMenu(sessionid, menu, retry_message);
+    response = await returnNextMenu(sessionid, menu, retry_message, null);
   }
   return response;
 };
@@ -498,7 +569,7 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
 
     if (ruleHasNotPassed) {
       if (ruleHasNotPassed.type === 'ERROR') {
-        response = await returnNextMenu(sessionid, _next_menu_json, ruleHasNotPassed.errorMessage);
+        response = await returnNextMenu(sessionid, _next_menu_json, ruleHasNotPassed.errorMessage, null);
       }
     } else {
       const results = await getOrganisationUnitByCode(answer);
@@ -507,14 +578,14 @@ const checkOrgUnitAnswer = async (sessionid, menu, _next_menu_json, answer) => {
         await collectOrganisationUnitData(sessionid, {
           orgUnit,
         });
-        response = await returnNextMenu(sessionid, _next_menu_json);
+        response = await returnNextMenu(sessionid, _next_menu_json, null, null);
       } else {
         const retry_message = menu.retry_message || `You did not enter a valid code, try again`;
-        response = await returnNextMenu(sessionid, menu.id, retry_message);
+        response = await returnNextMenu(sessionid, menu.id, retry_message, null);
       }
     }
   } else {
-    response = await returnNextMenu(sessionid, _next_menu_json);
+    response = await returnNextMenu(sessionid, _next_menu_json, null, null);
   }
 
   return response;

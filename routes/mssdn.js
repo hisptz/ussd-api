@@ -47,12 +47,12 @@ const requestHandler = async (req, res) => {
       res.send(format(sessionid, response));
     } else {
       //console.log('there is a session entry');
-      let response = await repeatingRequest(sessionid, input, msisdn);
+      let response = await repeatingRequest(sessionid, input, msisdn, session);
       //console.log(format(sessionid, response));
       res.send(format(sessionid, response));
     }
   } else {
-    let response = await repeatingRequest(sessionid, input, msisdn);
+    let response = await repeatingRequest(sessionid, input, msisdn, session);
     console.log(format(sessionid, response));
     res.send(format(sessionid, response));
   }
