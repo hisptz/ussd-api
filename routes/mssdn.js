@@ -53,7 +53,7 @@ const requestHandler = async (req, res) => {
     }
   } else {
     let response = await repeatingRequest(sessionid, input, msisdn, session);
-    console.log(format(sessionid, response));
+    // console.log(format(sessionid, response));
     res.send(format(sessionid, response));
   }
 

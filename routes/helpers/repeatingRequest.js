@@ -32,6 +32,40 @@ const periodTypes = {
   Quoterly: 'Q',
 };
 
+let dataSetConfigs;
+let dataElementShortNames = {};
+
+const getDataSetDataElementsIds = async () => {
+  let metadata = await getDataSet(`NDcgQeGaJC9`);
+
+  _.each(
+    _.filter(metadata.dataSetElements, (de) => {
+      if (de.dataElement) {
+        return true;
+      } else {
+        return false;
+      }
+    }),
+    (filteredDe) => {
+      dataElementShortNames[filteredDe.dataElement.id] = filteredDe.dataElement.shortName;
+    }
+  );
+
+  dataSetConfigs = metadata.dataEntryForm.htmlCode
+    .split('id="')
+    .filter((y) => y.includes('-val'))
+    .map((z) => {
+      let q = z.split('-');
+      if (q.length > 2) {
+        return `${q[0]}-${q[1]}`;
+      } else {
+        return null;
+      }
+    });
+};
+
+getDataSetDataElementsIds();
+
 var id_gen_menu = {};
 
 const numericalValueTypes = ['INTEGER_NEGATIVE', 'INTEGER_POSITIVE', 'INTEGER', 'NUMBER', 'INTEGER_ZERO_OR_POSITIVE'];
@@ -41,7 +75,6 @@ const successStatus = ['SUCCESS', 'OK'];
 const OK = 'OK';
 
 export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) => {
-  console.log('USSDRequest Input:', session);
   let response;
   try {
     let currentmenu, retries, application_id;
@@ -126,7 +159,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
         id_gen_menu = {};
         response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
       } else if (_currentMenu.type === 'auth') {
-        console.log('here on auth menu');
+        // console.log('here on auth menu');
         if (_currentMenu.number_of_retries && retries >= _currentMenu.number_of_retries) {
           response = {
             response_type: 1,
@@ -138,17 +171,9 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
       } else if (_currentMenu.type === 'data') {
         const options = JSON.parse(_currentMenu.options);
 
-        // console.log('MENU :: ', JSON.stringify(_currentMenu));
-
-        // console.log('SESS :: ', sessionid, '  ANS :: ', USSDRequest);
         const ruleHasNtPassed = await ruleNotPassed(sessionid, _currentMenu, USSDRequest);
-        // console.log('RULE :: ', ruleHasNtPassed);
 
         if (ruleHasNtPassed && ruleHasNtPassed.type == 'ERROR') {
-          // console.log('sessionid :: ', sessionid);
-          // console.log('curr menu :: ', _currentMenu);
-          // console.log('error msg :: ', ruleHasNtPassed.errorMessage);
-
           response = await returnNextMenu(sessionid, _currentMenu, ruleHasNtPassed.errorMessage, session.orgUnit);
 
           return response;
@@ -166,7 +191,7 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
           if (passed) {
             response = await collectData(sessionid, _currentMenu, correctOption);
 
-            console.log('next menu res :: ', correctOption);
+            // console.log('next menu res :: ', correctOption);
 
             if (next_menu_response) {
               response = next_menu_response;
@@ -198,6 +223,8 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
       } else if (_currentMenu.type === 'message') {
         response = terminateWithMessage(sessionid, _currentMenu);
       } else if (_currentMenu.type === 'outliers') {
+        response = await checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
+      } else if (_currentMenu.type === 'dataset-summary') {
         response = await checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
       }
 
@@ -392,6 +419,50 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message, org
       text: text,
       options: returnOptions({ options: JSON.parse(menu.options) }),
     };
+  } else if (menu.type === 'dataset-summary') {
+    // get dataset dataelements
+    let session = await getCurrentSession(sessionid);
+
+    console.log('session :: ', session);
+
+    let dataValues = await getSessionDataValue(sessionid);
+
+    console.log('data values :: ', dataValues);
+
+    let periodId = `${dataValues.year}${dataValues.period}`;
+
+    let dataElements = await getDataSetOutliers(menu.data_set, periodId, session.orgUnit);
+
+    // get datavalues
+    let actualDataValues = dataElements.dataValues;
+
+    // compare dataset with datavalues
+    let comparedDataElementsWithDataValues = await compareDataElementsWithDataValues(dataElements, actualDataValues);
+
+    let text;
+
+    if (comparedDataElementsWithDataValues.length > 0) {
+      text = `You can not submit this form, the following data has not been captured:  \n ${comparedDataElementsWithDataValues.join(', ')}`;
+
+      message = {
+        response_type: 2,
+        text: text,
+      };
+    } else {
+      // skip menu;
+      let appData = await getLatestApplicationEntryByKey(appConfig.dataStoreId);
+      let appId = appData.id;
+
+      let menuToSkipTo = await getMenuJson(menu.next_menu, appId);
+
+      message = await returnNextMenu(sessionid, menuToSkipTo);
+
+      // message = {
+      //   response_type: 2,
+      //   text: text,
+      //   options: returnOptions({ options: JSON.parse(menu.options) }),
+      // };
+    }
   }
 
   // checking if previous menu is not of type auth and add back menu
@@ -405,6 +476,41 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message, org
   }
 
   return message;
+};
+
+const compareDataElementsWithDataValues = (dataValues) => {
+  console.log('dataValues :: ', dataValues);
+
+  console.log('shortNames :: ', dataElementShortNames);
+
+  let missingDataElementsIds = [];
+
+  let dataValuesObject = {};
+
+  dataValues.dataValues.forEach((datavalue) => {
+    dataValuesObject[datavalue.id] = datavalue.val;
+  });
+
+  dataSetConfigs.forEach((dataElement) => {
+    if (dataValuesObject[dataElement]) {
+      // missingDataElementsIds.push()
+    } else {
+      let de = dataElement.split('-');
+
+      if (de.length > 0) {
+        missingDataElementsIds.push(de[0]);
+      }
+    }
+  });
+
+  missingDataElementsIds = _.uniq(missingDataElementsIds);
+
+  console.log('missing des :: ', missingDataElementsIds);
+  return [
+    ..._.map(missingDataElementsIds, (id) => {
+      return dataElementShortNames[id];
+    }),
+  ];
 };
 
 const getOutliersList = (dataValues, maxMin, deShortNames) => {
@@ -524,7 +630,6 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
   let response;
 
   const { period_type, maximum_value, use_for_year, years_back } = menu;
-  response = await returnNextMenu(sessionid, _next_menu_json, null, null);
   //checking for period value and return appropriate menu in case of wrong selection
   if (isNumeric(answer)) {
     //checking for yearly period types
@@ -535,6 +640,8 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
         await collectPeriodData(sessionid, {
           year,
         });
+
+        response = await returnNextMenu(sessionid, _next_menu_json, null, null);
       } else {
         const retry_message = menu.retry_message || `You did not enter the correct choice`;
         response = await returnNextMenu(sessionid, menu, retry_message, null);
@@ -548,6 +655,8 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
         await collectPeriodData(sessionid, {
           period,
         });
+
+        response = await returnNextMenu(sessionid, _next_menu_json, null, null);
       } else {
         const retry_message = `${answer} is out range of 1 to ${maximum_value}, try again`;
         response = await returnNextMenu(sessionid, menu, retry_message, null);
@@ -557,6 +666,7 @@ const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
     const retry_message = menu.retry_message || `You did not enter numerical value, try again`;
     response = await returnNextMenu(sessionid, menu, retry_message, null);
   }
+
   return response;
 };
 

@@ -83,7 +83,7 @@ export const submitData = async (sessionid, _currentMenu, msisdn, USSDRequest) =
   }
 };
 export const ruleNotPassed = async (sessionid, menu, answer) => {
-  console.log('P_RULES :: ', typeof menu.p_rules);
+  // console.log('P_RULES :: ', typeof menu.p_rules);
 
   if (menu.p_rules) {
     const sessionDatavalues = await getSessionDataValue(sessionid);
@@ -158,6 +158,8 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
 
 export const collectPeriodData = async (sessionid, obj) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
+
+  console.log('data :: ', obj);
   if (sessionDatavalues) {
     sessionDatavalues.dataValues = JSON.stringify(sessionDatavalues.dataValues);
     return updateSessionDataValues(sessionid, {
