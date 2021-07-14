@@ -39,7 +39,17 @@ export const getDataSetOutliers = (dataSetId, periodId, orgUnit) => {
   const url = `${baseUrl}/dhis-web-dataentry/getDataValues.action?periodId=${periodId}&dataSetId=${dataSetId}&organisationUnitId=${orgUnit}&multiOrganisationUnit=false`;
   const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
-  console.log('url :: ', url);
+  return r2.get(url, {
+    headers: {
+      Authorization,
+    },
+  }).json;
+};
+
+export const getDataSetValidationRules = (dataSet) => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/api/validationRules.json?paging=false&dataSet=${dataSet}&fields=id,name,operator,leftSide,rightSide`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
 
   return r2.get(url, {
     headers: {
@@ -47,3 +57,15 @@ export const getDataSetOutliers = (dataSetId, periodId, orgUnit) => {
     },
   }).json;
 };
+
+export const validationRulesEval = (ruleId, periodId, orgUnitId) => {
+  const baseUrl = appConfig.url;
+  const url = `${baseUrl}/api/dataAnalysis/validationRulesExpression.json?validationRuleId=${ruleId}&periodId=${periodId}&organisationUnitId=${orgUnitId}&fields=*`;
+  const Authorization = getAuthorizationString(appConfig.username, appConfig.password);
+
+  return r2.get(url, {
+    headers: {
+      Authorization,
+    },
+  }).json;
+}

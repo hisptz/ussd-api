@@ -159,7 +159,7 @@ export const validatedData = async (sessionid, _currentMenu, USSDRequest) => {
 export const collectPeriodData = async (sessionid, obj) => {
   const sessionDatavalues = await getSessionDataValue(sessionid);
 
-  console.log('data :: ', obj);
+  // console.log('data :: ', obj);
   if (sessionDatavalues) {
     sessionDatavalues.dataValues = JSON.stringify(sessionDatavalues.dataValues);
     return updateSessionDataValues(sessionid, {

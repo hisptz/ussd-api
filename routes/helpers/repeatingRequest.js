@@ -5,9 +5,11 @@ import {
   getSessionDataValue,
   getMenuJson,
   getLatestApplicationEntryByKey,
+  getOutlierByDatasetPeriodAndOu,
+  addOulier,
 } from '../../db';
 import { getOrganisationUnitByCode, getOrganisationUnit } from '../../endpoints/organisationUnit';
-import { getDataSetOutliers, getDataSet } from '../../endpoints/dataSet';
+import { getDataSetOutliers, getDataSet, getDataSetValidationRules, validationRulesEval } from '../../endpoints/dataSet';
 const { generateCode } = require('dhis2-uid');
 import * as _ from 'lodash';
 import {
@@ -30,6 +32,15 @@ const periodTypes = {
   Monthly: '',
   BiMonthly: 'S',
   Quoterly: 'Q',
+};
+
+const operatorMapper = {
+  equal_to: '==',
+  not_equal_to: '!==',
+  greater_than: '>',
+  greater_than_or_equal_to: '>=',
+  less_than: '<',
+  less_than_or_equal_to: '<=',
 };
 
 let dataSetConfigs;
@@ -209,8 +220,60 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
             const retry_message = _currentMenu.retry_message || 'You did not enter numerical value, try again';
             response = await returnNextMenu(sessionid, _next_menu_json, retry_message, session.orgUnit);
           } else {
-            response = await collectData(sessionid, _currentMenu, USSDRequest);
-            response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+            let dataValues = await getSessionDataValue(sessionid);
+
+            let periodId = `${dataValues.year}${dataValues.period}`;
+
+            console.log('menu:: ', _currentMenu);
+
+            console.log('period :: ', periodId);
+
+            console.log('session', session);
+
+            // check if menu is dataset, session has period and ou
+            if (_currentMenu.data_set && session.orgUnit && periodId) {
+              // check if outlier exists in db
+
+              let outlierData = await getOutlierByDatasetPeriodAndOu(_currentMenu.data_set, session.orgUnit, periodId);
+
+              console.log('outliers data :: ', outlierData);
+
+              if (outlierData) {
+                // check against the data
+              } else {
+                // get outliers from api
+                let outliersFromAPI = await getDataSetOutliers(_currentMenu.data_set, periodId, session.orgUnit);
+
+                //transform to good format
+                let outliersObject = {};
+                _.each(outliersFromAPI.minMaxDataElements, (deRange) => {
+                  outliersObject[deRange.id] = {
+                    min: deRange.min,
+                    max: deRange.max,
+                  };
+                });
+
+                //feed outlierdata to db
+                await addOulier({
+                  dataset: _currentMenu.data_set,
+                  period: periodId,
+                  orgUnit: session.orgUnit,
+                  outliers: outliersObject,
+                });
+
+                // check against data
+                console.log('data :: ', USSDRequest);
+                console.log('outliers Obj :: ', outliersObject);
+
+                // either proceed as normal or create virtual outlier notification menu to allow reentry na warning
+
+                response = await collectData(sessionid, _currentMenu, USSDRequest);
+                response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+              }
+            } else {
+              response = await collectData(sessionid, _currentMenu, USSDRequest);
+              response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+            }
           }
         }
       } else if (_currentMenu.type === 'options') {
@@ -463,6 +526,42 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message, org
       //   options: returnOptions({ options: JSON.parse(menu.options) }),
       // };
     }
+  } else if (menu.type === 'dataset-validation') {
+    console.log('MENU :: ', menu);
+
+    // get dataset dataelements
+    let session = await getCurrentSession(sessionid);
+
+    console.log('session :: ', session);
+
+    let dataValues = await getSessionDataValue(sessionid);
+
+    // console.log('data values :: ', dataValues);
+
+    let periodId = `${dataValues.year}${dataValues.period}`;
+
+    let validationRules = await getDataSetValidationRules(menu.data_set);
+
+    let dataSetDataValues = await getDataSetOutliers(menu.data_set, periodId, session.orgUnit);
+
+    // console.log('rules :: ', validationRules);
+
+    let evaluations = await evaluateValidationRules(validationRules.validationRules, dataSetDataValues.dataValues);
+
+    console.log('evaluations length :: ', evaluations.length);
+    console.log('eval :: ', JSON.stringify(evaluations, null, 4));
+
+    let text;
+
+    if (evaluations.length > 0) {
+      text = `${evaluations.join(' \n')}`;
+
+      message = {
+        response_type: 2,
+        text: text,
+      };
+    } else {
+    }
   }
 
   // checking if previous menu is not of type auth and add back menu
@@ -476,6 +575,49 @@ const returnNextMenu = async (sessionid, next_menu_json, additional_message, org
   }
 
   return message;
+};
+
+const evaluateValidationRules = async (validationRules, dataValues) => {
+  let dataValuesObject = {};
+  _.each(dataValues, (datavalue) => {
+    dataValuesObject[datavalue.id] = datavalue.val;
+  });
+
+  let violatedValidationRules = [];
+
+  let expressions = _.each(validationRules, (vrule) => {
+    console.log('vrule :: ', vrule);
+
+    let leftSideVarsAndOperators = vrule.leftSide.expression.split(`#{`).join('').split('}');
+
+    leftSideVarsAndOperators = _.map(leftSideVarsAndOperators, (variable) => {
+      if (dataValuesObject && dataValuesObject[variable.split('.').join('-')]) {
+        return dataValuesObject[variable.split('.').join('-')];
+      } else {
+        return variable;
+      }
+    }).join(' ');
+
+    let rightSideVarsAndOperators = vrule.rightSide.expression.split(`#{`).join('').split('}');
+
+    rightSideVarsAndOperators = _.map(rightSideVarsAndOperators, (variable) => {
+      if (dataValuesObject && dataValuesObject[variable.split('.').join('-')]) {
+        return dataValuesObject[variable.split('.').join('-')];
+      } else {
+        return variable;
+      }
+    }).join(' ');
+
+    let expression = `${leftSideVarsAndOperators} ${operatorMapper[vrule.operator]} ${rightSideVarsAndOperators}`;
+
+    console.log('exp :: ', expression);
+
+    if (!eval(expression)) {
+      violatedValidationRules.push(vrule.name);
+    }
+  });
+
+  return violatedValidationRules;
 };
 
 const compareDataElementsWithDataValues = (dataValues) => {
