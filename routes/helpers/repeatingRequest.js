@@ -224,22 +224,56 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
 
             let periodId = `${dataValues.year}${dataValues.period}`;
 
-            console.log('menu:: ', _currentMenu);
-
-            console.log('period :: ', periodId);
-
-            console.log('session', session);
 
             // check if menu is dataset, session has period and ou
-            if (_currentMenu.data_set && session.orgUnit && periodId) {
+            if (
+              _currentMenu.data_set &&
+              session.orgUnit &&
+              periodId &&
+              !(session.current_menu_action && session.current_menu_action == 'RESUBMIT_TO_VALIDATE')
+            ) {
               // check if outlier exists in db
 
               let outlierData = await getOutlierByDatasetPeriodAndOu(_currentMenu.data_set, session.orgUnit, periodId);
 
-              console.log('outliers data :: ', outlierData);
-
               if (outlierData) {
                 // check against the data
+                let outliersObject = outlierData.outliers;
+
+
+                if (outliersObject[_currentMenu.data_id.split('.').join('-')]) {
+                  if (
+                    outliersObject[_currentMenu.data_id.split('.').join('-')]['min'] >= USSDRequest ||
+                    outliersObject[_currentMenu.data_id.split('.').join('-')]['max'] <= USSDRequest
+                  ) {
+                    // outlier exists
+                    // create virtual outlier notification menu to allow reentry na warning
+
+                    await updateUserSession(sessionid, { ...session, current_menu_action: 'RESUBMIT_TO_VALIDATE' });
+
+                    let menuToReturn = {
+                      ..._currentMenu,
+                      options: `[{"id": "6hzlZcW0Sad","title": "Confirm","response": "1", "value": "${USSDRequest}", "next_menu":"${_currentMenu.next_menu}"}]`,
+                    };
+
+                    response = returnNextMenu(
+                      sessionid,
+                      menuToReturn,
+                      `The value is an not within exeptable range. Re-enter the value to confirm, or enter a new value to update`,
+                      session.orgUnit
+                    );
+                  } else {
+                    // no outlier, proceed
+
+                    response = await collectData(sessionid, _currentMenu, USSDRequest);
+                    response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+                  }
+                } else {
+                  // no outlier, proceed
+
+                  response = await collectData(sessionid, _currentMenu, USSDRequest);
+                  response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+                }
               } else {
                 // get outliers from api
                 let outliersFromAPI = await getDataSetOutliers(_currentMenu.data_set, periodId, session.orgUnit);
@@ -262,15 +296,45 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
                 });
 
                 // check against data
-                console.log('data :: ', USSDRequest);
-                console.log('outliers Obj :: ', outliersObject);
 
-                // either proceed as normal or create virtual outlier notification menu to allow reentry na warning
+                if (outliersObject[_currentMenu.data_id.split('.').join('-')]) {
+                  if (
+                    outliersObject[_currentMenu.data_id.split('.').join('-')]['min'] >= USSDRequest ||
+                    outliersObject[_currentMenu.data_id.split('.').join('-')]['max'] <= USSDRequest
+                  ) {
+                    // outlier exists
+                    // create virtual outlier notification menu to allow reentry na warning
+                    menuToReturn = {
+                      ..._currentMenu,
+                      options: [
+                        {
+                          id: '6hzlZcW0Sad',
+                          title: 'Confirm',
+                          response: '1',
+                          value: USSDRequest,
+                        },
+                      ],
+                    };
 
-                response = await collectData(sessionid, _currentMenu, USSDRequest);
-                response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+                    response = returnNextMenu(sessionid, menuToReturn, 'error message', session.orgUnit);
+                  } else {
+                    // no outlier, proceed
+
+                    response = await collectData(sessionid, _currentMenu, USSDRequest);
+                    response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+                  }
+                } else {
+                  // no outlier, proceed
+
+                  response = await collectData(sessionid, _currentMenu, USSDRequest);
+                  response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
+                }
               }
             } else {
+              if (session.current_menu_action && session.current_menu_action == 'RESUBMIT_TO_VALIDATE') {
+                await updateUserSession(sessionid, { ...session, current_menu_action: null });
+              }
+
               response = await collectData(sessionid, _currentMenu, USSDRequest);
               response = await returnNextMenu(sessionid, _next_menu_json, null, session.orgUnit);
             }
@@ -278,7 +342,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
         }
       } else if (_currentMenu.type === 'options') {
         response = await checkOptionsAnswer(sessionid, _currentMenu, USSDRequest, application_id);
-        //console.log('response on options :: ', response);
       } else if (_currentMenu.type === 'period') {
         response = await checkPeriodAnswer(sessionid, _currentMenu, USSDRequest, _next_menu_json);
       } else if (_currentMenu.type === 'ou') {

@@ -21,6 +21,8 @@ import { generateTEIAttribute } from '../../endpoints/trackerData';
 const { generateCode } = require('dhis2-uid');
 
 export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
+  console.log('menu on collect', JSON.stringify(_currentMenu, null, 4), 'data', USSDRequest);
+
   const sessionDatavalues = await getSessionDataValue(sessionid);
   const { data_type, category_combo, data_element, program, program_stage, tracked_entity_type, tracked_entity_attribute } = _currentMenu;
   const dataValue = [
@@ -31,6 +33,8 @@ export const collectData = async (sessionid, _currentMenu, USSDRequest) => {
       value: USSDRequest,
     },
   ];
+
+  console.log("the data Val ::", dataValue)
   const data = {
     sessionid,
     programStage: program_stage,
