@@ -4,18 +4,36 @@ import { repeatingRequest } from './helpers/repeatingRequest';
 import { sendEGASMS } from '../endpoints/sms';
 import { getCurrentSession, getApplicationById, getCurrentSessionByPhoneNumber, getLatestApplicationEntryByKey } from '../db';
 import { appConfig } from '../config/app.config';
+import { response } from 'express';
 
 const db = require('../db');
 
 const router = express.Router();
 
 const format = (sessionid, response) => {
-  return {
-    ...response,
-    header_type: response.response_type === 1 ? '3' : '' + response.response_ty$
-  };
+  // return {
+  //   ...response,
+  //   header_type: response.response_type === 1 ? '3' : '' + response.response_ty$,
+  // };
 
-  //return `C;${sessionid};${JSON.stringify(response_to_format)}`;
+  return formatResponse(response, sessionid);
+};
+
+const formatResponse = (response, sessionid) => {
+  // console.log('here :: ',  response.options);
+
+  let text = [
+    response.text,
+    ...response.options.map((option) => {
+      return `${option.response} ${option.title}`;
+    }),
+  ].join('\n');
+
+  let responseText = `C;${sessionid};${text}`;
+
+  console.log(responseText);
+
+  return responseText;
 };
 
 const requestHandler = async (req, res) => {

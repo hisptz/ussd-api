@@ -224,7 +224,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
 
             let periodId = `${dataValues.year}${dataValues.period}`;
 
-
             // check if menu is dataset, session has period and ou
             if (
               _currentMenu.data_set &&
@@ -239,7 +238,6 @@ export const repeatingRequest = async (sessionid, USSDRequest, msisdn, session) 
               if (outlierData) {
                 // check against the data
                 let outliersObject = outlierData.outliers;
-
 
                 if (outliersObject[_currentMenu.data_id.split('.').join('-')]) {
                   if (
@@ -820,15 +818,19 @@ const checkOptionSetsAnswer = async (sessionid, menu, _next_menu_json, answer, a
 //   }) => `${response}. ${title}`)].join('\n');
 // };
 export const returnOptions = ({ options }) => {
-  let returnOptions = {};
-  options.forEach((option) => {
-    if (typeof option.response === 'boolean') {
-      returnOptions[option.response ? '1' : '2'] = option.title;
-    } else {
-      returnOptions[option.response] = option.title;
-    }
-  });
-  return returnOptions;
+  // console.log('options', options);
+
+  // let returnOptions = {};
+  // options.forEach((option) => {
+  //   if (typeof option.response === 'boolean') {
+  //     returnOptions[option.response ? '1' : '2'] = option.title;
+  //   } else {
+  //     returnOptions[option.response] = option.title;
+  //   }
+  // });
+  // return returnOptions;
+
+  return options
 };
 // check Period answer
 const checkPeriodAnswer = async (sessionid, menu, answer, _next_menu_json) => {
